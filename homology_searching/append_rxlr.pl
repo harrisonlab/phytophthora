@@ -1,19 +1,26 @@
 #!/usr/bin/perl -w
 use strict;
-use CWD;
+use Cwd;
 
+my $usage = "append_rxlr.pl <infile_sp_rxlr.fa> > appended_rxlr_sp.fa\n";
 my $line;
+#print "spoons\n\n"; 
 
-for (@_) {
+for (@ARGV) {
 	my @nameparts = split ('/', $_);
-	$genome = $nameparts[-3];
-	$isolate = $nameparts[-2];
-	open (INFILE, "$_") or die;
+	my $genome = $nameparts[-3];
+	my $isolate = $nameparts[-2];
+	my $file = $_;
+	print "$_\n";
+	print "$genome\n";
+	print "$isolate\n";
+	open (INFILE, "$file") or die $usage;
 	while ($line = <INFILE>) {
 		$line =~ s/>/>$genome\|$isolate\|/g;
 		$line =~ s/\s//g;
-		print $line;
+		print "$line\n";
 	}
+	close (INFILE);
 }
 
 exit
