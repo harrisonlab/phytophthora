@@ -2,4 +2,4 @@
 
 # append rxlr outputs
 
-cat "$#" > idris_rxlr.fa
+cat "$#" > analysis/blast_homology/idris_rxlr.fa
