@@ -4,16 +4,12 @@ use Cwd;
 
 my $usage = "append_rxlr.pl <infile_sp_rxlr.fa> > appended_rxlr_sp.fa\n";
 my $line;
-#print "spoons\n\n"; 
 
 for (@ARGV) {
 	my @nameparts = split ('/', $_);
 	my $genome = $nameparts[-3];
 	my $isolate = $nameparts[-2];
 	my $file = $_;
-	print "$_\n";
-	print "$genome\n";
-	print "$isolate\n";
 	open (INFILE, "$file") or die $usage;
 	while ($line = <INFILE>) {
 		$line =~ s/>/>$genome\|$isolate\|/g;
