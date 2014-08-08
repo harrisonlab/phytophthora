@@ -1,15 +1,19 @@
 #!/bin/bash
 
-#INFILE=analysis/blast_homology/P.fragariae/JHVZ02/JHVZ02_appended_rxlr_sp.fa_homologs.csv
-
 # Commands to process the presence_tabs.csv file of blast_differentials.sh script. 
 # Collects blast_self data from any of the initial blast_pipe.sh output files 
 # and orders the presence_tabs.csv file by these homolog groups. The groupings 
 # are collapsed, so that they are more readable and then the file is split into 
 # queries that are present in all genomes, absent in all genomes or are differential.
 
+USAGE=homolog_grp_srt.sh <presence_tab.csv> <any_blast_pipe_outfile.csv>
+
+echo "$USAGE"
 PRESENCE_TAB=$1
 HOMOLOG_GRP_TAB=$2
+echo "homolog_grp_srt.sh is running using:"
+echo "$PRESENCE_TAB"
+echo "$HOMOLOG_GRP_TAB"
 
 #	IMPORTANT
 #
