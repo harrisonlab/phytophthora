@@ -6,7 +6,7 @@
 # are collapsed, so that they are more readable and then the file is split into 
 # queries that are present in all genomes, absent in all genomes or are differential.
 
-USAGE=homolog_grp_srt.sh <presence_tab.csv> <any_blast_pipe_outfile.csv>
+$USAGE="homolog_grp_srt.sh <presence_tab.csv> <any_blast_pipe_outfile.csv>";
 
 echo "$USAGE"
 PRESENCE_TAB=$1
@@ -19,7 +19,7 @@ echo "$HOMOLOG_GRP_TAB"
 #
 #	Edit this next line -- cut -f 2-<final_column_of_homolog_grps_in_$2> $HOMOLOG_GRP_TAB
 #
-paste -d '\t' $PRESENCE_TAB <(cut -f 2-1121 $HOMOLOG_GRP_TAB) > presence_tab_grps.csv
+paste -d '\t' $PRESENCE_TAB <( cut -f 2-1121 $HOMOLOG_GRP_TAB | tail -n +2) > presence_tab_grps.csv
 
 sort -k7 presence_tab_grps.csv > presence_tab_grps_srt.csv
 
