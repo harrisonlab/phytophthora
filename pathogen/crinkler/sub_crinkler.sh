@@ -12,8 +12,8 @@ MOTIF1=$2
 MOTIF2=$3
 MOTIF3=$4
 
-ORGANISM=$(echo $INFILE | rev | cut -d "/" -f4 | rev)
-STRAIN=$(echo $INFILE | rev | cut -d "/" -f3 | rev)
+ORGANISM=$(echo $INFILE | rev | cut -d "/" -f3 | rev)
+STRAIN=$(echo $INFILE | rev | cut -d "/" -f2 | rev)
 IN_FASTA=$(echo $INFILE | rev | cut -d "/" -f1 | rev)
 
 CUR_PATH=$PWD
