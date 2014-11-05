@@ -52,9 +52,22 @@ my $input = shift;
 my $direction = shift;
 my $aa_out = shift;
 my $nuc_out = shift;
+my $gff_out = shift;
 open(INP, $input) || die "Cannot open file \"$input\"\n\n";
 open(AA_OUT, ">$aa_out") || die "Cannot create file \"$aa_out\"\n\n";
 open(NUC_OUT, ">$nuc_out") || die "Cannot create file \"$nuc_out\"\n\n";
+open(GFF_OUT, ">$gff_out") || die "Cannot create file \"$gff_out\"\n\n";
+
+my $gff1_name = '';
+my $gff2_source = 'print_atg.pl';
+my $gff3_type = 'CDS';
+my $gff4_start = '';
+my $gff5_end = '';
+my $gff6_score = '.';
+my $gff7_strand = '';
+my $gff8_phase = '0';
+my $gff9_attributes = '\"ID = ;\"';
+
 
 while (<INP>) {
     chomp;
@@ -102,26 +115,28 @@ sub print_atg_50 {
 	my ($this_header, $thisSeq, $frame, $direction) = @_;
 	$thisSeq =~ s/>.*?\n//;
 	$thisSeq =~ tr/[actg]/[ACTG]/;
-	print "\nthis seq is:\n$thisSeq\n";
 	while ($thisSeq =~ /[ATCG]*?(ATG\w+?$)/) {
 		my $this_frame = $1;
-		my $intro_seq = $this_frame;
-		$intro_seq =~ /ATG/;
-		$intro_seq = $`;
-		print "this frame is:\n\t$this_frame\n";
-		print "intro_seq is:\n\t$intro_seq\n";
-		print "this gene is:\n$this_frame\n";
+		$thisSeq =~ /ATG\w+?$/;
+		my $before_atg = $`;
+		$gff4_start = length ($before_atg);
 		my $seq_length = length ($this_frame);
+		
 		if ($seq_length < 210) {		
 			last;
 		}
 		my ($peptide, $nuc) = translate_from_atg($this_frame);
+		$gff5_end = ("$gff4_start" + (length ($nuc)));
 		if (length($peptide) >= 50) {
-			print "frame is:\n$frame\n";
 			print AA_OUT "$this_header","_","$direction","$frame","\n";
 			print AA_OUT "$peptide\n";
 			print NUC_OUT "$this_header","_","$direction","$frame","\n";
 			print NUC_OUT "$nuc\n";
+			$gff1_name = substr ($this_header, 1);
+			if ($direction eq 'F') {$gff7_strand = '+'} elsif ($direction eq 'R') {$gff7_strand = '-'} else {$gff7_strand = '?'}  
+			$gff9_attributes = "\"ID = $gff1_name;\"";
+			print GFF_OUT "$gff1_name\t$gff2_source\t$gff3_type\t$gff4_start\t$gff5_end\t";
+			print GFF_OUT "$gff6_score\t$gff7_strand\t$gff8_phase\t$gff9_attributes\n";
 			$thisSeq = substr($this_frame, 3);
 			$frame++;
 		} else {
