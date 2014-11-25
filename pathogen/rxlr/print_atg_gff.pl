@@ -8,7 +8,7 @@ use warnings;
 #
 #
 #
-# Usage: ./print_atg_50.pl <input_fasta_file> direction <aa_outfile> <nucleotide_outfile>
+# Usage: ./print_atg_50.pl <input_fasta_file> direction <aa_outfile> <nucleotide_outfile> <gff_outfile>
 #
 # Written by Joe Win, Kamoun lab, OSU-OARDC
 #
@@ -46,6 +46,7 @@ my $thisSeqIndex = 0;
 my $inSequence = 0;
 my $seqComplete = 0;
 my $totalSeqCount = 0;
+my $orf_count = 0;
 my $tempSeq = "";
 my @sequences;
 my $input = shift;
@@ -128,13 +129,20 @@ sub print_atg_50 {
 		my ($peptide, $nuc) = translate_from_atg($this_frame);
 		$gff5_end = ("$gff4_start" + (length ($nuc)));
 		if (length($peptide) >= 50) {
+			$orf_count++;
 			print AA_OUT "$this_header","_","$direction","$frame","\n";
 			print AA_OUT "$peptide\n";
 			print NUC_OUT "$this_header","_","$direction","$frame","\n";
 			print NUC_OUT "$nuc\n";
 			$gff1_name = substr ($this_header, 1);
-			if ($direction eq 'F') {$gff7_strand = '+'} elsif ($direction eq 'R') {$gff7_strand = '-'} else {$gff7_strand = '?'}  
-			$gff9_attributes = "\"ID = $gff1_name;\"";
+			if ($direction eq 'F') {
+				$gff7_strand = '+';
+			} elsif ($direction eq 'R') {
+				$gff7_strand = '-';
+				$gff4_start = ("$seq_length" - "$gff4_start");
+				$gff5_end = ("$seq_length" - "$gff5_end");
+			} else {$gff7_strand = '?';}  
+			$gff9_attributes = "\"ID = ","ORF_$direction","_$orf_count\""," \"Name = ","$this_header","_$direction","$frame\"";
 			print GFF_OUT "$gff1_name\t$gff2_source\t$gff3_type\t$gff4_start\t$gff5_end\t";
 			print GFF_OUT "$gff6_score\t$gff7_strand\t$gff8_phase\t$gff9_attributes\n";
 			$thisSeq = substr($this_frame, 3);
