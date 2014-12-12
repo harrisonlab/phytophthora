@@ -2,7 +2,7 @@
 
 #qsub /home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/crinkler/sub_crinkler.sh analysis/rxlr/P.cactorum/10300/10300_nuc.fa LxLFLAK LYLAK HVLVVVP
 
-for inpath in $(ls -d analysis/rxlr/*/*); do
+for inpath in $(ls -d analysis/rxlr_unmasked/*/*); do
 	STRAIN=$(echo $inpath | rev | cut -d "/" -f1 | rev)
 	qsub /home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/crinkler/sub_crinkler.sh $inpath/"$STRAIN"_nuc.fa LxLFLAK LYLAK HVLVVVP
 done
@@ -14,8 +14,8 @@ MOTIF3=HVLVVVP
 
 for infolder in $(ls -d analysis/crinkler/*/*); do
 	STRAIN=$(echo $infolder | rev | cut -d "/" -f1 | rev)
-	cat analysis/rxlr_hardmasked/*/*/"$STRAIN"_nuc.fa | grep -A1 -w "$(cat $infolder/findmotif_LxLFLAK.fa $infolder/findmotif_HVLVVVP.fa | grep '>' | cut -f1 | sed 's/ //g' | sort | uniq -d)" > $infolder/findmotif_LxLFLAK_HVLVVVP.fa
-	cat analysis/rxlr_hardmasked/*/*/"$STRAIN"_nuc.fa | grep -A1 -w "$(cat $infolder/findmotif_LYLAK.fa $infolder/findmotif_HVLVVVP.fa | grep '>' | cut -f1 | sed 's/ //g' | sort | uniq -d)" > $infolder/findmotif_LYLAK_HVLVVVP.fa
+	cat analysis/rxlr_unmasked/*/*/"$STRAIN"_nuc.fa | grep -A1 -w "$(cat $infolder/findmotif_LxLFLAK.fa $infolder/findmotif_HVLVVVP.fa | grep '>' | cut -f1 | sed 's/ //g' | sort | uniq -d)" > $infolder/findmotif_LxLFLAK_HVLVVVP.fa
+	cat analysis/rxlr_unmasked/*/*/"$STRAIN"_nuc.fa | grep -A1 -w "$(cat $infolder/findmotif_LYLAK.fa $infolder/findmotif_HVLVVVP.fa | grep '>' | cut -f1 | sed 's/ //g' | sort | uniq -d)" > $infolder/findmotif_LYLAK_HVLVVVP.fa
 done
 
 
