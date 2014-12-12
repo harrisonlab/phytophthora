@@ -141,8 +141,10 @@ sub print_atg_50 {
 				$gff7_strand = '-';
 				$gff4_start = ("$seq_length" - "$gff4_start");
 				$gff5_end = ("$seq_length" - "$gff5_end");
-			} else {$gff7_strand = '?';}  
-			$gff9_attributes = "\"ID = ","ORF_$direction","_$orf_count\""," \"Name = ","$this_header","_$direction","$frame\"";
+			} else {$gff7_strand = '?';}
+			my $feature_name = "ORF_$direction" . "_$orf_count";
+			my $feature_id = "$gff1_name" . "_$direction" . "$frame";	  
+			$gff9_attributes = "\"ID = $feature_name\"; \"Name = $feature_id\"";
 			print GFF_OUT "$gff1_name\t$gff2_source\t$gff3_type\t$gff4_start\t$gff5_end\t";
 			print GFF_OUT "$gff6_score\t$gff7_strand\t$gff8_phase\t$gff9_attributes\n";
 			$thisSeq = substr($this_frame, 3);
