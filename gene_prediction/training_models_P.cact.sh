@@ -15,3 +15,23 @@ qsub /home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc/rna_qc_fastq-mcf.sh
 qsub /home/armita/git_repos/emr_repos/tools/seq_tools/transcriptome_assembly/transcriptome_assembly_trinity.sh qc_/paired/genbank/P.cactorum/F/P.cactorum_qc_F.fastq qc_/paired/genbank/P.cactorum/R/P.cactorum_qc_R.fastq
 
 /home/armita/git_repos/emr_repos/scripts/alternaria/gene_pred/Gene_pred_pipe.sh assembly/trinity/paired/P.cactorum/10300_rna_contigs/Trinity.fasta repeat_masked/P.cactorum/10300/version1_repmask/10300_contigs_unmasked.fa
+
+mv qc_/* qc_rna/.
+rm -r qc_
+cat qc_rna/paired/genbank/P.cactorum/F/P.cactorum_qc_F.fastq  qc_rna/paired/genbank/P.cactorum/R/P.cactorum_qc_R.fastq | gunzip -cf > qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+
+for GENOME in $(ls repeat_masked/P.cactorum/*/*/*_contigs_unmasked.fa); do 
+	echo $GENOME
+	qsub /home/armita/git_repos/emr_repos/tools/gene_prediction/augustus/augustus_pipe.sh $GENOME qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+done
+
+for GENOME in $(ls repeat_masked/P.ideai/*/*/*_contigs_unmasked.fa); do 
+	echo $GENOME
+	qsub /home/armita/git_repos/emr_repos/tools/gene_prediction/augustus/augustus_pipe.sh $GENOME qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+done
+
+for GENOME in $(ls repeat_masked/P.fragariae/*/*_ed_repmask/*_contigs_unmasked.fa); do 
+	echo $GENOME; 
+	qsub /home/armita/git_repos/emr_repos/tools/gene_prediction/augustus/augustus_pipe.sh $GENOME qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+done
+
