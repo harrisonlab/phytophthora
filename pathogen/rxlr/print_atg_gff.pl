@@ -116,19 +116,38 @@ sub print_atg_50 {
 	my ($this_header, $thisSeq, $frame, $direction) = @_;
 	$thisSeq =~ s/>.*?\n//;
 	$thisSeq =~ tr/[actg]/[ACTG]/;
+	#
+	my $this_contig = $thisSeq;
+	my $contig_length = length ($thisSeq);
+#	print "This seq length is: " . $contig_length . "\n"; 
+	
 	while ($thisSeq =~ /[ATCG]*?(ATG\w+?$)/) {
 		my $this_frame = $1;
-		$thisSeq =~ /ATG\w+?$/;
+
+#		$thisSeq =~ /ATG\w+?$/;
+		$this_contig =~ /$this_frame/;
 		my $before_atg = $`;
-		$gff4_start = length ($before_atg);
+		#
+#		print "This seq length is: " . $contig_length . "\n"; 
+#		print "thisSeq is: \n" . $thisSeq . "\n";
+#		print "before atg= \n" . $before_atg . "\n";
+#		print "this_frame= \n" . $this_frame . "\n";
+		#
+		my $feature_start = length ($before_atg);
 		my $seq_length = length ($this_frame);
 		
 		if ($seq_length < 210) {		
 			last;
 		}
 		my ($peptide, $nuc) = translate_from_atg($this_frame);
-		$gff5_end = ("$gff4_start" + (length ($nuc)));
+		my $feature_end = ("$feature_start" + (length ($nuc)));
 		if (length($peptide) >= 50) {
+
+			#
+#			print "length of nuc is: " . (length ($nuc)) . "\n";
+#			print "feature_start is: " . $feature_start . "\n";
+#			print "feature_end is: " . $feature_end . "\n";
+			#
 			$orf_count++;
 			print AA_OUT "$this_header","_","$direction","$frame","\n";
 			print AA_OUT "$peptide\n";
@@ -137,10 +156,18 @@ sub print_atg_50 {
 			$gff1_name = substr ($this_header, 1);
 			if ($direction eq 'F') {
 				$gff7_strand = '+';
+				# Correct for perl counting from 0.
+				$gff4_start = $feature_start;
+				$gff5_end = $feature_end;
+				$gff4_start++;
+				$gff5_end++;
 			} elsif ($direction eq 'R') {
 				$gff7_strand = '-';
-				$gff4_start = ("$seq_length" - "$gff4_start");
-				$gff5_end = ("$seq_length" - "$gff5_end");
+				
+				$gff4_start = ("$contig_length" - "$feature_end");
+				$gff5_end = ("$contig_length" - "$feature_start");
+# 				$gff4_start = ("$seq_length" - "$gff4_start");
+# 				$gff5_end = ("$seq_length" - "$gff5_end");
 			} else {$gff7_strand = '?';}
 			my $feature_name = "ORF_$direction" . "_$orf_count";
 			my $feature_id = "$gff1_name" . "_$direction" . "$frame";	  
