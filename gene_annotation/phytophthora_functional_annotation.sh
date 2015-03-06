@@ -106,6 +106,21 @@ for FILEZ in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
 	cat $FILEZ | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -B1 "L.LFLAK" | grep -B1 "HVLVVVP" | grep -v '\-\-' | sed "s/>/>$STRAIN\_/g" > $OUTFILEZ
 done
 
+# Extract the gtf gene features for crinklers
+for THIS_DIR in $(ls -d analysis/motif_search/P.*/*); do 
+STRAIN=$(echo $THIS_DIR | rev | cut -f1 -d '/' | rev);
+echo $STRAIN; 
+GENE_MODELS=$(ls gene_pred/augustus/P.*/$STRAIN/"$STRAIN"_augustus_preds.gtf)
+cat $THIS_DIR/"$STRAIN"_LxLFLAK_HVLVVVP.fa  | cut -f1 | grep '>' | sed "s/>$STRAIN//g" | sed 's/_//g' | sed 's/\.t.*//g' > "$STRAIN"_id_tmp.txt
+printf "" > $THIS_DIR/"$STRAIN"_LxLFLAK_HVLVVVP.gtf
+while read line; do
+cat $GENE_MODELS | grep 'gene' | grep -w "$line" >> $THIS_DIR/"$STRAIN"_LxLFLAK_HVLVVVP.gtf
+done<"$STRAIN"_id_tmp.txt
+rm "$STRAIN"_id_tmp.txt
+done
+
+
+
 # Use BLAST to identify if crinkler genes were present but were not predicted.
 # First append all blast results
 mkdir analysis/blast_homology/crinkler/blastx
@@ -179,11 +194,12 @@ echo $FILEZ;
 cat $FILEZ | grep '>' | wc -l; 
 done
 
-for FILE in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do
-	echo "$FILE"
-	echo "RxLR"
-	cat $FILE | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep 'R.LR' | wc -l
-done
+# for FILE in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do
+# 	echo "$FILE"
+# 	echo "RxLR"
+# 	cat $FILE | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep 'R.LR' | wc -l
+# done
+
 # get gff from sigP? > analysis/atg_sp_rxlr_unmasked/P.cactorum/10300/10300_sp_rxlr.gff
 # Some atg.pl outputs contain multiple amino acid sequences to a single fasta header (max 300aa long)
 
@@ -239,12 +255,65 @@ echo ""
 echo ""
 done
 
+
+
+
+
+
+
+
 # To ensure all crinklers were predicted in the genome all ORFs were searched for crinkler motifs
-for FILE in $(ls analysis/old/rxlr_atg_02-15/P.*/*/*.aa_cat.fa ); do
-	echo "$FILE"
+# for FILE in $(ls analysis/old/rxlr_atg_02-15/P.*/*/*.aa_cat.fa ); do
+# 	echo "$FILE"
+# 	echo "HVLVVVP LxFLAK"
+# 	cat $FILE | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -A1 'HVLVVVP' | sed 's/--//g' | grep -A1 'L.LFLAK' | sed 's/--//g' | grep '>' | wc -l
+# done
+
+for THIS_DIR in $(ls -d analysis/rxlr_atg/P.*/*); do
+	STRAIN=$(echo $THIS_DIR | rev | cut -f1 -d '/' | rev)
+	echo "$STRAIN"
 	echo "HVLVVVP LxFLAK"
-	cat $FILE | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -A1 'HVLVVVP' | sed 's/--//g' | grep -A1 'L.LFLAK' | sed 's/--//g' | grep '>' | wc -l
+	cat $THIS_DIR/"$STRAIN".aa_cat.fa | grep -B1 'HVLVVVP' | sed 's/--//g' | grep -B1 'L.LFLAK' | grep -v -e '\-\-' > $THIS_DIR/"$STRAIN"_crinkler.fa
+	cat $THIS_DIR/"$STRAIN"_crinkler.fa | grep '>' | cut -f1 | sed 's/>//g' > $THIS_DIR/"$STRAIN"_names_tmp.txt
+	printf "" > $THIS_DIR/"$STRAIN"_crinkler.gff
+	while read line; do
+	grep -w "$line" $THIS_DIR/"$STRAIN"_ORF.gff >> $THIS_DIR/"$STRAIN"_crinkler.gff
+	done<$THIS_DIR/"$STRAIN"_names_tmp.txt
+	rm $THIS_DIR/"$STRAIN"_names_tmp.txt
+done
+
+# The atg.pl script currently has a bug in the output for gff files
+# Where a feature is on the reverse compliment the node that it is named on is
+# named with _RC (The reversed gene number has been removed at some point)
+# This needs fixing but can be solved currently by:
+for THIS_DIR in $(ls -d analysis/rxlr_atg/P.*/*); do
+	STRAIN=$(echo $THIS_DIR | rev | cut -f1 -d '/' | rev)
+	sed -i 's/_RC\tprint_atg.pl/\tprint_atg.pl/g' $THIS_DIR/"$STRAIN"_crinkler.gff
 done
 
 
-
+for STRAIN_PATH in $(ls -d analysis/rxlr_atg/P.*/*); do
+	STRAIN=$(echo $STRAIN_PATH | rev | cut -f1 -d '/' | rev)
+	STRAIN_MODELS=$(ls gene_pred/augustus/P.*/"$STRAIN"/"$STRAIN"_augustus_preds.gtf)
+	echo "$STRAIN"
+	echo "There are alot of putative genes. Are there lots from the same ORF?"
+	echo "The following number of atg.pl crinklers don't overlap any other atg.pl crinklers"
+	bedtools intersect -c -a $STRAIN_PATH/"$STRAIN"_crinkler.gff -b $STRAIN_PATH/"$STRAIN"_crinkler.gff > $STRAIN_PATH/"$STRAIN"_crinkler_self_overlap.bed
+	cat $STRAIN_PATH/"$STRAIN"_crinkler_self_overlap.bed | cut -f 10 |  grep -w '1' | wc -l
+	echo "The number of predicted genes with overlaps with atg.pl ORF fragments are: "
+	bedtools intersect -c -a "$STRAIN_MODELS" -b $STRAIN_PATH/"$STRAIN"_crinkler.gff > $STRAIN_PATH/"$STRAIN"_crinkler_model_atg_overlap.bed
+	cat $STRAIN_PATH/"$STRAIN"_crinkler_model_atg_overlap.bed | grep 'gene' | cut -f10 | grep -v -w '0' |  wc -l
+	echo "The following number of atg.pl crinklers have overlaps with gene models: "
+	bedtools intersect -c -a $STRAIN_PATH/"$STRAIN"_crinkler.gff -b "$STRAIN_MODELS" > $STRAIN_PATH/"$STRAIN"_crinkler_model_atg_no_overlap.bed
+	cat $STRAIN_PATH/"$STRAIN"_crinkler_model_atg_no_overlap.bed | cut -f10 | grep -v -w '0' | wc -l
+	echo "The following number of atg.pl crinklers have no overlaps with gene models: "
+	cat $STRAIN_PATH/"$STRAIN"_crinkler_model_atg_no_overlap.bed | cut -f10 | grep -w '0' | wc -l
+	echo "The following number of atg.pl crinklers have overlaps with gene model crinklers: "
+	STRAIN_MODEL_CRINKLER=$(ls analysis/motif_search/P.*/*/"$STRAIN"_LxLFLAK_HVLVVVP.gtf)
+	bedtools intersect -c -a $STRAIN_PATH/"$STRAIN"_crinkler.gff -b "$STRAIN_MODEL_CRINKLER" > $STRAIN_PATH/"$STRAIN"_crinkler_modelcrinkler_atg_no_overlap.bed
+	cat $STRAIN_PATH/"$STRAIN"_crinkler_modelcrinkler_atg_no_overlap.bed | cut -f10 | grep -v -w '0' | wc -l
+	echo "The following number of atg.pl Sp.RxLRs have overlaps with no gene model crinklers: "
+	cat $STRAIN_PATH/"$STRAIN"_crinkler_modelcrinkler_atg_no_overlap.bed | cut -f10 | grep -w '0' | wc -l
+	echo ""
+	echo ""
+done
