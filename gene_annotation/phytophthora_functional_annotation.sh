@@ -178,15 +178,6 @@ for FILEZ in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do
 echo $FILEZ; 
 cat $FILEZ | grep '>' | wc -l; 
 done
-# The number of SigP/RxLRs predicted for each genome was:
-# for FILEZ in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr_nuc.fa); do 
-# echo $FILEZ; 
-# cat $FILEZ | grep '>' | wc -l; 
-# done
-# These produce two different results. 
-# This is because the path_pipe script has been using grep without the -W function
-# The _sp_rxlr.fa file is correct
-# This has been corrected!
 
 for FILE in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do
 	echo "$FILE"
@@ -248,59 +239,6 @@ echo ""
 echo ""
 done
 
-
-# cat analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr.fa | grep '>' | cut -f1 | sed 's/>//g' > names_tmp.txt
-# printf "" > 10300_sp_rxlr.gff
-# while read line; do
-# 	grep -w "$line" analysis/rxlr_atg/P.cactorum/10300/10300_ORF.gff >> 10300_sp_rxlr.gff
-# done<names_tmp.txt
-# rm id_tmp.txt
-# The number of genes predicted in 10300 with overlaps from the atg.pl script were identified.
-bedtools intersect -c -a gene_pred/augustus/P.cactorum/10300/10300_augustus_preds.gtf -b 10300_sp_rxlr.gff > 10300_overlap.bed
-cat 10300_overlap.bed | grep 'gene' | cut -f10 | grep -v -w '0' |  wc -l
-# this identifeid that 348 predicted genes had overlaps with atg.pl ORF fragments
-# with SignalP and RXLRs
-bedtools intersect -c -a 10300_sp_rxlr.gff -b gene_pred/augustus/P.cactorum/10300/10300_augustus_preds.gtf > 10300_no_overlap.bed
-# This accounted for 422 of the predicted ORF fragments.
-cat 10300_no_overlap.bed | cut -f10 | grep -w '0' | wc -l
-# This left 830 of the 1252 ORF fragments with SSigP RxLRs that did not relate to predicted genes.
-
-
-
-# The path pipe .gff output is wrong. gff features must start at base 1.
-# bedtools intersect -c -a 10300_sp_rxlr.gff -b 10300_sp_rxlr.gff > 10300_self_overlap3.bed
-# bedtools intersect -wa -wb -a 10300_sp_rxlr.gff -b 10300_sp_rxlr.gff > 10300_self_overlap.bed
-
-
-# use bowtie to align predicted RxLRs against the genome and use bedtools intersect to identify overlaps.
-# for STRAINZ in $(ls -d analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do 
-# echo $STRAINZ; 
-# STRAIN=$(echo $STRAINZ | rev | cut -f2 -d '/' | rev);
-# THIS_DIR=$(dirname $STRAINZ) 
-# grep '>' $THIS_DIR/"$STRAIN"_sp_rxlr.fa | cut -f1 > id_tmp.txt
-# printf "" > $THIS_DIR/"$STRAIN"_sp_rxlr_nuc.fa
-# while read line; do
-# 	grep -w -A1 "$line" $THIS_DIR/"$STRAIN"_nuc.fa| sed 's/--//g' >> $THIS_DIR/"$STRAIN"_sp_rxlr_nuc.fa
-# done<id_tmp.txt
-# rm id_tmp.txt
-# done
-# 
-# for STRAINZ in $(ls -d analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do 
-# echo $STRAINZ; 
-# STRAIN=$(echo $STRAINZ | rev | cut -f2 -d '/' | rev);
-# THIS_DIR=$(dirname $STRAINZ) 
-# grep '>' $THIS_DIR/"$STRAIN"_sp_rxlr_nuc.fa | grep '>' | sed 's/>//g' > id_tmp.txt
-# printf "" > $THIS_DIR/"$STRAIN"_sp_rxlr_nuc.fa
-# while read line; do
-# 	cat $THIS_DIR/"$STRAIN"_ORF.gff | grep -w "$line" >> $THIS_DIR/"$STRAIN"_sp_rxlr.gff
-# done<id_tmp.txt
-# rm id_tmp.txt
-# done
-# 
-# PATHZ=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/annotation_by_alignment/
-# qsub $PATHZ/bowtie_for_fasta_features.sh repeat_masked/P.cactorum/10300/version1_repmask/10300_contigs_softmasked.fa analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr_nuc.fa sp_rxlr
-# 
-
 # To ensure all crinklers were predicted in the genome all ORFs were searched for crinkler motifs
 for FILE in $(ls analysis/old/rxlr_atg_02-15/P.*/*/*.aa_cat.fa ); do
 	echo "$FILE"
@@ -309,5 +247,4 @@ for FILE in $(ls analysis/old/rxlr_atg_02-15/P.*/*/*.aa_cat.fa ); do
 done
 
 
-cat analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr_nuc.fa | grep '>' | sed 's/>//g' > tmp_gene_list.txt
 
