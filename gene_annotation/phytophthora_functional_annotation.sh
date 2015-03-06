@@ -145,6 +145,19 @@ cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep 'R.LR' | wc -l
 cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep -B1 'R.LR' | grep -vw '\-\-' > analysis/sigP_rxlr/"$SPECIES"/"$STRAIN"/"$STRAIN"_sigP_RxLR.fa
 done
 
+# Extract the gtf gene features for SP.RxLRs
+
+for THIS_DIR in $(ls -d analysis/sigP_rxlr/P.*/*); do 
+STRAIN=$(echo $THIS_DIR | rev | cut -f1 -d '/' | rev);
+echo $STRAIN; 
+GENE_MODELS=$(ls gene_pred/augustus/P.*/$STRAIN/"$STRAIN"_augustus_preds.gtf)
+cat $THIS_DIR/"$STRAIN"_sigP_RxLR.fa  | cut -f1 | grep '>' | sed 's/>//g' | sed 's/\.t.*//g' > "$STRAIN"_id_tmp.txt
+printf "" > $THIS_DIR/"$STRAIN"_sigP_RxLR.gtf
+while read line; do
+cat $GENE_MODELS | grep 'gene' | grep -w "$line" >> $THIS_DIR/"$STRAIN"_sigP_RxLR.gtf
+done<"$STRAIN"_id_tmp.txt
+rm "$STRAIN"_id_tmp.txt
+done
 
 
 
@@ -166,13 +179,14 @@ echo $FILEZ;
 cat $FILEZ | grep '>' | wc -l; 
 done
 # The number of SigP/RxLRs predicted for each genome was:
-for FILEZ in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr_nuc.fa); do 
-echo $FILEZ; 
-cat $FILEZ | grep '>' | wc -l; 
-done
+# for FILEZ in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr_nuc.fa); do 
+# echo $FILEZ; 
+# cat $FILEZ | grep '>' | wc -l; 
+# done
 # These produce two different results. 
 # This is because the path_pipe script has been using grep without the -W function
 # The _sp_rxlr.fa file is correct
+# This has been corrected!
 
 for FILE in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do
 	echo "$FILE"
@@ -180,13 +194,67 @@ for FILE in $(ls analysis/rxlr_atg/P.*/*/*_sp_rxlr.fa); do
 	cat $FILE | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep 'R.LR' | wc -l
 done
 # get gff from sigP? > analysis/atg_sp_rxlr_unmasked/P.cactorum/10300/10300_sp_rxlr.gff
-# some atg.pl outputs contain multiple amino acid sequences to a single fasta header (max 300aa long)
-cat analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr.fa | grep '>' | cut -f1 | sed 's/>//g' > names_tmp.txt
-printf "" > 10300_sp_rxlr.gff
+# Some atg.pl outputs contain multiple amino acid sequences to a single fasta header (max 300aa long)
+
+# There are ~1500 SigP RxLR putative genes from the atg.pl approach
+# Some genes may overlap one another. Can we identify this using 
+# overlapping gff features? 
+
+# How many of these putative effectors overlap predicted gene models?
+# First we need to make a gff of the atg.pl RxLRs.
+for STRAIN_PATH in $(ls -d analysis/rxlr_atg/P.*/*); do
+STRAIN=$(echo $STRAIN_PATH | rev | cut -f1 -d '/' | rev)
+echo "$STRAIN"
+cat $STRAIN_PATH/*_sp_rxlr.fa | grep '>' | cut -f1 | sed 's/>//g' > "$STRAIN"_names_tmp.txt
+printf "" > $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff
 while read line; do
-	grep -w "$line" analysis/rxlr_atg/P.cactorum/10300/10300_ORF.gff >> 10300_sp_rxlr.gff
-done<names_tmp.txt
-rm id_tmp.txt
+grep -w "$line" $STRAIN_PATH/"$STRAIN"_ORF.gff >> $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff
+done<"$STRAIN"_names_tmp.txt
+rm "$STRAIN"_names_tmp.txt
+done
+
+# The atg.pl script currently has a bug in the output for gff files
+# Where a feature is on the reverse compliment the node that it is named on is
+# named with _RC (The reversed gene number has been removed at some point)
+# This needs fixing but can be solved currently by:
+for PATHZ in $(ls -d analysis/rxlr_atg/P.*/*); do
+STRAIN=$(echo $PATHZ | rev | cut -f1 -d '/' | rev)
+sed -i 's/_RC\tprint_atg.pl/\tprint_atg.pl/g' "$PATHZ"/"$STRAIN"_sp_rxlr.gff 
+done
+
+for STRAIN_PATH in $(ls -d analysis/rxlr_atg/P.*/*); do
+STRAIN=$(echo $STRAIN_PATH | rev | cut -f1 -d '/' | rev)
+STRAIN_MODELS=$(ls gene_pred/augustus/P.*/"$STRAIN"/"$STRAIN"_augustus_preds.gtf)
+echo "$STRAIN"
+echo "There are alot of putative genes. Are there lots from the same ORF?"
+echo "The following number of atg.pl Sp.RxLRs don't overlap any other atg.pl Sp.RxLRs"
+bedtools intersect -c -a $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff -b $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff > $STRAIN_PATH/"$STRAIN"_atg_self_overlap.bed
+cat $STRAIN_PATH/"$STRAIN"_atg_self_overlap.bed | cut -f 10 |  grep -w '1' | wc -l
+echo "The number of predicted genes with overlaps with atg.pl ORF fragments are: "
+bedtools intersect -c -a "$STRAIN_MODELS" -b $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff > $STRAIN_PATH/"$STRAIN"_model_atg_overlap.bed
+cat $STRAIN_PATH/"$STRAIN"_model_atg_overlap.bed | grep 'gene' | cut -f10 | grep -v -w '0' |  wc -l
+echo "The following number of atg.pl Sp.RxLRs have overlaps with gene models: "
+bedtools intersect -c -a $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff -b "$STRAIN_MODELS" > $STRAIN_PATH/"$STRAIN"_model_atg_no_overlap.bed
+cat "$STRAIN"_model_atg_no_overlap.bed | cut -f10 | grep -v -w '0' | wc -l
+echo "The following number of atg.pl Sp.RxLRs have no overlaps with gene models: "
+cat "$STRAIN"_model_atg_no_overlap.bed | cut -f10 | grep -w '0' | wc -l
+echo "The following number of atg.pl Sp.RxLRs have overlaps with gene model Sp.RxLRs: "
+STRAIN_MODEL_RXLR=$(ls analysis/sigP_rxlr/P.*/"$STRAIN"/"$STRAIN"_sigP_RxLR.gtf)
+bedtools intersect -c -a $STRAIN_PATH/"$STRAIN"_sp_rxlr.gff -b "$STRAIN_MODEL_RXLR" > $STRAIN_PATH/"$STRAIN"_modelRxLR_atg_no_overlap.bed
+cat $STRAIN_PATH/"$STRAIN"_modelRxLR_atg_no_overlap.bed | cut -f10 | grep -v -w '0' | wc -l
+echo "The following number of atg.pl Sp.RxLRs have overlaps with no gene model Sp.RxLRs: "
+cat $STRAIN_PATH/"$STRAIN"_modelRxLR_atg_no_overlap.bed | cut -f10 | grep -w '0' | wc -l
+echo ""
+echo ""
+done
+
+
+# cat analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr.fa | grep '>' | cut -f1 | sed 's/>//g' > names_tmp.txt
+# printf "" > 10300_sp_rxlr.gff
+# while read line; do
+# 	grep -w "$line" analysis/rxlr_atg/P.cactorum/10300/10300_ORF.gff >> 10300_sp_rxlr.gff
+# done<names_tmp.txt
+# rm id_tmp.txt
 # The number of genes predicted in 10300 with overlaps from the atg.pl script were identified.
 bedtools intersect -c -a gene_pred/augustus/P.cactorum/10300/10300_augustus_preds.gtf -b 10300_sp_rxlr.gff > 10300_overlap.bed
 cat 10300_overlap.bed | grep 'gene' | cut -f10 | grep -v -w '0' |  wc -l
@@ -200,8 +268,8 @@ cat 10300_no_overlap.bed | cut -f10 | grep -w '0' | wc -l
 
 
 # The path pipe .gff output is wrong. gff features must start at base 1.
-bedtools intersect -c -a 10300_sp_rxlr.gff -b 10300_sp_rxlr.gff > 10300_self_overlap.bed
-
+# bedtools intersect -c -a 10300_sp_rxlr.gff -b 10300_sp_rxlr.gff > 10300_self_overlap3.bed
+# bedtools intersect -wa -wb -a 10300_sp_rxlr.gff -b 10300_sp_rxlr.gff > 10300_self_overlap.bed
 
 
 # use bowtie to align predicted RxLRs against the genome and use bedtools intersect to identify overlaps.
