@@ -91,7 +91,8 @@ dev.off()
 q()
 
 printf "" > analysis/inparanoid/summary_tables/inparalog_groups.txt
-for FILEZ in $(ls analysis/inparanoid/summary_tables/gene_orthologs/*); do
+#for FILEZ in $(ls analysis/inparanoid/summary_tables/gene_orthologs/*); do
+for FILEZ in $(find analysis/inparanoid/summary_tables/gene_orthologs/ -type f); do
 THISFILE=$(basename $FILEZ)
 printf "$THISFILE\n" >> analysis/inparanoid/summary_tables/inparalog_groups.txt
 cat $FILEZ | cut -f1 -d"|" | sort | uniq -c >> analysis/inparanoid/summary_tables/inparalog_groups.txt
