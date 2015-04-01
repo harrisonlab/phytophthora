@@ -156,8 +156,9 @@ mkdir -p analysis/sigP_rxlr/"$SPECIES"/"$STRAIN"
 echo "the number of SigP gene is:"
 cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep '>' | wc -l
 echo "the number of SigP-RxLR genes are:"
-cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep 'R.LR' | wc -l
-cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep -B1 'R.LR' | grep -vw '\-\-' > analysis/sigP_rxlr/"$SPECIES"/"$STRAIN"/"$STRAIN"_sigP_RxLR.fa
+cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep -E '^.{10,110}?R.LR' | wc -l
+cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep -B1 -E '^.{10,110}?R.LR' | grep -v -e '^\-\-' > analysis/sigP_rxlr/"$SPECIES"/"$STRAIN"/"$STRAIN"_sigP_RxLR.fa
+# cat gene_pred/sigP/"$SPECIES"/"$STRAIN"/"$STRAIN"_sp.aa | grep -B1 'R.LR' | grep -vw '\-\-' > analysis/sigP_rxlr/"$SPECIES"/"$STRAIN"/"$STRAIN"_sigP_RxLR.fa
 done
 
 # Extract the gtf gene features for SP.RxLRs
