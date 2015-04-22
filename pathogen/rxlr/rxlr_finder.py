@@ -55,9 +55,9 @@ with open(filename) as file:
 	
 	# Search for WL motifs within the sequence following the RxLR
 	# Note the number of WL motifs and the position of each of these.
-			hitWY = [m.start() for m in re.finditer('WY', str(rec.seq))]
+#			hitWY = [m.start() for m in re.finditer('WY', str(rec.seq))]
 # 			hits = m in re.finditer(
-			if hitWY: print "\t--WY_start: " + str(hitWY).strip('[]') ,
+#			if hitWY: print "\t--WY_start: " + str(hitWY).strip('[]') ,
 			#m.start() for m in hitWL,
 	# Retrieve the accession header 
 	# Modify the header to include fields of
