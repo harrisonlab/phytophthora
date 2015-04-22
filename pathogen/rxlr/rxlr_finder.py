@@ -28,10 +28,18 @@ with open(filename) as file:
 	for rec in SeqIO.parse(file,"fasta"):
 		# print rec.id
 		seq = str(rec.seq)
+# Identify the position of the signal P cleavage site
+		sigpHit = re.search(r"(--Signal_peptide_length=.*?)(\d+)", rec.description)
+		sigpEnd = sigpHit.group(2)
+		minPos = int(sigpEnd) #+ 30
+		maxPos = int(sigpEnd) + 150
+		rxlrExp = r".{" + str(minPos) + ',' + str(maxPos) + r"}R.LR"
+# 		print rxlrExp
 # Search within the sequence for RxLR.
-		match = re.search(r".{35,100}R.LR", seq)
+#		match = re.search(r".{35,100}R.LR", seq)
+		match = re.search((rxlrExp), seq)
 		if match:
-			print rec.description ,
+			print ">" + rec.description ,
 			
 # Note position of RxLR
 			motifPos = (len(match.group()) - 4) 
