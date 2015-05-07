@@ -31,6 +31,14 @@ The number of proteins that passed the threshold for WY domains were:
 ```
 The P. cactorum 10300 proteome contained 75 proteins that passes the WY-domain threshold. 
 
+The number of genes that tested +ve but didn't pass the
+inclusion threshold were counted using the following command:
+```shell
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+```
+A further 18 genes tested +ve but didn't pass the
+inclusion threshold.
+
 This was compared to the number of WY domain containing proteins
 found in the 10300 proteome.
 ```shell
@@ -42,25 +50,49 @@ found in the 10300 proteome.
 ```
 Of the 125 predicted genes containing signal peptides and RxLRs, 40 contained WY domains.
 
-The following command was used to identify that 29 genes were present in both outputs, passing the threshold.
+The number of genes that tested +ve but didn't pass the
+inclusion threshold were counted using the following command:
+```shell
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+```
+One additional gene tested +ve but didn't pass the
+inclusion threshold.
+
+
+The following command was used to identify genes that were present in 
+both outputs.
 ```shell
 	for File in $(ls *WY_hmmer_out.txt); do 
-		cat $File | grep -B500 'inclusion threshold' | tail -n +15 | head -n -1 | cut -f1 | grep -E -w -o 'g.* ' | sed 's/ //g'; 
+        cat $File | grep -B500 'inclusion threshold' | tail -n +15 | head -n -1 | cut -f1 | grep -E -w -o 'g.* ' | sed 's/ //g'; 
+    done | sort | uniq -d | wc -l
+```
+This showed that 29 genes were present in both outputs, passing the threshold.
+```shell
+	for File in $(ls *WY_hmmer_out.txt); do 
+		cat $HmmResults | tail -n +15 | grep -B500 'Domain annotation for each sequence' | grep -v 'inclusion threshold' | head -n -3 | cut -f1 | grep -E -w -o 'g.* ' | sed 's/ //g'; 
 	done | sort | uniq -d | wc -l
 ```
+This showed that 41 genes were present in both outputs, irrespective of threshold.
+
+
 
 ORF fragments predicted from the atg.pl script that also
 possessed SigP and RxLR motifs were searched for WY domains:
 ```shell
-	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
-	Proteome=../analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr.fa
-	HmmResults=10300_ORF_RxLR_WY_hmmer_out.txt
-	hmmsearch $HmmModel $Proteome > $HmmResults
-	cat $HmmResults | grep -B500 'inclusion threshold' | tail -n +15 | head -n -1 | wc -l
+HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+Proteome=../analysis/rxlr_atg/P.cactorum/10300/10300_sp_rxlr.fa
+HmmResults=10300_ORF_RxLR_WY_hmmer_out.txt
+hmmsearch $HmmModel $Proteome > $HmmResults
+cat $HmmResults | grep -B500 'inclusion threshold' | tail -n +15 | head -n -1 | wc -l
 ```
 Of the 1252 ORF fragments that possess RxLR and SigP domains, 75 also contained WY domains.
 
-
+The number of genes that tested +ve but didn't pass the
+inclusion threshold were counted using the following command:
+```shell
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+```
+9 ORF fragments didn't pass the inclusion threshold.
 
 
 
@@ -88,6 +120,12 @@ The following commands were run:
 Of 17801 proteins predicted this search returned
 64 proteins with homology to Crinkler models.
 
+The number of genes that tested +ve but didn't pass the
+inclusion threshold were counted using the following command:
+```shell
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+```
+5 genes didn't pass the inclusion threshold.
 
 b) Predicted crinklers
 Crinklers predicted using searches for HVLVVVP and 
