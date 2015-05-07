@@ -1,6 +1,8 @@
-#These commands were used to search Phytophthora proteins 
-#for characteristic motifs and domains using hmmer.
-#-------
+#10300 Hmmer commands
+==========
+These commands were used to search Phytophthora proteins 
+for characteristic motifs and domains using hmmer.
+
 
 #Discovery WY motifs.
 
