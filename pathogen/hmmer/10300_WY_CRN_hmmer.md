@@ -31,7 +31,6 @@ The number of proteins that passed the threshold for WY domains were:
 ```
 The P. cactorum 10300 proteome contained 75 proteins that passes the WY-domain threshold. 
 
-
 This was compared to the number of WY domain containing proteins
 found in the 10300 proteome.
 ```shell
@@ -107,6 +106,7 @@ didn't work. In this case the following command was used:
 ```
 Of the 16 putative crinklers, 16 of these had support from the hmm model.
 
+
 c) Predicted ORF fragments
 ORF fragments as predicted by atg.pl were searched using
 the Crinkler model. These sequences had not been filtered 
@@ -119,5 +119,15 @@ by presence of a SigP or any motif.
 	cat $HmmResults | grep -B500 'inclusion threshold' | tail -n +15 | head -n -1 | wc -l
 ```
 Of the 456656 ORF fragments searched, 120 sequences
-showed homology to Crinkler models.
+showed homology to Crinkler models. 
+Visual inspection of these hits showed many of these 
+features had a neighbouring feature that also passed 
+the threshold for similarity to the model.
+
+There were a number of ORF fragments that didn't pass 
+the inclusion threshold. These were counted using the following command:
+```shell
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+```
+47 genes were +ve but did not pass the inclusion threshold. 
 
