@@ -133,7 +133,12 @@ inclusion threshold were counted using the following command:
 #Discovery of CRN motifs
 
 A hmm model to detect crinklers has been developed in previous studies for P. infestans.
-This model was used to screen:
+The CRN model is a composite of three models. The first model describes the 
+recombination domain containing a LxLFLAK motif in the first 60 aa of the protein.
+The second describes a 'DI' domain that follows the recombination domain. The third
+model describes a HVLVVVP motif in the protein known as the DWL domain.
+
+The CRN hmm model was used to screen:
 a) Predicted proteins
 b) Predicted crinklers (using motif searches)
 c) Predicted ORF fragments.
