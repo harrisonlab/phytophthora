@@ -34,22 +34,27 @@ to the hmm model.
 ```
 
 P.cactorum 10300
+
 	486
 	257
 	
 P.cactorum 404
+
 	486
 	218
 	
 P.cactorum 414
+
 	486
 	230
 	
 P.fragariae JHVZ02
+
 	486
 	282
 	
 P.ideai 371
+
 	486
 	220
  
