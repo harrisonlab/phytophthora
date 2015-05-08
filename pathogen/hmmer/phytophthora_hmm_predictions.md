@@ -32,32 +32,27 @@ to the hmm model.
 		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
 	done
 ```
-
-P.cactorum 10300
-
-	486
-	257
+```
+	P.cactorum 10300
+		486
+		257
 	
-P.cactorum 404
-
-	486
-	218
+	P.cactorum 404
+		486
+		218
 	
-P.cactorum 414
-
-	486
-	230
+	P.cactorum 414
+		486
+		230
 	
-P.fragariae JHVZ02
-
-	486
-	282
+	P.fragariae JHVZ02
+		486
+		282
 	
-P.ideai 371
-
-	486
-	220
- 
+	P.ideai 371
+		486
+		220
+ ```
 
 
 #Prediction of proteins with Crinkler domains in Phytophthora proteomes
@@ -82,23 +77,24 @@ model describes a HVLVVVP motif in the protein known as the DWL domain.
 	done
 ```
 
-
-P.cactorum 10300
-	120
-	47
+```
+	P.cactorum 10300
+		120
+		47
 	
-P.cactorum 404
-	128
-	23
+	P.cactorum 404
+		128
+		23
 	
-P.cactorum 414
-	147
-	44
+	P.cactorum 414
+		147
+		44
 	
-P.fragariae JHVZ02
-	192
-	46
+	P.fragariae JHVZ02
+		192
+		46
 	
-P.ideai 371
-	105
-	69
+	P.ideai 371
+		105
+		69
+```
