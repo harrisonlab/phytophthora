@@ -36,15 +36,19 @@ to the hmm model.
 P.cactorum 10300
 	486
 	257
+	
 P.cactorum 404
 	486
 	218
+	
 P.cactorum 414
 	486
 	230
+	
 P.fragariae JHVZ02
 	486
 	282
+	
 P.ideai 371
 	486
 	220
@@ -77,15 +81,19 @@ model describes a HVLVVVP motif in the protein known as the DWL domain.
 P.cactorum 10300
 	120
 	47
+	
 P.cactorum 404
 	128
 	23
+	
 P.cactorum 414
 	147
 	44
+	
 P.fragariae JHVZ02
 	192
 	46
+	
 P.ideai 371
 	105
 	69
