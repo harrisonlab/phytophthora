@@ -318,3 +318,20 @@ for STRAIN_PATH in $(ls -d analysis/rxlr_atg/P.*/*); do
 	echo ""
 	echo ""
 done
+
+
+
+# small secreted cysteine rich proteins were identified. 
+# These are less than 200aa in length and have an elevated C content.
+for ProtFile in $(ls -d gene_pred/sigP/P.*/*/*_sp.aa); do
+	Strain=$(echo $ProtFile | rev | cut -f2 -d '/' | rev)
+	echo $Strain
+	qsub /home/armita/git_repos/emr_repos/tools/pathogen/sscp/sub_sscp.sh $ProtFile
+done
+
+for File in $(ls analysis/sscp/P.*/*/*_sscp.fasta); do
+	echo $File
+	cat $File | grep '>' | wc -l
+done
+
+	
