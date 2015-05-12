@@ -18,6 +18,9 @@ The multiple sequence alignment would have been in stockholm format.
 The predicted phytophthora proteins are searched for homology
 to the hmm model.
 
+
+##All ORF fragments
+
 ```shell
 	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
 	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
@@ -53,6 +56,41 @@ to the hmm model.
 		486
 		220
  ```
+
+Fasta sequences carrying these domains were extracted 
+and feature information added to their headers.
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/CRN/$Organism/$Strain
+		HmmResults="$Strain"_ORF_WY_hmmer_out.txt
+		HmmFasta="$Strain"_ORF_WY_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $HmmFasta
+	done
+```
+
+##Augustus gene predictions
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/WY/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_ORF_WY_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_ORF_WY_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
+
 
 
 #Prediction of proteins with Crinkler domains in Phytophthora proteomes
@@ -97,4 +135,39 @@ model describes a HVLVVVP motif in the protein known as the DWL domain.
 	P.ideai 371
 		105
 		69
+```
+
+Fasta sequences carrying these domains were extracted 
+and feature information added to their headers.
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/CRN/$Organism/$Strain
+		HmmResults="$Strain"_ORF_CRN_hmmer_out.txt
+		HmmFasta="$Strain"_ORF_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $HmmFasta
+	done
+```
+
+
+##Augustus gene predictions
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_ORF_CRN_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_ORF_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
 ```
