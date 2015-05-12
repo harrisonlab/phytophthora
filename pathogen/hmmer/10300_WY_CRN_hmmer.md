@@ -27,7 +27,7 @@ d) Predicted ORF fragments
 e) Predicted ORF fragments containing SigP and RxLR motifs
 
 
-a) Predicted Augustus proteins
+ai) Predicted Augustus proteins
 ```shell
 	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
 	Proteome=../gene_pred/augustus/P.cactorum/10300/10300_augustus_preds.aa
@@ -48,6 +48,19 @@ inclusion threshold were counted using the following command:
 ```
 A further 18 genes tested +ve but didn't pass the
 inclusion threshold.
+
+
+aii) Predicted Augustus proteins
+The analysis (a) was repeated using a threshold for hmm score of >0. This did change the results.
+```shell
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	Proteome=../gene_pred/augustus/P.cactorum/10300/10300_augustus_preds.aa
+	HmmResults=10300_Aug_WY_min0_hmmer_out.txt
+	hmmsearch -T 0 $HmmModel $Proteome > $HmmResults
+	cat $HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+
+```
 
 b) Predicted Augustus proteins containing SigP and RxLR motifs
 
@@ -144,7 +157,7 @@ b) Predicted crinklers (using motif searches)
 c) Predicted ORF fragments.
 
 
-a) Predicted proteins
+ai) Predicted proteins
 The proteome as predicted by Augustus was 
 searched for homology to Crinkler models.
 The following commands were run:
@@ -164,6 +177,22 @@ inclusion threshold were counted using the following command:
 	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
 ```
 5 genes didn't pass the inclusion threshold.
+
+aii) Predicted proteins
+The previous analysis was repeated with lower thresholding for hit
+(a hmm score of >0). 
+```shell
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	Proteome=../gene_pred/augustus/P.cactorum/10300/10300_augustus_preds.aa
+	HmmResults=10300_CRN_hmmer_min0_out.txt
+	hmmsearch -T 0 $HmmModel $Proteome > $HmmResults
+	cat $HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+```
+This resulted in the same number of hits above the threshold (as expected)
+and an additional hit below the threshold.
+
+
 
 b) Predicted crinklers
 Crinklers predicted using searches for HVLVVVP and 
@@ -206,4 +235,9 @@ the inclusion threshold. These were counted using the following command:
 	cat $HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
 ```
 47 genes were +ve but did not pass the inclusion threshold. 
+
+
+
+
+
 
