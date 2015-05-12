@@ -82,7 +82,7 @@ for Genome in $(ls assembly/external_group/*/*/dna/*.genome.fa); do echo $Genome
 		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
 		InName="$Organism""_$Strain""_proteins.fa"
-		SplitDir=gene_pred/SigP/$Organism/$Strain
+		SplitDir=gene_pred/sigP/$Organism/$Strain
 		mkdir -p $SplitDir
 		cp $Proteome $SplitDir/$InName
 		cd $SplitDir
@@ -99,30 +99,65 @@ for Genome in $(ls assembly/external_group/*/*/dna/*.genome.fa); do echo $Genome
 The batch files of predicted proteins needed to be combined into a single file for each strain.
 This was done with the following commands:
 ```shell
-for Pathz in $(ls -d gene_pred/SigP/*/*); do
-Strain=$(echo $Pathz | cut -d '/' -f4)
-Organism=$(echo $Pathz | cut -d '/' -f3)
-InStringAA=''
-InStringNeg=''
-InStringTab=''
-InStringTxt=''
-for GRP in $(ls -l gene_pred/SigP/$Organism/$Strain/*.fa_split_* | cut -d '_' -f6 | sort -n); do  
-InStringAA="$InStringAA gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.aa";  
-InStringNeg="$InStringNeg gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp_neg.aa";  
-InStringTab="$InStringTab gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.tab"; 
-InStringTxt="$InStringTxt gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.txt";  
-done
-cat $InStringAA > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.aa
-cat $InStringNeg > gene_pred/sigP/$Organism/$Strain/"$Strain"_neg_sp.aa
-tail -n +2 -q $InStringTab > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.tab
-cat $InStringTxt > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.txt
-done
+	for Pathz in $(ls -d gene_pred/SigP/*/*); do
+		Strain=$(echo $Pathz | cut -d '/' -f4)
+		Organism=$(echo $Pathz | cut -d '/' -f3)
+		InStringAA=''
+		InStringNeg=''
+		InStringTab=''
+		InStringTxt=''
+		for GRP in $(ls -l gene_pred/SigP/$Organism/$Strain/*.fa_split_* | cut -d '_' -f6 | sort -n); do  
+			InStringAA="$InStringAA gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.aa";  
+			InStringNeg="$InStringNeg gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp_neg.aa";  
+			InStringTab="$InStringTab gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.tab"; 
+			InStringTxt="$InStringTxt gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.txt";  
+		done
+		cat $InStringAA > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.aa
+		cat $InStringNeg > gene_pred/sigP/$Organism/$Strain/"$Strain"_neg_sp.aa
+		tail -n +2 -q $InStringTab > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.tab
+		cat $InStringTxt > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.txt
+	done
+```
 
 # Predict pathogenicity genes in published gene models
 
 ##RxLRs
+```shell
+	for Pathz in $(ls -d gene_pred/sigP/*/*); do
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr
+		Strain=$(echo $Pathz | cut -d '/' -f4)
+		Organism=$(echo $Pathz | cut -d '/' -f3) 
+		OutDir=analysis/sigP_rxlr/"$Organism"/"$Strain"
+		mkdir -p $OutDir
+		printf "\nstrain: $Strain\tspecies: $Organism\n"
+		printf "the number of SigP gene is:\t"
+		cat $Pathz/"$Strain"_sp.aa | grep '>' | wc -l
+		printf "the number of SigP-RxLR genes are:\t"
+		$ProgDir/rxlr_finder.py $Pathz/"$Strain"_sp.aa > $OutDir/"$Strain"_sp_RxLR.fa
+		cat $OutDir/"$Strain"_sp_RxLR.fa | grep '>' | wc -l
+	done
+```
 
 ###Motif identification
+
+RxLR motifs were predicted using the program rxlr_finder.py:
+
+```shell
+	for Pathz in $(ls -d gene_pred/sigP/*/*); do 
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
+		Strain=$(echo $Pathz | cut -d '/' -f4); 
+		Organism=$(echo $Pathz | cut -d '/' -f3) ; 
+		OutDir=analysis/sigP_rxlr/"$Organism"/"$Strain"; 
+		mkdir -p $OutDir; 
+		printf "\nstrain: $Strain\tspecies: $Organism\n"; 
+		printf "the number of SigP gene is:\t"; 
+		cat $Pathz/"$Strain"_sp.aa | grep '>' | wc -l; 
+		printf "the number of SigP-RxLR genes are:\t"; 
+		$ProgDir/rxlr_finder.py $Pathz/"$Strain"_sp.aa > $OutDir/"$Strain"_sp_RxLR.fa; 
+		cat $OutDir/"$Strain"_sp_RxLR.fa | grep '>' | wc -l; 
+	done
+```
+
 
 ###Domain searching
 
@@ -149,6 +184,19 @@ done
 ##Crinklers
 
 ###Motif identification
+
+```shell
+	for Proteome in $(ls assembly/external_group/P.*/*/*/*.pep.all.fa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		OutFile=$OutDir/"$Strain"_LxLFLAK_HVLVVVP.fa
+		cat $Proteome | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -B1 "L.LFLAK" | grep -B1 "HVLVVVP" | grep -v '\-\-' | sed "s/>/>$Strain\_/g" > $OutFile
+		printf "Number of Crinklers in $Organism $Strain\t"
+		cat $OutFile | grep '>' | wc -l
+	done
+```
 
 ###Domain searching
 
