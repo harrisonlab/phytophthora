@@ -32,8 +32,9 @@ with open(filename) as file:
 		sigpHit = re.search(r"(--Signal_peptide_length=.*?)(\d+)", rec.description)
 		sigpEnd = sigpHit.group(2)
 		minPos = int(sigpEnd) #+ 30
-		maxPos = int(sigpEnd) + 150
-		rxlrExp = r".{" + str(minPos) + ',' + str(maxPos) + r"}R.LR"
+#		maxPos = int(sigpEnd) + 100
+		maxPos = 100
+		rxlrExp = r"^.{" + str(minPos) + ',' + str(maxPos) + r"}?R.LR"
 # 		print rxlrExp
 # Search within the sequence for RxLR.
 #		match = re.search(r".{35,100}R.LR", seq)
