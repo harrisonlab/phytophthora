@@ -37,12 +37,15 @@ The following genomes were publicly available
 
 #Predict gene modoels
 
-
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
-ConcatRNA=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
-GeneModel=P.cactorum_10300
-for Genome in $(ls assembly/external_group/*/*/dna/*.genome.fa); do echo $Genome; qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel; done
-
+```shell
+	for Genome in $(ls assembly/external_group/*/*/dna/*.genome.parsed.fa); do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+		ConcatRNA=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+		GeneModel=P.cactorum_10300
+		echo $Genome
+		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel
+	done
+```
 
 
 
@@ -52,15 +55,35 @@ for Genome in $(ls assembly/external_group/*/*/dna/*.genome.fa); do echo $Genome
 
 ##path pipe & RxLR motif prediction
 
+The RxLR path pipe was run, predicting open reading frames in the genome, 
+identifying ORFs with signal peptides and identifying those proteins that
+also carry an RxLR motif.
+
+
+To run the path pipe script all spaces and pipe symbols had to be removed
+from the headers of fasta files. This was performed using the following commands: 
+
+```shell
+	for File in $(ls assembly/external_group/P.*/*/dna/*.genome.fa); do 
+		OutFile=$(echo $File | sed 's/.fa/.parsed.fa/g'); 
+		echo $OutFile; cat $File | sed 's/ /_/g' | sed 's/|/_/g' > $OutFile; 
+	done
+```
+
+
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
-	for Genome in $(ls assembly/external_group/*/*/dna/*.genome.fa); do
+	for Genome in $(ls assembly/external_group/*/*/dna/*.genome.parsed.fa); do
 		echo $Genome
-		qsub $ProgDir/path_pipe.sh $Genome; 
+		qsub $ProgDir/path_pipe.sh $Genome 
 	done
 ```
 
 ##WY domain prediciton
+
+```shell
+
+```
 
 ##CRN prediction from motifs
 
@@ -218,3 +241,61 @@ RxLR motifs were predicted using the program rxlr_finder.py:
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
 	done
 ```
+
+# Benchmarking
+
+RxLRs predicted in published studies were compared to those 
+predicted in house on published gene models.
+
+
+This was first performed on P. infestans.
+
+Files containing the headers of putative effectors were made using the following commands:
+
+```shell
+mkdir -p analysis/benchmarking/P.infestans/T30-4/rxlr
+Pinf_pub_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_annotated_RxLR_headers.txt
+Pinf_pred_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_pipeline_RxLR_headers.txt
+Pinf_pred_WY=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_WY_RxLR_headers.txt
+Pinf_pred_mixed=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_mixed_headers.txt
+cat assembly/external_group/P.infestans/T30-4/rxlr/P.inf_RxLR_parsed.csv | cut -f2 | grep 'PITG' > $Pinf_pub_RxLR
+cat analysis/sigP_rxlr/P.infestans/T30-4/T30-4_sp_RxLR.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/T0 //g' > $Pinf_pred_RxLR
+cat analysis/hmmer/WY/P.infestans/T30-4/T30-4_ORF_WY_hmmer_out.txt | grep 'pep:known' | sed -e 's/ \+/\t/g' | cut -f10 | sed 's/T0//g' > $Pinf_pred_WY
+cat $Pinf_pred_RxLR $Pinf_pred_WY | sort | uniq > $Pinf_pred_mixed
+```
+
+Duplicate header names were identified between RxLR files:
+
+```shell
+	OutFile=analysis/benchmarking/P.infestans/T30-4/rxlr/Pinf_shared_RxLR_stats.txt
+	printf "The number of annoated RxLRs in P.inf are:\t" > $OutFile
+	cat "$Pinf_pub_RxLR" | wc -l >> $OutFile
+	printf "The number of RxLRs predicted using motif searches are:\t" >> $OutFile
+	cat "$Pinf_pred_RxLR" | wc -l >> $OutFile
+	printf "The number of RxLRs shared between public predictions and motif searches are: \t" >> $OutFile
+	cat "$Pinf_pub_RxLR" "$Pinf_pred_RxLR" | sort | uniq -d | wc -l >> $OutFile
+	printf "The number of proteins with hmm model hits to WY profiles are:\t" >> $OutFile
+	cat "$Pinf_pred_WY" | wc -l >> $OutFile
+	printf "The number of RxLRs shared between public predictions and WY hits are: \t" >> $OutFile
+	cat "$Pinf_pub_RxLR" "$Pinf_pred_WY" | sort | uniq -d | wc -l >> $OutFile
+	printf "The number of RxLRs shared between all predicted RxLRs from motif and hmm searches are:\t" >> $OutFile
+	cat "$Pinf_pred_mixed" | wc -l  >> $OutFile
+	printf "The number of RxLRs shared between public predictions and all predicted RxLRs from motif and hmm searches are:\t" >> $OutFile
+	cat "$Pinf_pub_RxLR" "$Pinf_pred_mixed" | sort | uniq -d | wc -l >> $OutFile
+```
+This shows that of the 454 RxLRs predicted in P.inf our RxLR motif analysis and WY domain searches also identify 434 of these.
+
+
+Features of the 20 unpredicted proteins were examined. These proteins were identified by 
+saving the headers of matched proteins to a new file. The original list of published RxLRs
+were filtered to remove those proteins with a match.
+
+```shell
+	Pinf_confirmed_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_confirmed_RxLR_headers.txt
+	Pinf_remainder_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_remainder_RxLR_headers.txt
+	cat "$Pinf_pub_RxLR" "$Pinf_pred_mixed" | sort | uniq -d > $Pinf_confirmed_RxLR
+	cat assembly/external_group/P.infestans/T30-4/rxlr/P.inf_RxLR_parsed.csv | grep 'PITG' | grep -v -f "$Pinf_confirmed_RxLR" > $Pinf_remainder_RxLR
+```
+
+This revealed that the remaining 20 annotated RxLRs in the Pinfestans genome did not contain
+an RxLR domain, or had an RxLR variant.
