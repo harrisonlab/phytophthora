@@ -66,7 +66,7 @@ Data quality was visualised using fastqc:
 		echo $RawData; 
 		qsub $ProgDir/run_fastqc.sh $RawData
 	done
-	for RawData in $(ls raw_dna/mate-paired/P.cactorum/10300/*/*_rev.fastq*); do 
+	for RawData in $(ls raw_dna/mate-paired/P.cactorum/10300/*/*001.fastq.gz); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		echo $RawData; 
 		qsub $ProgDir/run_fastqc.sh $RawData
@@ -78,7 +78,7 @@ Trimming was performed on data to trim adapters from
 sequences and remove poor quality data. This was done with fastq-mcf
 
 ```shell
-	for ReadsF in raw_dna/paired/P.cactorum/10300/F/*.fastq; do 
+	for ReadsF in $(ls raw_dna/paired/P.cactorum/10300/F/*.fastq); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_full_adapters.fa
 		ReadsR=$(echo $ReadsF | sed -E s%/F/%/R/%g | sed s/_R1/_R2/g)
@@ -86,9 +86,9 @@ sequences and remove poor quality data. This was done with fastq-mcf
 		ls $ReadsR
 		qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
 	done
-	for StrainPath in raw_dna/mate-paired/P.cactorum/10300; do 
+	for StrainPath in $(ls -d raw_dna/mate-paired/P.cactorum/10300); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_full_adapters.fa
+		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_TruSeq_mate_adapters.fa
 		ReadsF=$(ls $StrainPath/F/*001.fastq.gz)
 		ReadsR=$(ls $StrainPath/R/*001.fastq.gz)
 		echo $ReadsF
@@ -96,10 +96,10 @@ sequences and remove poor quality data. This was done with fastq-mcf
 		qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
 	done
 ```
-<!-- 
+
 Data quality was visualised once again following trimming:
 ```shell
-	for RawData in qc_dna/paired/P.cactorum/10300/*.fastq*; do 
+	for RawData in $(ls qc_dna/*/P.cactorum/10300/*/*.fq.gz); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		echo $RawData; 
 		qsub $ProgDir/run_fastqc.sh $RawData
@@ -110,21 +110,31 @@ kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
 ```shell
-	for TrimPath in qc_dna/paired/P.cactorum/10300; do 
+	for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		TrimF=$(ls $TrimPath/F/*.fastq*)
-		TrimR=$(ls $TrimPath/R/*.fastq*)
-		echo $TrimF
-		echo $TrimR
-		qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimR
+		TrimF=$(ls $TrimPath/F/*.fq.gz)
+		TrimR=$(ls $TrimPath/R/*.fq.gz)
+		TrimMatePath=$(echo $TrimPath | sed 's/paired/mate-paired/g')
+		TrimMateF=$(ls $TrimMatePath/F/*.fq.gz)
+		TrimMateR=$(ls $TrimMatePath/R/*.fq.gz)
+		echo $TrimF $TrimMateF
+		echo $TrimR $TrimMateR
+		qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimMateF $TrimR $TrimMateR
 	done
 ```
+<!-- 
 
 #Assembly
 
 Assembly was performed using Velvet
 
 A range of hash lengths were used and the best assembly selected for subsequent analysis
+
+Velvet had been previously compiled on a user-specific install with the follwing command:
+```
+	cd ~/prog/velvet_1.2.08
+	make CATEGORIES=5 MAXKMERLENGTH=201 OPENMP=1
+```
 
 ```shell
 	for TrimPath in qc_dna/paired/P.cactorum/10300; do
@@ -158,4 +168,5 @@ Assemblies were summarised to allow the best assembly to be determined by eye
 	done
 	tail -n+1 assembly/velvet/P.cactorum/10300/P.cactorum_10300_assembly_stats.csv > assembly/velvet/P.cactorum_10300_assembly_stats.csv
 ```
+
  -->
