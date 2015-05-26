@@ -159,7 +159,7 @@ This allowed estimation of sequencing depth and total genome size
 	done
 ```
 
-<!-- 
+ 
 
 #Assembly
 
@@ -182,7 +182,7 @@ The assembly job was submitted to the SGE via a dedicated script for this assemb
 
 The command used to submit this assembly to the SGE was:
 ```shell
-	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/assembly
 	qsub $ProgDir/velvet_10300_assembly.sh
 ```
 
@@ -190,10 +190,11 @@ The script can be viewed in the repository harrison_lab/phytophthora/ .
 However, for reference, the variables set in this script were:
 
 ```shell
+	CurPath=$PWD
+	ProgDir=/home/armita/prog/velvet_1.2.08
 	TrimPath=qc_dna/paired/P.cactorum/10300
 	MatePath=qc_dna/mate-paired/P.cactorum/10300
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/velvet
-	Strain=$(printf $TrimPath | rev | cut -f1 -d '/' | rev)
 
 	MinHash=41
 	MaxHash=81
@@ -202,22 +203,23 @@ However, for reference, the variables set in this script were:
 	ExpCov=70
 	MinCov=20
 	Lib1InsLgth=300
-	Lib1F=$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
-	Lib1R=$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
+	Lib1F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
+	Lib1R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
 	Lib2InsLgth=1000
-	Lib2F=$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
-	Lib2R=$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
+	Lib2F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
+	Lib2R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
 	Lib3InsLgth=1000
-	Lib3F=$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
-	Lib3R=$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
+	Lib3F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
+	Lib3R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
 	Lib4InsLgth=300
-	Lib4F=$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
-	Lib4R=$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
+	Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
+	Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
 	Lib5InsLgth=5000
-	Lib5F=$MatePath/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
-	Lib5R=$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
+	Lib5F=$CurPath/$MatePath/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
+	Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 ```
 
+<!--
 
 The script 
 
