@@ -106,6 +106,39 @@ Data quality was visualised once again following trimming:
 	done
 ```
 
+
+Long mate pair sequences were still in the reverse complement.
+These were corrected using fastx toolkit's reverse complement
+function.
+
+The fastx toolkit is installed on the cluster, but it is the 0.0.12 version.
+There are two problems with this install, firstly it is outdated and secondly
+it is not installed on the /home/ directory so is not copied onto worked nodes
+when using the SGE. The 2014 release 0.0.14 was installed locally using the
+following commands:
+```shell
+	cd ~/prog
+	wget https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2
+	tar -jxvf  fastx_toolkit-0.0.14.tar.bz2
+	cd fastx_toolkit-0.0.14
+	make --prefix /home/armita/prog/fastx_toolkit-0.0.14 && make && 
+	# Then the the bin directory was added to my profile
+```
+
+
+The following commands were used to reverse complement the mate-pair reads,
+and then submit the reversed reads to fastqc for visualisation:
+```shell
+	cd /home/groups/harrisonlab/project_files/idris
+	cat qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -Q33 -o qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
+	cat qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -Q33 -o qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
+	for RevRreads in $(ls qc_dna/mate-paired/P.cactorum/10300/*/*_trim_rev.fq.gz); do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+		echo $RevRreads; 
+		qsub $ProgDir/run_fastqc.sh $RevRreads
+	done
+```
+
 kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
