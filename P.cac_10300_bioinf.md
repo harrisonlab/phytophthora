@@ -129,9 +129,12 @@ following commands:
 The following commands were used to reverse complement the mate-pair reads,
 and then submit the reversed reads to fastqc for visualisation:
 ```shell
+	qlogin
 	cd /home/groups/harrisonlab/project_files/idris
-	cat qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -Q33 -o qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
-	cat qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -Q33 -o qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
+	cat qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -z -Q33 -o qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
+	cat qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -z -Q33 -o qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
+	logout
+	cd /home/groups/harrisonlab/project_files/idris
 	for RevRreads in $(ls qc_dna/mate-paired/P.cactorum/10300/*/*_trim_rev.fq.gz); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		echo $RevRreads; 
@@ -155,6 +158,7 @@ This allowed estimation of sequencing depth and total genome size
 		qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimMateF $TrimR $TrimMateR
 	done
 ```
+
 <!-- 
 
 #Assembly
@@ -163,31 +167,68 @@ Assembly was performed using Velvet
 
 A range of hash lengths were used and the best assembly selected for subsequent analysis
 
-Velvet had been previously compiled on a user-specific install with the follwing command:
-```
+Velvet is installed in the master files directory of the cluster. There it was configured
+to accept sequence data from two genomic libraries and to run with a max kmer length of 151.
+A local install of velvet in my user profile was recompiled to accept up to 5 genomic libraries
+as inputs and to accept longer maximum kmer lengths. The commands used to recompile velvet were 
+as follows:
+```shell
 	cd ~/prog/velvet_1.2.08
 	make CATEGORIES=5 MAXKMERLENGTH=201 OPENMP=1
 ```
 
+This local install of velvet was used to assemble the 10300 genome.
+The assembly job was submitted to the SGE via a dedicated script for this assembly.
+
+The command used to submit this assembly to the SGE was:
 ```shell
-	for TrimPath in qc_dna/paired/P.cactorum/10300; do
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora
+	qsub $ProgDir/velvet_10300_assembly.sh
+```
+
+The script can be viewed in the repository harrison_lab/phytophthora/ .
+However, for reference, the variables set in this script were:
+
+```shell
+	TrimPath=qc_dna/paired/P.cactorum/10300
+	MatePath=qc_dna/mate-paired/P.cactorum/10300
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/velvet
 	Strain=$(printf $TrimPath | rev | cut -f1 -d '/' | rev)
 
 	MinHash=41
 	MaxHash=81
 	HashStep=2
-	TrimF=$(ls $TrimPath/F/*.fastq*)
-	TrimR=$(ls $TrimPath/R/*.fastq*)
 	GenomeSz=70
-	ExpCov=8
-	MinCov=2
-	InsLgth=600
-	qsub $ProgDir/submit_velvet_range.sh $MinHash $MaxHash $HashStep \
-	$TrimF $TrimR $GenomeSz $ExpCov $MinCov $InsLgth
-	done
-	
+	ExpCov=70
+	MinCov=20
+	Lib1InsLgth=300
+	Lib1F=$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
+	Lib1R=$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
+	Lib2InsLgth=1000
+	Lib2F=$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
+	Lib2R=$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
+	Lib3InsLgth=1000
+	Lib3F=$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
+	Lib3R=$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
+	Lib4InsLgth=300
+	Lib4F=$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
+	Lib4R=$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
+	Lib5InsLgth=5000
+	Lib5F=$MatePath/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
+	Lib5R=$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 ```
+
+
+The script 
+
+```shell
+	
+	ProgArgs="$MinHash $MaxHash $HashStep $GenomeSz $ExpCov $MinCov " \
+	. "$Lib1InsLgth $Lib1F $Lib1R " . "$Lib2InsLgth $Lib2F $Lib2R " \
+	. "$Lib3InsLgth $Lib3F $Lib3R " . "$Lib4InsLgth $Lib4F $Lib4R " \
+	. "$Lib5InsLgth $Lib5F $Lib5R"	
+```
+
 
 
 Assemblies were summarised to allow the best assembly to be determined by eye
