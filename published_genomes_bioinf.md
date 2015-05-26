@@ -70,6 +70,9 @@ from the headers of fasta files. This was performed using the following commands
 	done
 ```
 
+Open reading frame predictions were made using the atg.pl script as part of the
+path_pipe.sh pipeline. This pipeline also identifies open reading frames containing
+Signal peptide sequences and RxLRs. This pipeline was run with the following commands:
 
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
@@ -79,15 +82,108 @@ from the headers of fasta files. This was performed using the following commands
 	done
 ```
 
-##WY domain prediciton
+##RxLR Prediction
+
+The number of ORF fragments, ORFs containing SigPs and ORFs containing 
+SigP & RxLR motifs were identified.
 
 ```shell
-
+	for OrfDir in $(ls -d analysis/rxlr_atg/P.*/*); do
+		OrfFrags=$(ls $OrfDir/*.aa_cat.fa)
+		SigpFrags=$(ls $OrfDir/*.sp.pve)
+		RxlrFrags=$(ls $OrfDir/*_sp_rxlr.fa)
+		printf "Now in:\t"
+		printf "$OrfDir\n"
+		printf "The number of ORF fragments are:\t"
+		cat $OrfFrags | grep '>' | wc -l
+		printf "The number conatining SigPs are:\t"
+		cat $SigpFrags | grep '>' | wc -l
+		printf "The number containing SigPs & RxLRs are:\t"
+		cat $RxlrFrags | grep '>' | wc -l
+	done
 ```
 
-##CRN prediction from motifs
 
-##CRN prediction from domains
+###Motif searching
+
+To ensure that RxLR motifs were predicted using the same method 
+for ORF fragments and released gene models RxLRs were predicted
+using the program rxlr_finder.py:
+
+```shell
+	for Pathz in $(ls analysis/rxlr_atg/P.*/*/*.sp.pve); do 
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
+		Strain=$(echo $Pathz | cut -d '/' -f4); 
+		Organism=$(echo $Pathz | cut -d '/' -f3) ; 
+		OutDir=analysis/rxlr_atg/"$Organism"/"$Strain"; 
+		mkdir -p $OutDir; 
+		printf "\nstrain: $Strain\tspecies: $Organism\n"; 
+		printf "the number of SigP gene is:\t"; 
+		cat $Pathz | grep '>' | wc -l; 
+		printf "the number of SigP-RxLR genes are:\t"; 
+		$ProgDir/rxlr_finder.py $Pathz > $OutDir/"$Strain"_RxLR_finder.fa; 
+		cat $OutDir/"$Strain"_RxLR_finder.fa | grep '>' | wc -l; 
+	done
+```
+
+###Domain searching
+
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/WY/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_ORF_WY_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_ORF_WY_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
+
+##Crinkler Prediction
+
+###Motif identification
+
+```shell
+	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		OutFile=$OutDir/"$Strain"_ORF_LxLFLAK_HVLVVVP.fa
+		cat $Proteome | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -B1 "L.LFLAK" | grep -B1 "HVLVVVP" | grep -v '\-\-' | sed "s/>/>$Strain\_/g" > $OutFile
+		printf "Number of Crinklers in $Organism $Strain\t"
+		cat $OutFile | grep '>' | wc -l
+	done
+```
+
+###Domain searching
+
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_ORF_CRN_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_ORF_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
 
 
 
@@ -193,12 +289,12 @@ RxLR motifs were predicted using the program rxlr_finder.py:
 		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
 		OutDir=analysis/hmmer/WY/$Organism/$Strain
 		mkdir -p $OutDir
-		HmmResults="$Strain"_ORF_WY_hmmer_out.txt
+		HmmResults="$Strain"_Published_WY_hmmer_out.txt
 		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
 		echo "$Organism $Strain"
 		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
 		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
-		HmmFasta="$Strain"_ORF_WY_hmmer_out.fa
+		HmmFasta="$Strain"_Published_WY_hmmer_out.fa
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
 	done
 ```
@@ -232,12 +328,12 @@ RxLR motifs were predicted using the program rxlr_finder.py:
 		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
 		OutDir=analysis/hmmer/CRN/$Organism/$Strain
 		mkdir -p $OutDir
-		HmmResults="$Strain"_ORF_CRN_hmmer_out.txt
+		HmmResults="$Strain"_Published_CRN_hmmer_out.txt
 		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
 		echo "$Organism $Strain"
 		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
 		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
-		HmmFasta="$Strain"_ORF_CRN_hmmer_out.fa
+		HmmFasta="$Strain"_Published_CRN_hmmer_out.fa
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
 	done
 ```
@@ -253,15 +349,15 @@ This was first performed on P. infestans.
 Files containing the headers of putative effectors were made using the following commands:
 
 ```shell
-mkdir -p analysis/benchmarking/P.infestans/T30-4/rxlr
-Pinf_pub_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_annotated_RxLR_headers.txt
-Pinf_pred_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_pipeline_RxLR_headers.txt
-Pinf_pred_WY=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_WY_RxLR_headers.txt
-Pinf_pred_mixed=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_mixed_headers.txt
-cat assembly/external_group/P.infestans/T30-4/rxlr/P.inf_RxLR_parsed.csv | cut -f2 | grep 'PITG' > $Pinf_pub_RxLR
-cat analysis/sigP_rxlr/P.infestans/T30-4/T30-4_sp_RxLR.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/T0 //g' > $Pinf_pred_RxLR
-cat analysis/hmmer/WY/P.infestans/T30-4/T30-4_ORF_WY_hmmer_out.txt | grep 'pep:known' | sed -e 's/ \+/\t/g' | cut -f10 | sed 's/T0//g' > $Pinf_pred_WY
-cat $Pinf_pred_RxLR $Pinf_pred_WY | sort | uniq > $Pinf_pred_mixed
+	mkdir -p analysis/benchmarking/P.infestans/T30-4/rxlr
+	Pinf_pub_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_annotated_RxLR_headers.txt
+	Pinf_pred_RxLR=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_pipeline_RxLR_headers.txt
+	Pinf_pred_WY=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_WY_RxLR_headers.txt
+	Pinf_pred_mixed=analysis/benchmarking/P.infestans/T30-4/rxlr/P.inf_mixed_headers.txt
+	cat assembly/external_group/P.infestans/T30-4/rxlr/P.inf_RxLR_parsed.csv | cut -f2 | grep 'PITG' > $Pinf_pub_RxLR
+	cat analysis/sigP_rxlr/P.infestans/T30-4/T30-4_sp_RxLR.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/T0 //g' > $Pinf_pred_RxLR
+	cat analysis/hmmer/WY/P.infestans/T30-4/T30-4_Published_WY_hmmer_out.txt | grep 'pep:known' | sed -e 's/ \+/\t/g' | cut -f10 | sed 's/T0//g' > $Pinf_pred_WY
+	cat $Pinf_pred_RxLR $Pinf_pred_WY | sort | uniq > $Pinf_pred_mixed
 ```
 
 Duplicate header names were identified between RxLR files:
