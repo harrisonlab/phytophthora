@@ -186,7 +186,7 @@ The command used to submit this assembly to the SGE was:
 	qsub $ProgDir/velvet_10300_assembly.sh
 ```
 
-The script can be viewed in the repository harrison_lab/phytophthora/ .
+The script can be viewed in the repository harrison_lab/phytophthora/assembly .
 However, for reference, the variables set in this script were:
 
 ```shell
