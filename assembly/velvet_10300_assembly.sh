@@ -23,7 +23,7 @@ CurPath=$PWD
 ProgDir=/home/armita/prog/velvet_1.2.08
 TrimPath=qc_dna/paired/P.cactorum/10300
 MatePath=qc_dna/mate-paired/P.cactorum/10300
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/velvet
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/velvet_1.2.08
 
 MinHash=41
 MaxHash=81
