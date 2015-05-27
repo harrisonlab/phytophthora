@@ -55,6 +55,7 @@ The following genomes were publicly available
 Proteins carrying secretion signals were predicted from Augustus gene models.
 This approach used SignalP 3.0. The commands used are shown below:
 
+
 ```
 	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
@@ -70,12 +71,34 @@ This approach used SignalP 3.0. The commands used are shown below:
 		$SplitfileDir/splitfile_500.pl $InName
 		rm $InName
 		cd $CurPath
-		for file in $(ls $SplitDir/*_split*); do 
+		for file in $(ls $SplitDir/*_split*); do
+			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+			while [ $Jobs -ge 32 ]; do
+				sleep 10
+				printf "."
+				Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+			done
+			printf "\n"
 			echo $file
 			qsub $ProgDir/pred_sigP.sh $file
 		done
 	done
 ```
+
+
+Note - these commands include a while loop that delays submission of pred_sigP.sh 
+jobs to the SGE if there are 32 or more pred_sigP.sh jobs already running. The commands
+telling it to do this are:
+
+```shell
+	Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+	while [ $Jobs -ge 32 ]; do
+		sleep 10
+		printf "."
+		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+	done
+```
+
 <!-- 
 
 The batch files of predicted proteins needed to be combined into a single file for each strain.
