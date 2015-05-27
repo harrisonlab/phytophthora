@@ -35,7 +35,9 @@ The following genomes were publicly available
 ```
 
 
-#Predict gene modoels
+#Augustus gene prediction
+
+## Gene prediction
 
 ```shell
 	for Genome in $(ls assembly/external_group/*/*/dna/*.genome.parsed.fa); do 
@@ -48,9 +50,67 @@ The following genomes were publicly available
 ```
 
 
+##Predict secreted proteins
+
+Proteins carrying secretion signals were predicted from Augustus gene models.
+This approach used SignalP 3.0. The commands used are shown below:
+
+```
+	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	CurPath=$PWD
+	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		InName="$Organism""_$Strain""_proteins.fa"
+		SplitDir=gene_pred/sigP/$Organism/$Strain/split_aug
+		mkdir -p $SplitDir
+		cp $Proteome $SplitDir/$InName
+		cd $SplitDir
+		$SplitfileDir/splitfile_500.pl $InName
+		rm $InName
+		cd $CurPath
+		for file in $(ls $SplitDir/*_split*); do 
+			echo $file
+			qsub $ProgDir/pred_sigP.sh $file
+		done
+	done
+```
+<!-- 
+
+The batch files of predicted proteins needed to be combined into a single file for each strain.
+This was done with the following commands:
+```shell
+	for Pathz in $(ls -d gene_pred/SigP/*/*); do
+		Strain=$(echo $Pathz | cut -d '/' -f4)
+		Organism=$(echo $Pathz | cut -d '/' -f3)
+		InStringAA=''
+		InStringNeg=''
+		InStringTab=''
+		InStringTxt=''
+		for GRP in $(ls -l gene_pred/SigP/$Organism/$Strain/*.fa_split_* | cut -d '_' -f6 | sort -n); do  
+			InStringAA="$InStringAA gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.aa";  
+			InStringNeg="$InStringNeg gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp_neg.aa";  
+			InStringTab="$InStringTab gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.tab"; 
+			InStringTxt="$InStringTxt gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.txt";  
+		done
+		cat $InStringAA > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.aa
+		cat $InStringNeg > gene_pred/sigP/$Organism/$Strain/"$Strain"_neg_sp.aa
+		tail -n +2 -q $InStringTab > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.tab
+		cat $InStringTxt > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.txt
+	done
+```
+ -->
 
 
-# atg.pl path pipe
+## RxLR prediction
+
+
+
+
+
+
+# atg.pl path pipe ORF Prediction
 
 
 ##path pipe & RxLR motif prediction
@@ -111,18 +171,18 @@ for ORF fragments and released gene models RxLRs were predicted
 using the program rxlr_finder.py:
 
 ```shell
-	for Pathz in $(ls analysis/rxlr_atg/P.*/*/*.sp.pve); do 
-		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
-		Strain=$(echo $Pathz | cut -d '/' -f4); 
-		Organism=$(echo $Pathz | cut -d '/' -f3) ; 
-		OutDir=analysis/rxlr_atg/"$Organism"/"$Strain"; 
-		mkdir -p $OutDir; 
-		printf "\nstrain: $Strain\tspecies: $Organism\n"; 
-		printf "the number of SigP gene is:\t"; 
-		cat $Pathz | grep '>' | wc -l; 
-		printf "the number of SigP-RxLR genes are:\t"; 
-		$ProgDir/rxlr_finder.py $Pathz > $OutDir/"$Strain"_RxLR_finder.fa; 
-		cat $OutDir/"$Strain"_RxLR_finder.fa | grep '>' | wc -l; 
+	for Pathz in $(ls analysis/rxlr_atg/P.*/309-62/*.sp.pve); do 
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
+	Strain=$(echo $Pathz | cut -d '/' -f4); 
+	Organism=$(echo $Pathz | cut -d '/' -f3) ; 
+	OutDir=analysis/rxlr_atg/"$Organism"/"$Strain"; 
+	mkdir -p $OutDir; 
+	printf "\nstrain: $Strain\tspecies: $Organism\n"; 
+	printf "the number of SigP gene is:\t"; 
+	cat $Pathz | grep '>' | wc -l; 
+	printf "the number of SigP-RxLR genes are:\t"; 
+	$ProgDir/rxlr_finder.py $Pathz > $OutDir/"$Strain"_RxLR_finder.fa; 
+	cat $OutDir/"$Strain"_RxLR_finder.fa | grep '>' | wc -l; 
 	done
 ```
 
