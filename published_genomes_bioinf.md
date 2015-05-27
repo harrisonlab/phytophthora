@@ -64,7 +64,7 @@ This approach used SignalP 3.0. The commands used are shown below:
 		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
 		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 		InName="$Organism""_$Strain""_proteins.fa"
-		SplitDir=gene_pred/sigP/$Organism/$Strain/split_aug
+		SplitDir=gene_pred/sigP_aug/$Organism/$Strain
 		mkdir -p $SplitDir
 		cp $Proteome $SplitDir/$InName
 		cd $SplitDir
@@ -99,36 +99,124 @@ telling it to do this are:
 	done
 ```
 
-<!-- 
 
 The batch files of predicted proteins needed to be combined into a single file for each strain.
 This was done with the following commands:
 ```shell
-	for Pathz in $(ls -d gene_pred/SigP/*/*); do
-		Strain=$(echo $Pathz | cut -d '/' -f4)
-		Organism=$(echo $Pathz | cut -d '/' -f3)
+	for SplitDir in $(ls -d gene_pred/sigP_aug/P.*/*); do
+		Strain=$(echo $SplitDir | cut -d '/' -f4)
+		Organism=$(echo $SplitDir | cut -d '/' -f3)
 		InStringAA=''
 		InStringNeg=''
 		InStringTab=''
 		InStringTxt=''
-		for GRP in $(ls -l gene_pred/SigP/$Organism/$Strain/*.fa_split_* | cut -d '_' -f6 | sort -n); do  
+		for GRP in $(ls -l $SplitDir/*.fa_split_* | rev | cut -d '_' -f1 | rev | sort -n); do  
 			InStringAA="$InStringAA gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.aa";  
 			InStringNeg="$InStringNeg gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp_neg.aa";  
 			InStringTab="$InStringTab gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.tab"; 
 			InStringTxt="$InStringTxt gene_pred/sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_proteins.fa_split_$GRP""_sp.txt";  
 		done
-		cat $InStringAA > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.aa
-		cat $InStringNeg > gene_pred/sigP/$Organism/$Strain/"$Strain"_neg_sp.aa
-		tail -n +2 -q $InStringTab > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.tab
-		cat $InStringTxt > gene_pred/sigP/$Organism/$Strain/"$Strain"_sp.txt
+		cat $InStringAA > gene_pred/sigP/$Organism/$Strain/"$Strain"_aug_sp.aa
+		cat $InStringNeg > gene_pred/sigP/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
+		tail -n +2 -q $InStringTab > gene_pred/sigP/$Organism/$Strain/"$Strain"_aug_sp.tab
+		cat $InStringTxt > gene_pred/sigP/$Organism/$Strain/"$Strain"_aug_sp.txt
 	done
+	cp -r gene_pred/sigP/* gene_pred/sigP_aug
 ```
- -->
 
 
 ## RxLR prediction
 
+###Motif searching
 
+RxLRs were predicted using the program rxlr_finder.py. This program uses a regular
+expression to identify proteins that contain an RxLR motif within the amino acids
+between the signal peptide cleavage site and 100aa downstream:
+
+```shell
+	for Pathz in $(ls gene_pred/sigP_aug/P.*/*/*_aug_sp.aa); do 
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
+		Strain=$(echo $Pathz | cut -d '/' -f4); 
+		Organism=$(echo $Pathz | cut -d '/' -f3) ; 
+		OutDir=analysis/sigP_rxlr/"$Organism"/"$Strain"; 
+		mkdir -p $OutDir; 
+		printf "\nstrain: $Strain\tspecies: $Organism\n"; 
+		printf "the number of SigP gene is:\t"; 
+		cat $Pathz | grep '>' | wc -l; 
+		printf "the number of SigP-RxLR genes are:\t"; 
+		$ProgDir/rxlr_finder.py $Pathz > $OutDir/"$Strain"_aug_RxLR_finder.fa; 
+		cat $OutDir/"$Strain"_aug_RxLR_finder.fa | grep '>' | wc -l; 
+	done
+```
+
+###Domain searching
+
+Hmm models for the WY domain contained in many RxLRs were used to search gene
+models predicted with Augustus. These were run with the following commands:
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/WY/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_aug_WY_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_aug_WY_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
+
+
+##Crinkler Prediction
+
+###Motif identification
+
+Crinkler motifs in Augustus gene models were identified by searching for 
+presence of two Crinkler motifs. This was performed using the following 
+commands:
+
+```shell
+	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		OutFile=$OutDir/"$Strain"_aug_LxLFLAK_HVLVVVP.fa
+		cat $Proteome | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -B1 "L.LFLAK" | grep -B1 "HVLVVVP" | grep -v '^\-\-' | sed "s/>/>$Strain\_/g" > $OutFile
+		printf "Number of Crinklers in $Organism $Strain\t"
+		cat $OutFile | grep '>' | wc -l
+	done
+```
+
+###Domain searching
+
+A hmm model relating to crinkler domains was used to identify putative crinklers
+in Augustus gene models. This was done with the following commands:
+
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_aug_CRN_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
 
 
 
@@ -194,7 +282,7 @@ for ORF fragments and released gene models RxLRs were predicted
 using the program rxlr_finder.py:
 
 ```shell
-	for Pathz in $(ls analysis/rxlr_atg/P.*/309-62/*.sp.pve); do 
+	for Pathz in $(ls analysis/rxlr_atg/P.*/*/*.sp.pve); do 
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
 	Strain=$(echo $Pathz | cut -d '/' -f4); 
 	Organism=$(echo $Pathz | cut -d '/' -f3) ; 
