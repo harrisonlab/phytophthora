@@ -543,6 +543,33 @@ RxLR motifs were predicted using the program rxlr_finder.py:
 	done
 ```
 
+
+# Comparing Augustus predictions and atg.pl predictions
+
+
+## atg.pl RxLR overlap
+
+As >3000 RxLR containing ORFs were predicted in P.infestans 
+using the atg.pl script, the number of overlapping features 
+were identified in the gff file.
+
+First the gff features for RxLR containing ORFs were extracted
+from the gene models predicted with atg.pl
+
+```shell
+	RxlrFasta=analysis/rxlr_atg/P.infestans/T30-4/T30-4_sp_rxlr.fa
+	RxlrHeaders=analysis/rxlr_atg/P.infestans/T30-4/T30-4_sp_rxlr_headers.txt
+	OrfGff=analysis/rxlr_atg/P.infestans/T30-4/T30-4_ORF.gff 
+	RxlrGff=analysis/rxlr_atg/P.infestans/T30-4/T30-4_sp_rxlr.gff
+	cat $RxlrFasta | grep '>' | cut -f1 | sed 's/>//g' > $RxlrHeaders
+	cat $OrfGff | grep -w -f $RxlrHeaders > $RxlrGff
+```
+
+The bedtools program was used to do identify overlap between gff features.
+```shell
+```	
+
+
 # Benchmarking
 
 RxLRs predicted in published studies were compared to those 
