@@ -34,6 +34,15 @@ The following genomes were publicly available
 	done
 ```
 
+To run the path pipe script all spaces and pipe symbols had to be removed
+from the headers of fasta files. This was performed using the following commands: 
+
+```shell
+	for File in $(ls assembly/external_group/P.*/T30-4/dna/*.genome.fa); do 
+		OutFile=$(echo $File | sed 's/.fa/.parsed.fa/g'); 
+		echo $OutFile; cat $File | sed 's/ /_/g' | sed 's/|/_/g' > $OutFile; 
+	done
+```
 
 #Augustus gene prediction
 
@@ -218,8 +227,33 @@ in Augustus gene models. This was done with the following commands:
 	done
 ```
 
+## On Repeatmasked Genomes
 
+The number of genes predicted in T-30 was considerably more than in publihsed gene models.
+To determine if this was a result of repetative sequences affecting the gene models, gene 
+prediction was performed on the repeat-masked dataset for P. infestans.
 
+Firstly, the genes predicted using the unmasked genome were moved to a new directory.
+```shell
+	mv gene_pred/augustus/P.infestans/T30-4 gene_pred/augustus/P.infestans/T30-4_unmasked
+```
+
+The repeatmasked genome was unziped and parsed using the following commands:
+
+```shell
+	cd /home/groups/harrisonlab/project_files/idris
+	gunzip assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna_rm.genome.fa.gz
+```
+
+```shell
+	for Genome in $(ls assembly/external_group/*/T30-4/dna/*.genome.parsed.fa); do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+		ConcatRNA=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+		GeneModel=P.cactorum_10300
+		echo $Genome
+		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel
+	done
+```
 
 # atg.pl path pipe ORF Prediction
 
@@ -231,7 +265,7 @@ identifying ORFs with signal peptides and identifying those proteins that
 also carry an RxLR motif.
 
 
-To run the path pipe script all spaces and pipe symbols had to be removed
+As described earlier, to run the path pipe script all spaces and pipe symbols had to be removed
 from the headers of fasta files. This was performed using the following commands: 
 
 ```shell
