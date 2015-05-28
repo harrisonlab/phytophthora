@@ -4,6 +4,9 @@
 #$ -pe smp 16
 #$ -l virtual_free=4G
 
+set -u
+set -e
+set -o pipefail
 
 #	velvet_10300_assembly.sh
 #
@@ -19,6 +22,7 @@
 # 		Set Variables
 #----------------------
 
+
 CurPath=$PWD
 VelvetPath=/home/armita/prog/velvet_1.2.08
 TrimPath=qc_dna/paired/P.cactorum/10300
@@ -27,7 +31,7 @@ ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/velvet_1.2.0
 
 MinHash=31
 MaxHash=81
-HashStep=2
+HashStep=10
 GenomeSz=70
 ExpCov=70
 MinCov=20
@@ -74,11 +78,12 @@ Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 # Lib5InsLgth=5000
 # Lib5F=$CurPath/tmp_F_5.fq.gz
 # Lib5R=$CurPath/tmp_F_5.fq.gz
-# 
-# Strain=$(printf $TrimPath | rev | cut -f1 -d '/' | rev)
-# Organism=$(printf $TrimPath | rev | cut -f2 -d '/' | rev)
-# WorkDir=$TMPDIR/"$Strain"_assembly
-# AssemblyName="$Strain"_velvet
+
+
+Strain=$(printf $TrimPath | rev | cut -f1 -d '/' | rev)
+Organism=$(printf $TrimPath | rev | cut -f2 -d '/' | rev)
+WorkDir=$TMPDIR/"$Strain"_assembly
+AssemblyName="$Strain"_velvet
 
 
 
@@ -109,7 +114,7 @@ cp $Lib5R Lib5_R.fq.gz
 # 		Assemble
 #----------------------
 
-$VelvetPath/velveth 10300_assembly $MinHash,$MaxHash,2 -fastq -shortPaired -separate Lib1_F.fq.gz Lib1_R.fq.gz -shortPaired2 -separate Lib2_F.fq.gz Lib2_R.fq.gz -shortPaired3 -separate  Lib3_F.fq.gz Lib3_R.fq.gz -shortPaired4 -separate  Lib4_F.fq.gz Lib4_R.fq.gz -shortPaired5 -separate Lib5_F.fq.gz Lib5_R.fq.gz
+$VelvetPath/velveth 10300_assembly $MinHash,$MaxHash,$HashStep -fastq -shortPaired -separate Lib1_F.fq.gz Lib1_R.fq.gz -shortPaired2 -separate Lib2_F.fq.gz Lib2_R.fq.gz -shortPaired3 -separate  Lib3_F.fq.gz Lib3_R.fq.gz -shortPaired4 -separate  Lib4_F.fq.gz Lib4_R.fq.gz -shortPaired5 -separate Lib5_F.fq.gz Lib5_R.fq.gz
 for Directory in $(ls -d $WorkDir/*/); do
 	cd $Directory
 	$VelvetPath/velvetg . -exp_cov $ExpCov -ins_length $Lib1InsLgth -ins_length2 $Lib2InsLgth -ins_length3 $Lib3InsLgth -ins_length4 $Lib4InsLgth -ins_length5 $Lib5InsLgth -shortMatePaired yes -min_contig_lgth 500
