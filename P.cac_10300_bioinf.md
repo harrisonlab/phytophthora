@@ -163,6 +163,10 @@ This allowed estimation of sequencing depth and total genome size
 
 #Assembly
 
+
+## Velvet assembly
+
+
 Assembly was performed using Velvet
 
 A range of hash lengths were used and the best assembly selected for subsequent analysis
@@ -174,7 +178,7 @@ as inputs and to accept longer maximum kmer lengths. The commands used to recomp
 as follows:
 ```shell
 	cd ~/prog/velvet_1.2.08
-	make CATEGORIES=5 MAXKMERLENGTH=201 OPENMP=1
+	make CATEGORIES=5 MAXKMERLENGTH=201 OPENMP=1 OMP_NUM_THREADS=15
 ```
 
 This local install of velvet was used to assemble the 10300 genome.
@@ -218,6 +222,152 @@ However, for reference, the variables set in this script were:
 	Lib5F=$CurPath/$MatePath/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
 	Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 ```
+
+Unfortunately this assembly required more RAm than available on the 96Gb worker node.
+
+As such Velvet can not be used until a node with more RAM become available. 
+
+## Abyss assembly
+
+Assembly was performed using Abyss.
+
+A SGE script was written to perform assembly using Abyss on the cluster.
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/assembly
+	qsub $ProgDir/abyss_10300_assembly.sh
+```
+
+However due to openmpi not being installed on the cluster this scrip didn't work.
+
+
+Abyss did work when using qlogin to work on the worker nodes of the cluster.
+Therefore the following commands were used to perform assembly while using 
+qlogin within a 'screen' session.
+
+These were the commands used:
+
+```shell
+	screen -a
+	qlogin -pe smp 16 -l virtual_free=4G
+
+	#---	Step 1		---
+	# 		Set Variables
+	#----------------------
+
+	Strain=10300
+	Organism=P.cactorum
+	KmerSz=31
+
+	CurPath=/home/groups/harrisonlab/project_files/idris
+	TrimPath=qc_dna/paired/P.cactorum/10300
+	MatePath=qc_dna/mate-paired/P.cactorum/10300
+
+	AssemblyName="$Strain"_abyss_"$KmerSz"
+	WorkDir=/tmp/"$Strain"_assembly
+	OutDir=$CurPath/assembly/abyss/$Organism/$Strain/$AssemblyName
+
+
+	<!-- 
+	CurPath=/home/groups/harrisonlab/project_files/alternaria
+	Lib1F=$CurPath/tmp_F_1.fq.gz
+	Lib1R=$CurPath/tmp_R_1.fq.gz
+
+	Lib2F=$CurPath/tmp_F_2.fq.gz
+	Lib2R=$CurPath/tmp_R_2.fq.gz
+
+	Lib3F=$CurPath/tmp_F_3.fq.gz  
+	Lib3R=$CurPath/tmp_R_3.fq.gz
+
+	Lib4F=$CurPath/tmp_F_4.fq.gz
+	Lib4R=$CurPath/tmp_R_4.fq.gz
+
+	Lib5F=$CurPath/tmp_F_5.fq.gz
+	Lib5R=$CurPath/tmp_R_5.fq.gz
+	 -->
+
+	Lib1F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
+	Lib1R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
+
+	Lib2F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
+	Lib2R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
+
+	Lib3F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
+	Lib3R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
+
+	Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
+	Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
+
+	Lib5F=$CurPath/$MatePath/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
+	Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
+
+
+	#---	Step 2		---
+	# 		Copy data onto
+	#		Worker node
+	#----------------------
+
+	mkdir -p $WorkDir
+	cd $WorkDir
+
+	cp $Lib1F Lib1_1.fq.gz
+	cp $Lib1R Lib1_2.fq.gz
+
+	cp $Lib2F Lib2_1.fq.gz
+	cp $Lib2R Lib2_2.fq.gz
+
+	cp $Lib3F Lib3_1.fq.gz
+	cp $Lib3R Lib3_2.fq.gz
+
+	cp $Lib4F Lib4_1.fq.gz
+	cp $Lib4R Lib4_2.fq.gz
+
+	cp $Lib5F Lib5_1.fq.gz
+	cp $Lib5R Lib5_2.fq.gz
+
+
+	#---	Step 3		---
+	# 		Assemble
+	#----------------------
+
+
+	abyss-pe k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4 mp5' pe1='Lib1_1.fq.gz Lib1_2.fq.gz' pe2='Lib2_1.fq.gz Lib2_2.fq.gz' pe3='Lib3_1.fq.gz Lib3_2.fq.gz' pe4='Lib4_1.fq.gz Lib4_2.fq.gz' mp5='Lib5_1.fq.gz Lib5_2.fq.gz'
+
+
+	#---	Step 4		---
+	# 		Cleanup
+	#----------------------
+
+	rm Lib1_1.fq.gz
+	rm Lib1_2.fq.gz
+
+	rm Lib2_1.fq.gz
+	rm Lib2_2.fq.gz
+
+	rm Lib3_1.fq.gz
+	rm Lib3_2.fq.gz
+
+	rm Lib4_1.fq.gz
+	rm Lib4_2.fq.gz
+
+	rm Lib5_1.fq.gz
+	rm Lib5_2.fq.gz
+
+	mkdir -p $OutDir
+	cp -r $WorkDir/* $OutDir/.
+	rm -r $WorkDir
+
+
+
+	#---	Step 5		---
+	# 		Exit
+	#----------------------
+
+	logout
+
+	# Exit screen using crt+a ctrl+d
+
+``` 
 
 <!--
 
