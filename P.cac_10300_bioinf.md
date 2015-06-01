@@ -257,34 +257,15 @@ These were the commands used:
 
 	Strain=10300
 	Organism=P.cactorum
-	KmerSz=31
+	# KmerSz=31
 
 	CurPath=/home/groups/harrisonlab/project_files/idris
 	TrimPath=qc_dna/paired/P.cactorum/10300
 	MatePath=qc_dna/mate-paired/P.cactorum/10300
 
-	AssemblyName="$Strain"_abyss_"$KmerSz"
+	AssemblyName="$Strain"_abyss
 	WorkDir=/tmp/"$Strain"_assembly
 	OutDir=$CurPath/assembly/abyss/$Organism/$Strain/$AssemblyName
-
-
-	<!-- 
-	CurPath=/home/groups/harrisonlab/project_files/alternaria
-	Lib1F=$CurPath/tmp_F_1.fq.gz
-	Lib1R=$CurPath/tmp_R_1.fq.gz
-
-	Lib2F=$CurPath/tmp_F_2.fq.gz
-	Lib2R=$CurPath/tmp_R_2.fq.gz
-
-	Lib3F=$CurPath/tmp_F_3.fq.gz  
-	Lib3R=$CurPath/tmp_R_3.fq.gz
-
-	Lib4F=$CurPath/tmp_F_4.fq.gz
-	Lib4R=$CurPath/tmp_R_4.fq.gz
-
-	Lib5F=$CurPath/tmp_F_5.fq.gz
-	Lib5R=$CurPath/tmp_R_5.fq.gz
-	 -->
 
 	Lib1F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
 	Lib1R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
@@ -330,9 +311,12 @@ These were the commands used:
 	# 		Assemble
 	#----------------------
 
-
-	abyss-pe k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4 mp5' pe1='Lib1_1.fq.gz Lib1_2.fq.gz' pe2='Lib2_1.fq.gz Lib2_2.fq.gz' pe3='Lib3_1.fq.gz Lib3_2.fq.gz' pe4='Lib4_1.fq.gz Lib4_2.fq.gz' mp5='Lib5_1.fq.gz Lib5_2.fq.gz'
-
+		for KmerSz in 35 41 45 51 55; do
+			AssemblyDir="$AssemblyName"_"$KmerSz"
+			mkdir -p $AssemblyDir
+			echo "Running Abyss with kmer size:\t $KmerSz\n" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
+			abyss-pe -C $AssemblyDir k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4' mp='mp5' pe1='../Lib1_1.fq.gz ../Lib1_2.fq.gz' pe2='../Lib2_1.fq.gz ../Lib2_2.fq.gz' pe3='../Lib3_1.fq.gz ../Lib3_2.fq.gz' pe4='../Lib4_1.fq.gz ../Lib4_2.fq.gz' mp5='../Lib5_1.fq.gz ../Lib5_2.fq.gz' 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
+		done
 
 	#---	Step 4		---
 	# 		Cleanup
