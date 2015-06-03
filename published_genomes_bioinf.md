@@ -244,7 +244,8 @@ The repeatmasked genome was unziped and parsed using the following commands:
 	cd /home/groups/harrisonlab/project_files/idris
 	gunzip assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna_rm.genome.fa.gz
 ```
-
+Gene prediction was then performed using Augustus 
+(using a P.cactorum gene model):
 ```shell
 	for Genome in $(ls assembly/external_group/*/T30-4/dna/*.genome.parsed.fa); do 
 		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
@@ -254,6 +255,54 @@ The repeatmasked genome was unziped and parsed using the following commands:
 		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel
 	done
 ```
+
+Signal peptides were predicted within these gene models using:
+
+##Predict secreted proteins
+
+Proteins carrying secretion signals were predicted from Augustus gene models.
+This approach used SignalP 3.0. Firstly the previous signal peptides predicted
+from unmasked data needed to be moved.
+
+```shell
+ mv gene_pred/sigP/P.infestans/T30-4 gene_pred/sigP/P.infestans/T30-4_unmasked
+```
+
+The commands to perform SigP prediction are shown below:
+
+```shell
+	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	CurPath=$PWD
+	for Proteome in $(ls gene_pred/augustus/P.*/T30-4/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		InName="$Organism""_$Strain""_proteins.fa"
+		SplitDir=gene_pred/sigP_aug/$Organism/$Strain
+		mkdir -p $SplitDir
+		cp $Proteome $SplitDir/$InName
+		cd $SplitDir
+		$SplitfileDir/splitfile_500.pl $InName
+		rm $InName
+		cd $CurPath
+		for file in $(ls $SplitDir/*_split*); do
+			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+			while [ $Jobs -ge 32 ]; do
+				sleep 10
+				printf "."
+				Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+			done
+			printf "\n"
+			echo $file
+			qsub $ProgDir/pred_sigP.sh $file
+		done
+	done
+```
+
+RxLR prediction was performed using the commands:
+
+
+
 
 # atg.pl path pipe ORF Prediction
 
