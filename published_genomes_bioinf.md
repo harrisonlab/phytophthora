@@ -258,7 +258,7 @@ Gene prediction was then performed using Augustus
 
 Signal peptides were predicted within these gene models using:
 
-##Predict secreted proteins
+###Predict secreted proteins
 
 Proteins carrying secretion signals were predicted from Augustus gene models.
 This approach used SignalP 3.0. Firstly the previous signal peptides predicted
@@ -299,9 +299,59 @@ The commands to perform SigP prediction are shown below:
 	done
 ```
 
+###RXLR prediction (repeat masked genome)
+
+Firstly, the RxLR predictions that were made from unmasked genomes were moved
+```shell
+	mv analysis/sigP_rxlr/P.infestans/T30-4 analysis/sigP_rxlr/P.infestans/T30-4_unmasked
+	mv analysis/hmmer/WY/P.infestans/T30-4 analysis/hmmer/WY/P.infestans/T30-4_unmasked
+```
 RxLR prediction was performed using the commands:
 
+####Motif searching
 
+RxLRs were predicted using the program rxlr_finder.py. This program uses a regular
+expression to identify proteins that contain an RxLR motif within the amino acids
+between the signal peptide cleavage site and 100aa downstream:
+
+```shell
+	for Pathz in $(ls gene_pred/sigP_aug/P.*/T30-4/*_aug_sp.aa); do 
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/rxlr; 
+		Strain=$(echo $Pathz | cut -d '/' -f4); 
+		Organism=$(echo $Pathz | cut -d '/' -f3) ; 
+		OutDir=analysis/sigP_rxlr/"$Organism"/"$Strain"; 
+		mkdir -p $OutDir; 
+		printf "\nstrain: $Strain\tspecies: $Organism\n"; 
+		printf "the number of SigP gene is:\t"; 
+		cat $Pathz | grep '>' | wc -l; 
+		printf "the number of SigP-RxLR genes are:\t"; 
+		$ProgDir/rxlr_finder.py $Pathz > $OutDir/"$Strain"_aug_RxLR_finder.fa; 
+		cat $OutDir/"$Strain"_aug_RxLR_finder.fa | grep '>' | wc -l; 
+	done
+```
+
+####Domain searching
+
+Hmm models for the WY domain contained in many RxLRs were used to search gene
+models predicted with Augustus. These were run with the following commands:
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	for Proteome in $(ls gene_pred/augustus/P.*/T30-4/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/WY/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_aug_WY_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_aug_WY_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
 
 
 # atg.pl path pipe ORF Prediction
