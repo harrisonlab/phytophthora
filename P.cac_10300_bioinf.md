@@ -229,6 +229,39 @@ As such Velvet can not be used until a node with more RAM become available.
 
 ## Abyss assembly
 
+###Trimming matepair junction adapters
+
+Abyss is very sensitive to the presence of junction adapter sequences in
+matepair datasets. To remove the occurence of any junction adapters the program
+nextclip was used.
+```shell
+	qlogin
+	cd /home/groups/harrisonlab/project_files/idris
+	InF=qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim.fq.gz
+	InR=qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim.fq.gz
+	Organism=P.cactorum
+	Strain=10300
+	OutName="$Organism"_"$Strain"_trim_clip
+	CurDir=$PWD
+	WorkDir=/tmp/nextclip_no_rev
+	mkdir -p $WorkDir
+	cd $WorkDir
+	cp $CurDir/$InF F_Read.fq.gz
+	cp $CurDir/$InR R_Read.fq.gz
+	gunzip *.gz
+	nextclip -i F_Read.fq -j R_Read.fq -o "$OutName" > logfile.txt
+	rm F_Read.fq
+	rm R_Read.fq
+	for File in (ls *.fq); do
+		gzip *.fq
+	done
+	cp -r $WorkDir $CurDir/qc_dna/mate-paired/P.cactorum/10300/.
+	rm -r $WorkDir
+```
+
+
+###Abyss assembly
+
 Assembly was performed using Abyss.
 
 A SGE script was written to perform assembly using Abyss on the cluster.
@@ -249,7 +282,7 @@ These were the commands used:
 
 ```shell
 	screen -a
-	qlogin -pe smp 16 -l virtual_free=4G
+	qlogin -pe smp 16 -l virtual_free=0.9G
 
 	#---	Step 1		---
 	# 		Set Variables
@@ -279,8 +312,8 @@ These were the commands used:
 	Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
 	Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
 
-	Lib5F=$CurPath/$MatePath/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
-	Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
+	Lib5F=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R1.fastq.gz
+	Lib5R=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R2.fastq.gz
 
 
 	#---	Step 2		---
@@ -311,12 +344,12 @@ These were the commands used:
 	# 		Assemble
 	#----------------------
 
-		for KmerSz in 35 41 45 51 55; do
-			AssemblyDir="$AssemblyName"_"$KmerSz"
-			mkdir -p $AssemblyDir
-			echo "Running Abyss with kmer size:\t $KmerSz\n" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
-			abyss-pe -C $AssemblyDir k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4' mp='mp5' pe1='../Lib1_1.fq.gz ../Lib1_2.fq.gz' pe2='../Lib2_1.fq.gz ../Lib2_2.fq.gz' pe3='../Lib3_1.fq.gz ../Lib3_2.fq.gz' pe4='../Lib4_1.fq.gz ../Lib4_2.fq.gz' mp5='../Lib5_1.fq.gz ../Lib5_2.fq.gz' 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
-		done
+	for KmerSz in 31 35 41 45 51 55 61 64; do
+	AssemblyDir="$AssemblyName"_"$KmerSz"
+	mkdir -p $AssemblyDir
+	echo "Running Abyss with kmer size:\t $KmerSz\n" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
+	abyss-pe -C $AssemblyDir k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4' mp='mp5' pe1='../Lib1_1.fq.gz ../Lib1_2.fq.gz' pe2='../Lib2_1.fq.gz ../Lib2_2.fq.gz' pe3='../Lib3_1.fq.gz ../Lib3_2.fq.gz' pe4='../Lib4_1.fq.gz ../Lib4_2.fq.gz' mp5='../Lib5_1.fq.gz ../Lib5_2.fq.gz' 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
+	done
 
 	#---	Step 4		---
 	# 		Cleanup
@@ -352,6 +385,121 @@ These were the commands used:
 	# Exit screen using crt+a ctrl+d
 
 ``` 
+
+##Dip-spades assembly
+
+ Mulitple assembly programs were trialed to identify which resulted in the best assembly syayistics. 
+ The program dip-spades was  run. Spades is designed for bacterial and small genomes. Dipspades has 
+ been designed to work on small diploid genomes.
+ 
+ The commands used to run dip-spades were as follows:
+ 
+ ```shell
+	 screen -a
+	 qlogin -pe smp 8 -l virtual_free=4G
+ 
+ 	#---	Step 1		---
+	# 		Set Variables
+	#----------------------
+
+	Strain=10300
+	Organism=P.cactorum
+	# KmerSz=31
+
+	CurPath=/home/groups/harrisonlab/project_files/idris
+	TrimPath=qc_dna/paired/P.cactorum/10300
+	MatePath=qc_dna/mate-paired/P.cactorum/10300
+
+	AssemblyName="$Strain"_dip-spades
+	WorkDir=/tmp/"$Strain"_dip-spades
+	OutDir=$CurPath/assembly/dip-spades/$Organism/$Strain/$AssemblyName
+
+	Lib1F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
+	Lib1R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
+
+	Lib2F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
+	Lib2R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
+
+	Lib3F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
+	Lib3R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
+
+	Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
+	Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
+
+	Lib5F=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R1.fastq.gz
+	Lib5R=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R2.fastq.gz
+
+
+	#---	Step 2		---
+	# 		Copy data onto
+	#		Worker node
+	#----------------------
+
+	mkdir -p $WorkDir
+	cd $WorkDir
+
+	cp $Lib1F Lib1_1.fq.gz
+	cp $Lib1R Lib1_2.fq.gz
+
+	cp $Lib2F Lib2_1.fq.gz
+	cp $Lib2R Lib2_2.fq.gz
+
+	cp $Lib3F Lib3_1.fq.gz
+	cp $Lib3R Lib3_2.fq.gz
+
+	cp $Lib4F Lib4_1.fq.gz
+	cp $Lib4R Lib4_2.fq.gz
+
+	cp $Lib5F Lib5_1.fq.gz
+	cp $Lib5R Lib5_2.fq.gz
+
+
+	#---	Step 3		---
+	# 		Assemble
+	#----------------------
+
+	echo "Running dip-spades" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_dipspades.log
+	dipspades.py --pe1-1 Lib1_1.fq.gz --pe1-2 Lib1_2.fq.gz \
+	--pe2-1 Lib2_1.fq.gz --pe2-2 Lib2_2.fq.gz \
+	--pe3-1 Lib3_1.fq.gz --pe3-2 Lib3_2.fq.gz \
+	--pe4-1 Lib4_1.fq.gz --pe4-2 Lib4_2.fq.gz \
+	--mp1-1 Lib5_1.fq.gz --mp1-2 Lib5_2.fq.gz \
+	 -t 16 -m 96 -k 21,33,55,77 --careful -o $AssemblyName
+
+	#---	Step 4		---
+	# 		Cleanup
+	#----------------------
+
+	rm Lib1_1.fq.gz
+	rm Lib1_2.fq.gz
+
+	rm Lib2_1.fq.gz
+	rm Lib2_2.fq.gz
+
+	rm Lib3_1.fq.gz
+	rm Lib3_2.fq.gz
+
+	rm Lib4_1.fq.gz
+	rm Lib4_2.fq.gz
+
+	rm Lib5_1.fq.gz
+	rm Lib5_2.fq.gz
+
+	mkdir -p $OutDir
+	cp -r $WorkDir/* $OutDir/.
+	rm -r $WorkDir
+
+
+
+	#---	Step 5		---
+	# 		Exit
+	#----------------------
+
+	logout
+
+	# Exit screen using crt+a ctrl+d
+
+ ```
 
 <!--
 
