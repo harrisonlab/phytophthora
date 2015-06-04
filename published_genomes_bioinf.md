@@ -353,6 +353,59 @@ models predicted with Augustus. These were run with the following commands:
 	done
 ```
 
+###Crinkler prediction (repeat masked genome)
+
+Firstly, the CRN predictions that were made from unmasked genomes were moved
+```shell
+	mv analysis/CRN/P.infestans/T30-4 analysis/CRN/P.infestans/T30-4_unmasked
+	mv analysis/hmmer/CRN/P.infestans/T30-4 analysis/hmmer/CRN/P.infestans/T30-4_unmasked
+```
+
+Crinkler prediction was performed using the commands:
+
+####Motif identification
+
+Crinkler motifs in masked P. infestans Augustus gene models were identified by searching for 
+presence of two Crinkler motifs. This was performed using the following 
+commands:
+
+```shell
+	for Proteome in $(ls gene_pred/augustus/P.*/T30-4/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		OutFile=$OutDir/"$Strain"_aug_LxLFLAK_HVLVVVP.fa
+		cat $Proteome | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -B1 "L.LFLAK" | grep -B1 "HVLVVVP" | grep -v '^\-\-' | sed "s/>/>$Strain\_/g" > $OutFile
+		printf "Number of Crinklers in $Organism $Strain\t"
+		cat $OutFile | grep '>' | wc -l
+	done
+```
+
+###Domain searching
+
+A hmm model relating to crinkler domains was used to identify putative crinklers
+in masked P. infestans Augustus gene models. This was done with the following commands:
+
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/augustus/P.*/T30-4/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/hmmer/CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_aug_CRN_hmmer_out.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep -B500 'inclusion threshold' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | grep -A500 'inclusion threshold' | grep -B500 'Domain annotation for each sequence' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
+	done
+```
+
 
 # atg.pl path pipe ORF Prediction
 
@@ -429,6 +482,7 @@ using the program rxlr_finder.py:
 	cat $OutDir/"$Strain"_RxLR_finder.fa | grep '>' | wc -l; 
 	done
 ```
+
 
 ###Domain searching
 
@@ -641,6 +695,41 @@ RxLR motifs were predicted using the program rxlr_finder.py:
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta	
 	done
 ```
+
+
+
+# Annotating pathogenicity genes
+
+<!-- 
+##Extract features from Augustus predicitons
+
+Gtf features, as annotated by Augustus were extracted from Augustus gtf output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+```shell
+	cat analysis/sigP_rxlr/P.infestans/T30-4/T30-4_aug_RxLR_finder.fa | grep '>' | cut -f1 | sed 's/>//g' > analysis/sigP_rxlr/P.infestans/T30-4/T30-4_aug_RxLR_finder.txt
+```
+
+This list was then used to extract gtf features and output thenm in a gff format
+using the program gene_list_to_gff.pl. The commands used to run this were:
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	GeneNames=analysis/sigP_rxlr/P.infestans/T30-4/T30-4_aug_RxLR_finder.txt
+	GeneModels=gene_pred/augustus/P.infestans/T30-4/T30-4_augustus_preds.gtf
+	Col2=rxlr_finder.py
+	Col3=Gene
+	$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 $Col3 > out.gff
+``` 
+ -->
+
+
+##Extract features from atg.pl predictions
+
+
+
+
 
 
 # Comparing Augustus predictions and atg.pl predictions
