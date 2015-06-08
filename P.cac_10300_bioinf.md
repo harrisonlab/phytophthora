@@ -387,6 +387,36 @@ These were the commands used:
 
 ``` 
 
+The results of abyss assemblies at different kmers were summarised using the commands:
+```shell
+	for AbyssDir in $(ls -d assembly/abyss/P.cactorum/10300/10300_abyss_*); do
+		ls $AbyssDir/10300_abyss-stats.csv
+		cat $AbyssDir/10300_abyss-stats.csv | tail -n +2 | sed 's/,/\t/g'
+	done > assembly/abyss/P.cactorum/10300/assembly_stats.csv
+```
+
+The output files from abyss did not summarise the number of contaigs
+that were assembled longer than 1000bp. These were determined using 
+the program 
+```shell
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
+for Unitigs in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds.fa); do
+	echo $Unitigs
+	Contigs1Kb=$(echo $Unitigs | sed 's/.fa/_1000bp.fa/g')
+	$ProgDir/filter_abyss_contigs.py $Unitigs 1000 > $Contigs1Kb
+	printf "the number of assembled contigs are:\t"
+	cat $Contigs1Kb | grep '>' | wc -l
+	printf "The number of bases in these contigs (including N/n characters) are:\t"
+	cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | wc -c
+	printf "The number of bases in these contigs (excluding N/n characters) are:\t"
+	cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | tr -d 'nN' | wc -c
+done
+```
+
+From this the kmer length of 51 was identified as the best assembly due to 
+having a high number of bases in the assembly, with low contig numbers and 
+showing the greatest N20-N80 values of the assemblies.
+
 ##Dip-spades assembly
 
  Mulitple assembly programs were trialed to identify which resulted in the best assembly syayistics. 
@@ -511,6 +541,26 @@ These were the commands used:
  ```
 
  -->
+
+#Repeat masking
+
+repeat masking was performed on the abyss (kmer51) assembly of 
+the P. cactorum 10300 genome. The commands used were as follows:
+
+
+Repeat masking was performed and used the following programs:
+	Repeatmasker
+	Repeatmodeler
+
+The best assemblies were used to perform repeatmasking
+	
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+	BestAss10300=assembly/abyss/P.cactorum/10300/10300_abyss_51/10300_abyss-unitigs.fa
+
+	qsub $ProgDir/rep_modeling.sh $BestAss10300
+	qsub $ProgDir/transposonPSI.sh $BestAss10300
+```
 
 
 <!--
