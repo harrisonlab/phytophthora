@@ -395,6 +395,14 @@ These were the commands used:
  
  The commands used to run dip-spades were as follows:
  
+ 
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/assembly
+	qsub $ProgDir/dip-spades_10300_assembly.sh
+```
+ 
+<!-- 
+
  ```shell
 	 screen -a
 	 qlogin -pe smp 8 -l virtual_free=4G
@@ -413,7 +421,7 @@ These were the commands used:
 
 	AssemblyName="$Strain"_dip-spades
 	WorkDir=/tmp/"$Strain"_dip-spades
-	OutDir=$CurPath/assembly/dip-spades/$Organism/$Strain/$AssemblyName
+	OutDir=$CurPath/assembly/dip-spades/$Organism/$Strain
 
 	Lib1F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
 	Lib1R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
@@ -487,7 +495,7 @@ These were the commands used:
 	rm Lib5_2.fq.gz
 
 	mkdir -p $OutDir
-	cp -r $WorkDir/* $OutDir/.
+	cp -r $WorkDir/$AssemblyName/* $OutDir/.
 	rm -r $WorkDir
 
 
@@ -502,7 +510,14 @@ These were the commands used:
 
  ```
 
+ -->
+
+
 <!--
+
+
+
+
 
 The script 
 
