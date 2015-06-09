@@ -77,7 +77,7 @@ dipspades.py --pe1-1 Lib1_1.fq.gz --pe1-2 Lib1_2.fq.gz \
 --pe3-1 Lib3_1.fq.gz --pe3-2 Lib3_2.fq.gz \
 --pe4-1 Lib4_1.fq.gz --pe4-2 Lib4_2.fq.gz \
 --mp1-1 Lib5_1.fq.gz --mp1-2 Lib5_2.fq.gz \
--t 16 -m 96 -k 21,33,55,77 --careful -o $AssemblyName 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_dipspades.log
+-t 16 -m 32 -k 21,33,55,77 --careful -o $AssemblyName 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_dipspades.log
 
 #---	Step 4		---
 # 		Cleanup
