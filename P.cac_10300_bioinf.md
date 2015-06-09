@@ -399,18 +399,18 @@ The output files from abyss did not summarise the number of contaigs
 that were assembled longer than 1000bp. These were determined using 
 the program 
 ```shell
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
-for Unitigs in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds.fa); do
-	echo $Unitigs
-	Contigs1Kb=$(echo $Unitigs | sed 's/.fa/_1000bp.fa/g')
-	$ProgDir/filter_abyss_contigs.py $Unitigs 1000 > $Contigs1Kb
-	printf "the number of assembled contigs are:\t"
-	cat $Contigs1Kb | grep '>' | wc -l
-	printf "The number of bases in these contigs (including N/n characters) are:\t"
-	cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | wc -c
-	printf "The number of bases in these contigs (excluding N/n characters) are:\t"
-	cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | tr -d 'nN' | wc -c
-done
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
+	for Unitigs in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds.fa); do
+		echo $Unitigs
+		Contigs1Kb=$(echo $Unitigs | sed 's/.fa/_1000bp.fa/g')
+		$ProgDir/filter_abyss_contigs.py $Unitigs 1000 > $Contigs1Kb
+		printf "the number of assembled contigs are:\t"
+		cat $Contigs1Kb | grep '>' | wc -l
+		printf "The number of bases in these contigs (including N/n characters) are:\t"
+		cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | wc -c
+		printf "The number of bases in these contigs (excluding N/n characters) are:\t"
+		cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | tr -d 'nN' | wc -c
+	done
 ```
 
 From this the kmer length of 51 was identified as the best assembly due to 
