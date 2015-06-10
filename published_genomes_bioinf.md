@@ -734,7 +734,7 @@ than gtf format.
 		echo "$Strain"
 		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
 		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder.gff
-		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 ID > $OutFile
 	done
 ```
 
@@ -770,7 +770,7 @@ than gtf format.
 		echo "$Strain"
 		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
 		OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_aug_WY_hmmer.gff
-		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 ID > $OutFile
 	done
 ```
 
@@ -809,7 +809,7 @@ than gtf format.
 		echo "$Strain"
 		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
 		OutFile=analysis/CRN/"$Organism"/"$Strain"/"$Strain"_aug_LxLFLAK_HVLVVVP.gff
-		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 ID > $OutFile
 	done
 ```
 
@@ -844,7 +844,7 @@ than gtf format.
 		echo "$Strain"
 		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
 		OutFile=analysis/hmmer/CRN/"$Organism"/"$Strain"/"$Strain"_aug_CRN_hmmer.gff
-		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 ID > $OutFile
 	done
 ```
 
@@ -853,6 +853,46 @@ than gtf format.
 
 
 ##Extract features from atg.pl predictions
+
+###RxLR motif predictions
+
+Gff features for RxLRs were extracted from atg.pl gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+
+$ProgDir/gff_corrector.pl analysis/rxlr_atg/P.infestans/T30-4/T30-4_ORF.gff > out2.gff
+cat analysis/rxlr_atg/P.infestans/T30-4/T30-4_sp_rxlr.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > out_names.txt
+$ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
+
+```shell
+	for RxLR_File in $(ls analysis/sigP_rxlr/P*/*/*_aug_RxLR_finder.fa); do
+		Organism=$(echo $RxLR_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $RxLR_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder_names.txt
+		cat $RxLR_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
+```
+
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=rxlr_finder.py
+	for GeneNames in $(ls analysis/sigP_rxlr/P.*/*/*_aug_RxLR_finder_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder.gff
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+	done
+```
 
 
 
