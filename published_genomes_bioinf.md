@@ -741,7 +741,7 @@ than gtf format.
 ###RxLR WY domain predictions
 
 
-Gff features for RxLRs were extracted from Augustus gff output
+Gff features for WY domains-containing proteins were extracted from Augustus gff output
 files using a list of names of putative pathogenicity genes. This list was built
 using the following commands:
 
@@ -773,6 +773,83 @@ than gtf format.
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
 	done
 ```
+
+###Crinkler motif predictions
+
+Gff features for Crinkler motif-containing proteins were extracted from Augustus gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+Note: Unlike the fasta files above, these accessions have been renamed with the 
+name of the strain preceeding the gene ID. As such, addtional steps have been added
+to filter the gene names.
+
+```shell
+	for MotifCRN_File in $(ls analysis/CRN/P*/*/*_aug_LxLFLAK_HVLVVVP.fa); do
+		Organism=$(echo $MotifCRN_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $MotifCRN_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/CRN/"$Organism"/"$Strain"/"$Strain"_aug_LxLFLAK_HVLVVVP_names.txt
+		cat $MotifCRN_File | grep '>' | cut -f1 | sed 's/>//g' | rev | cut -f1 -d '_' | rev | sed 's/ //g' > $OutFile
+	done
+```
+
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=CRN_motif
+	for GeneNames in $(ls analysis/CRN/*/*/*_aug_LxLFLAK_HVLVVVP_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
+		OutFile=analysis/CRN/"$Organism"/"$Strain"/"$Strain"_aug_LxLFLAK_HVLVVVP.gff
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+	done
+```
+
+###Crinkler motif predictions
+
+Gff features for Crinkler motif-containing proteins were extracted from Augustus gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+```shell
+	for HmmCRN_File in $(ls analysis/hmmer/CRN/P*/*/*_aug_CRN_hmmer_out.fa); do
+		Organism=$(echo $HmmCRN_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $HmmCRN_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/hmmer/CRN/"$Organism"/"$Strain"/"$Strain"_aug_CRN_hmmer_names.txt
+		cat $HmmCRN_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
+```
+
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=CRN_hmm
+	for GeneNames in $(ls analysis/hmmer/CRN/*/*/*_aug_CRN_hmmer_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
+		OutFile=analysis/hmmer/CRN/"$Organism"/"$Strain"/"$Strain"_aug_CRN_hmmer.gff
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+	done
+```
+
+
+
 
 
 ##Extract features from atg.pl predictions
