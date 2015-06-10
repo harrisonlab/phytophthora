@@ -851,26 +851,37 @@ than gtf format.
 
 
 
+<!-- 
 
 ##Extract features from atg.pl predictions
 
+Gff features from atg.pl were corrected to .gff3 format. 
+This was done using the following commands:
+
+```
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	for StrainDir in $(ls -d analysis/rxlr_atg/P*/*); do
+		Organism=$(echo $StrainDir | rev | cut -f2 -d '/' | rev)
+		Strain=$(echo $StrainDir | rev | cut -f1 -d '/' | rev)
+		GffFile=$(ls "$StrainDir"/"$Strain"_ORF.gff)
+		echo $Strain
+		OutFile=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
+		$ProgDir/gff_corrector.pl $GffFile > $OutFile
+	done
+```
+
 ###RxLR motif predictions
 
-Gff features for RxLRs were extracted from atg.pl gff output
+for RxLRs were extracted from atg.pl gff output
 files using a list of names of putative pathogenicity genes. This list was built
 using the following commands:
 
-
-$ProgDir/gff_corrector.pl analysis/rxlr_atg/P.infestans/T30-4/T30-4_ORF.gff > out2.gff
-cat analysis/rxlr_atg/P.infestans/T30-4/T30-4_sp_rxlr.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > out_names.txt
-$ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
-
 ```shell
-	for RxLR_File in $(ls analysis/sigP_rxlr/P*/*/*_aug_RxLR_finder.fa); do
+	for RxLR_File in $(ls analysis/rxlr_atg/P*/*/*_sp_rxlr.fa); do
 		Organism=$(echo $RxLR_File | rev | cut -f3 -d '/' | rev)
 		Strain=$(echo $RxLR_File | rev | cut -f2 -d '/' | rev)
 		echo $Strain
-		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder_names.txt
+		OutFile=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_sp_rxlr_names.txt
 		cat $RxLR_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
 	done
 ```
@@ -880,20 +891,54 @@ The commands used to run this were:
 
 Note: it was realised that the Augustus gff features were in gff3 format rather 
 than gtf format.
-
+$ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-	Col2=rxlr_finder.py
-	for GeneNames in $(ls analysis/sigP_rxlr/P.*/*/*_aug_RxLR_finder_names.txt); do
+	Col2=atg_RxLR
+	for GeneNames in $(ls analysis/rxlr_atg/*/*/*_sp_rxlr_names.txt); do
 		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
 		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
 		echo "$Strain"
-		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
-		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder.gff
-		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_sp_rxlr.gff3
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
+	done
+```
+###RxLR WY domain predictions
+
+Gff features for proteins containing WY domains were extracted from atg.pl gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+```shell
+	for RxLR_File in $(ls analysis/rxlr_atg/P*/*/*_sp_rxlr.fa); do
+		Organism=$(echo $RxLR_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $RxLR_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_sp_rxlr_names.txt
+		cat $RxLR_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
 	done
 ```
 
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+$ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=atg_RxLR
+	for GeneNames in $(ls analysis/rxlr_atg/*/*/*_sp_rxlr_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_sp_rxlr.gff3
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
+	done
+```
+ -->
 
 
 
