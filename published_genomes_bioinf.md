@@ -700,29 +700,79 @@ RxLR motifs were predicted using the program rxlr_finder.py:
 
 # Annotating pathogenicity genes
 
-<!-- 
+
 ##Extract features from Augustus predicitons
 
-Gtf features, as annotated by Augustus were extracted from Augustus gtf output
+###RxLR motif predictions
+
+Gff features for RxLRs were extracted from Augustus gff output
 files using a list of names of putative pathogenicity genes. This list was built
 using the following commands:
 
 ```shell
-	cat analysis/sigP_rxlr/P.infestans/T30-4/T30-4_aug_RxLR_finder.fa | grep '>' | cut -f1 | sed 's/>//g' > analysis/sigP_rxlr/P.infestans/T30-4/T30-4_aug_RxLR_finder.txt
+	for RxLR_File in $(ls analysis/sigP_rxlr/P*/*/*_aug_RxLR_finder.fa); do
+		Organism=$(echo $RxLR_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $RxLR_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder_names.txt
+		cat $RxLR_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
 ```
 
-This list was then used to extract gtf features and output thenm in a gff format
-using the program gene_list_to_gff.pl. The commands used to run this were:
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
 
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-	GeneNames=analysis/sigP_rxlr/P.infestans/T30-4/T30-4_aug_RxLR_finder.txt
-	GeneModels=gene_pred/augustus/P.infestans/T30-4/T30-4_augustus_preds.gtf
 	Col2=rxlr_finder.py
-	Col3=Gene
-	$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 $Col3 > out.gff
-``` 
- -->
+	for GeneNames in $(ls analysis/sigP_rxlr/P.*/*/*_aug_RxLR_finder_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_aug_RxLR_finder.gff
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+	done
+```
+
+###RxLR WY domain predictions
+
+
+Gff features for RxLRs were extracted from Augustus gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+```shell
+	for WY_File in $(ls analysis/hmmer/WY/P*/*/*_aug_WY_hmmer_out.fa); do
+		Organism=$(echo $WY_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $WY_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_aug_WY_hmmer_names.txt
+		cat $WY_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
+```
+
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=WY_hmmer
+	for GeneNames in $(ls analysis/hmmer/WY/P.*/*/*_aug_WY_hmmer_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=gene_pred/augustus/"$Organism"/"$Strain"/*_augustus_preds.gtf
+		OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_aug_WY_hmmer.gff
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 > $OutFile
+	done
+```
 
 
 ##Extract features from atg.pl predictions
