@@ -851,7 +851,6 @@ than gtf format.
 
 
 
-<!-- 
 
 ##Extract features from atg.pl predictions
 
@@ -904,6 +903,7 @@ $ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
 	done
 ```
+
 ###RxLR WY domain predictions
 
 Gff features for proteins containing WY domains were extracted from atg.pl gff output
@@ -911,13 +911,13 @@ files using a list of names of putative pathogenicity genes. This list was built
 using the following commands:
 
 ```shell
-	for RxLR_File in $(ls analysis/rxlr_atg/P*/*/*_sp_rxlr.fa); do
-		Organism=$(echo $RxLR_File | rev | cut -f3 -d '/' | rev)
-		Strain=$(echo $RxLR_File | rev | cut -f2 -d '/' | rev)
-		echo $Strain
-		OutFile=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_sp_rxlr_names.txt
-		cat $RxLR_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
-	done
+for WY_File in $(ls analysis/hmmer/WY/P*/*/*_ORF_WY_hmmer_out.fa); do
+Organism=$(echo $WY_File | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $WY_File | rev | cut -f2 -d '/' | rev)
+echo $Strain
+OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_ORF_WY_hmmer_names.txt
+cat $WY_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+done
 ```
 
 This list was then used to extract gff features using the program gene_list_to_gff.pl.
@@ -929,17 +929,83 @@ $ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 	Col2=atg_RxLR
-	for GeneNames in $(ls analysis/rxlr_atg/*/*/*_sp_rxlr_names.txt); do
+	for GeneNames in $(ls analysis/hmmer/WY/P*/*/*_ORF_WY_hmmer_names.txt); do
 		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
 		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
 		echo "$Strain"
 		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
-		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_sp_rxlr.gff3
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_ORF_WY_hmmer.gff3
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
 	done
 ```
- -->
+###Crinkler motif predictions
 
+Putative Crinkler motif containing ORFs were extracted from atg.pl gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+```shell
+	for CRN_File in $(ls analysis/CRN/P*/*/*_ORF_LxLFLAK_HVLVVVP.fa); do
+		Organism=$(echo $CRN_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $CRN_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/CRN/"$Organism"/"$Strain"/"$Strain"_ORF_LxLFLAK_HVLVVVP_names.txt
+		cat $CRN_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
+```
+
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=atg_CRN
+	for GeneNames in $(ls analysis/CRN/*/*/*_ORF_LxLFLAK_HVLVVVP_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
+		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_ORF_LxLFLAK_HVLVVVP.gff3
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
+	done
+```
+
+###RxLR CRN domain predictions
+
+Gff features for proteins containing crinkler domains were extracted from atg.pl gff output
+files using a list of names of putative pathogenicity genes. This list was built
+using the following commands:
+
+```shell
+	for CRN_File in $(ls analysis/hmmer/CRN/P*/*/*_ORF_CRN_hmmer_out.fa); do
+		Organism=$(echo $CRN_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $CRN_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/hmmer/CRN/"$Organism"/"$Strain"/"$Strain"_ORF_CRN_hmmer_names.txt
+		cat $CRN_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
+```
+
+This list was then used to extract gff features using the program gene_list_to_gff.pl.
+The commands used to run this were:
+
+Note: it was realised that the Augustus gff features were in gff3 format rather 
+than gtf format.
+$ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Col2=hmm_CRN
+	for GeneNames in $(ls analysis/hmmer/CRN/P*/*/*_ORF_CRN_hmmer_names.txt); do
+		Organism=$(echo $GeneNames | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
+		echo "$Strain"
+		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
+		OutFile=analysis/hmmer/CRN/"$Organism"/"$Strain"/"$Strain"_ORF_CRN_hmmer.gff3
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
+	done
+```
 
 
 
