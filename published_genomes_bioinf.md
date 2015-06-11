@@ -862,7 +862,7 @@ This was done using the following commands:
 	for StrainDir in $(ls -d analysis/rxlr_atg/P*/*); do
 		Organism=$(echo $StrainDir | rev | cut -f2 -d '/' | rev)
 		Strain=$(echo $StrainDir | rev | cut -f1 -d '/' | rev)
-		GffFile=$(ls "$StrainDir"/"$Strain"_ORF.gff)
+		GffFile=$(ls "$StrainDir"/*_ORF.gff | grep -v '_atg_')
 		echo $Strain
 		OutFile=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
 		$ProgDir/gff_corrector.pl $GffFile > $OutFile
@@ -890,7 +890,6 @@ The commands used to run this were:
 
 Note: it was realised that the Augustus gff features were in gff3 format rather 
 than gtf format.
-$ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 	Col2=atg_RxLR
@@ -899,7 +898,7 @@ $ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
 		echo "$Strain"
 		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
-		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_sp_rxlr.gff3
+		OutFile=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF_sp_rxlr.gff3
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
 	done
 ```
@@ -911,13 +910,13 @@ files using a list of names of putative pathogenicity genes. This list was built
 using the following commands:
 
 ```shell
-for WY_File in $(ls analysis/hmmer/WY/P*/*/*_ORF_WY_hmmer_out.fa); do
-Organism=$(echo $WY_File | rev | cut -f3 -d '/' | rev)
-Strain=$(echo $WY_File | rev | cut -f2 -d '/' | rev)
-echo $Strain
-OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_ORF_WY_hmmer_names.txt
-cat $WY_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
-done
+	for WY_File in $(ls analysis/hmmer/WY/P*/*/*_ORF_WY_hmmer_out.fa); do
+		Organism=$(echo $WY_File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $WY_File | rev | cut -f2 -d '/' | rev)
+		echo $Strain
+		OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_ORF_WY_hmmer_names.txt
+		cat $WY_File | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutFile
+	done
 ```
 
 This list was then used to extract gff features using the program gene_list_to_gff.pl.
@@ -934,7 +933,7 @@ $ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
 		echo "$Strain"
 		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
-		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_ORF_WY_hmmer.gff3
+		OutFile=analysis/hmmer/WY/"$Organism"/"$Strain"/"$Strain"_ORF_WY_hmmer.gff3
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
 	done
 ```
@@ -967,7 +966,7 @@ than gtf format.
 		Strain=$(echo $GeneNames | rev | cut -f2 -d '/' | rev)
 		echo "$Strain"
 		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
-		OutFile=analysis/sigP_rxlr/"$Organism"/"$Strain"/"$Strain"_ORF_LxLFLAK_HVLVVVP.gff3
+		OutFile=analysis/CRN/"$Organism"/"$Strain"/"$Strain"_ORF_LxLFLAK_HVLVVVP.gff3
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
 	done
 ```
