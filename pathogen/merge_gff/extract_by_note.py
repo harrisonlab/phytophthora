@@ -50,13 +50,15 @@ result = []
 for feature in db.features_of_type('transcript', limit=None, strand=None, order_by=None, reverse=False, completely_within=False):
 	if all(word in str(feature.attributes['Note']) for word in regex):
  		result.append(feature)
-		out_f.write(str(feature) + "\n")
+#		out_f.write(str(feature) + "\n")
 		parents = db.parents(feature, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
 		for higher_feat in parents:
-			print(str(higher_feat))
+#			print(str(higher_feat))
+			out_f.write(str(higher_feat) + "\n")
 		children = db.children(higher_feat, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
 		for lower_feat in children:
-			print(str(lower_feat))
+#			print(str(lower_feat))
+			out_f.write(str(lower_feat) + "\n")
 
 print("Number of Transcripts present:")
 print(transcripts)
