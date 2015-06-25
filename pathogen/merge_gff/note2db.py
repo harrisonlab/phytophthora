@@ -36,6 +36,9 @@ with open(conf.id_file) as f:
     	id = line.strip()
     	dict[id] = None
 
+dict_len = len(dict.keys())
+print("No. IDs in infile:\t" + str(dict_len))
+
 #######################################
 #      Define the transformation      #
 #          functions used to          #
@@ -43,19 +46,7 @@ with open(conf.id_file) as f:
 #######################################
 
 new_note = conf.str
-
-# def transform_func(x):
-# 	if 'ID' in x.attributes:
-# 		this_id = "".join(x.attributes['ID'])
-# 		if this_id in dict.keys():
-# #			print('badgers')
-# 			if not 'Note' in x.attributes:
-# 				x.attributes['Note'] = new_note
-# 			else:
-# 				x.attributes['Note'].append(new_note)
-# 			print(str(x))
-# 	return x
-	
+i = 0
 def transform_func(x):
 	this_id = "".join(x.attributes['ID'])
 	if this_id in dict.keys():
@@ -63,7 +54,8 @@ def transform_func(x):
 			x.attributes['Note'] = new_note
 		else:
 			x.attributes['Note'].append(new_note)
-		print(str(x))
+		global i
+		i += 1
 	return x
 
 #######################################
@@ -84,3 +76,5 @@ gffutils.create_db(
 	transform=transform_func, 
 	sort_attribute_values=True
 	)
+	
+print("Number of features with notes added:\t" + str(i))
