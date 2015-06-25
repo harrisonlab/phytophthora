@@ -3,7 +3,8 @@
 '''
 This tool can be used to add a note attribute to a gff feature in a 
 gffutils database. Gff features matching a given ID will have notes 
-added to them.
+added to them. IDs can be searched in other attributes as well such
+as Names using the "--attribute" option
 '''
 
 import sys,argparse
@@ -22,6 +23,8 @@ ap.add_argument('--in_db',required=True,type=str,help='The gffutils database to 
 ap.add_argument('--out_db',required=True,type=str,help='The name of the output gff file')
 ap.add_argument('--id_file',required=True,type=str,help='A text file containing gene IDs or transcript IDs for annotation')
 ap.add_argument('--str',required=True,type=str,help='Text to add to the notes section for each matched feature.')
+ap.add_argument('--attribute',required=False,default='ID',type=str,help='The attribute to search for the IDs within, default is ID')
+
 conf = ap.parse_args() #sys.argv
 
 #######################################
@@ -46,16 +49,18 @@ print("No. IDs in infile:\t" + str(dict_len))
 #######################################
 
 new_note = conf.str
+a = conf.attribute
 i = 0
 def transform_func(x):
-	this_id = "".join(x.attributes['ID'])
-	if this_id in dict.keys():
-		if not 'Note' in x.attributes:
-			x.attributes['Note'] = new_note
-		else:
-			x.attributes['Note'].append(new_note)
-		global i
-		i += 1
+	if a in x.attributes:
+		this_id = "".join(x.attributes[a])
+		if this_id in dict.keys():
+			if not 'Note' in x.attributes:
+				x.attributes['Note'] = new_note
+			else:
+				x.attributes['Note'].append(new_note)
+			global i
+			i += 1
 	return x
 
 #######################################
