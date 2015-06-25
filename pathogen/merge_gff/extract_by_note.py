@@ -37,8 +37,6 @@ out_f = open(conf.out, 'w')
 
 
 db = gffutils.FeatureDB(f)
-loaded_db = db.all_features(limit=None, strand=None, featuretype=None, order_by=None, reverse=False, completely_within=False)
-
 
 #######################################
 #        Search for the provided      #
@@ -59,13 +57,6 @@ for feature in db.features_of_type('transcript', limit=None, strand=None, order_
 		children = db.children(higher_feat, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
 		for lower_feat in children:
 			print(str(lower_feat))
-		
-#print(str(result))
-
-# for id in result:
-# 	print(str(id))
-# 	for features in db.parents(str(id), level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None):
-# 		print(str(features) + "\n")
 
 print("Number of Transcripts present:")
 print(transcripts)
