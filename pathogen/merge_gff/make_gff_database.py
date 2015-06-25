@@ -15,14 +15,18 @@ conf = ap.parse_args() #sys.argv
 
 #db = gffutils.create_db(conf.inp, force=True, dbfn=conf.db)
 
-
+id_dict = {}
 def transform_func(x):
     # adds some text to the end of transcript IDs
 	if not 'ID' in x.attributes:
 # 		i += 1
  		new_id = "".join(x.attributes['Parent']) + "." + str(x.featuretype)
 # 		print(new_id)
-		x.attributes['ID'] = new_id
+		if id_dict.has_key(new_id):
+			id_dict[new_id] += 1
+		else:
+			id_dict[new_id] = 1
+		x.attributes['ID'] = new_id + str(id_dict[new_id])
 #	x.attributes['gene_name'] = 'spoons'
 	return x
 
