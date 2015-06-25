@@ -51,14 +51,6 @@ def transform_func(x):
 	if new_source:
 		x.source = new_source
 	return x
-# 	if not 'ID' in x.attributes:
-#  		new_id = "".join(x.attributes['Parent']) + "." + str(x.featuretype)
-# 		if id_dict.has_key(new_id):
-# 			id_dict[new_id] += 1
-# 		else:
-# 			id_dict[new_id] = 1
-# 		x.attributes['ID'] = new_id + str(id_dict[new_id])
-# 	return x
 
 out_db = conf.db
 print("Creting the merged database:\n" + out_db)
