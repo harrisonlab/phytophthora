@@ -20,12 +20,16 @@ ap = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.Argume
 
 ap.add_argument('--inp',required=True,type=str,help='databases to input')
 ap.add_argument('--out',required=True,type=str,help='Name of output text document of IDs')
+ap.add_argument('--A',required=True,type=str,help='Genes that may encapsulate other genes are from source A')
+ap.add_argument('--B',required=True,type=str,help='Source of genes that may be encapsulated by genes from A')
 #ap.add_argument('--db',required=True,type=str,help='output db file')
 #ap.add_argument('--source',required=False,type=str,help='(Optional) String to replace the source column - aids merging.')
 conf = ap.parse_args() #sys.argv
 
 f = conf.inp
 o = open(conf.out, 'w')
+a = conf.A
+b = conf.B
 #regex = conf.str
 #out_f = open(conf.out, 'w')
 
@@ -48,7 +52,7 @@ aug = 0
 atg = 0
 genes = db.features_of_type('gene')
 for gene in genes:
-    if "WY" in gene.source:
+    if a in gene.source:
         aug += 1
         strand = gene.strand
         # print (strand)
@@ -58,7 +62,7 @@ for gene in genes:
         end = []
         for contained_feature in list:
 #            print(contained_feature)
-            if not "WY" in contained_feature.source:
+            if not a in contained_feature.source:
                 print(contained_feature)
                 c += 1
                 # start.append(contained_feature.start)
@@ -77,7 +81,7 @@ for gene in genes:
         #     print("end:\t" + str(max(end)))
 
 
-    elif "atg" in gene.source:
+    elif b in gene.source:
         atg += 1
 
 
