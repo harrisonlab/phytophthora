@@ -44,8 +44,6 @@ db = gffutils.FeatureDB(f)
 #             features                #
 #######################################
 
-
-
 def merge_func(func_db):
     genes = func_db.features_of_type('gene')
     d = {}
@@ -62,31 +60,22 @@ def merge_func(func_db):
             list = []
             # For each overlapping feature, add this to a dictionary of
             # all the merged features.
-            # Also create a list of the current overlapping features
             for feature in overlaps:
                 x = "".join(feature.attributes['ID'])
                 d[x] = ""
-                # match = re.search(pattern, string)
+                # Create a list of the current overlapping features
+                # A list may have already been created in the notes section
+                # From the first itteration of the function, if this is the
+                # case, then take the list of IDs from the notes attribute
+                # and add them to the new list of IDs.
                 if 'Note' in feature.attributes:
                     m = re.match(r"merged\[(.*)\]", "".join(feature.attributes['Note']))
                     if m.group(1):
                         prev_ids = m.group(1)
                         for prev_id in prev_ids.split(" "):
                             list.append(prev_id)
-                # notes = "".join(feature.attributes['Note'])
-                # m = re.match(r"merged(\(.*\))", notes)
-                # if m:
-                #     print(m.group(1))
-                #     list.append(x)
-                # else:
-                #     list.append(x)
                 else:
                     list.append(x)
-                # if "merged(" in feature.attributes['Note']:
-                #     list.append(x)
-                #     print("badgers")
-                # else:
-                #     list.append(x)
             # Identify overlaps a second time, this time to perfrom merging.
             overlaps = func_db.region(region = gene, strand=strand, featuretype = 'gene')
             merged = func_db.merge(overlaps, ignore_strand=False)
@@ -103,58 +92,15 @@ def merge_func(func_db):
                 out_lines.append(new)
     return(out_lines)
 
-tmp_lines =  merge_func(db)
-
-#
-# #######################################
-# #        Serarch for overlapping      #
-# #                features             #
-# #                                     #
-# #######################################
-#
-# d = {}
-# i = 0
-# out_lines = []
-#
-# genes = db.features_of_type('gene')
-#
-#
-# # For each gene:
-# for gene in genes:
-#     ID = "".join(gene.attributes['ID'])
-#     # See if that gene has been previously merged
-#     if not ID in d.keys():
-#         # Otherwise, look for overlapping features on the same strand
-#         strand = gene.strand
-#         overlaps = db.region(region = gene, strand=strand, featuretype = 'gene')
-#         list = []
-#         # For each overlapping feature, add this to a dictionary of
-#         # all the merged features.
-#         # Also create a list of the current overlapping features
-#         for feature in overlaps:
-#             x = "".join(feature.attributes['ID'])
-#             d[x] = ""
-#             list.append(x)
-#         # Identify overlaps a second time, this time to perfrom merging.
-#         overlaps = db.region(region = gene, strand=strand, featuretype = 'gene')
-#         merged = db.merge(overlaps, ignore_strand=False)
-#         # For each newly created merged feature:
-#         for new in merged:
-#             # Add an ID, with a name set from stdin + itterator number.
-#             # Add a source, set from stdin
-#             # Add a note containing the IDs of the merged features.
-#             i += 1
-#             new.source = str(conf.source)
-#             new.attributes['ID'] = [str(conf.id) + "_" + str(i)]
-#             new.attributes['Note'] = ['merged(' + " ".join(list) + ')']
-#             out_lines.append(new)
-#
 
 #######################################
 #        Create a database of merged  #
 #                features             #
 #                                     #
 #######################################
+
+# Perfrom a first itteration of merging features
+tmp_lines =  merge_func(db)
 db2 = gffutils.create_db(
 	tmp_lines,
 	from_string=True,
@@ -166,8 +112,8 @@ db2 = gffutils.create_db(
 	id_spec=['ID']
 	)
 
+# Perform a second itteration of merging
 out_lines =  merge_func(db2)
-
 merged_db = gffutils.create_db(
 	out_lines,
 	from_string=True,
