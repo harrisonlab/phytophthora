@@ -77,9 +77,6 @@ for gene in genes:
             new.attributes['ID'] = [str(conf.id) + "_" + str(i)]
             new.attributes['Note'] = ['merged(' + " ".join(list) + ')']
             out_lines.append(new)
-            # If the switch was set on stdin, print a gff file to stdout
-            if s == True:
-                print(new)
 
 
 #######################################
@@ -87,6 +84,7 @@ for gene in genes:
 #                features             #
 #                                     #
 #######################################
+
 
 merged_db = gffutils.create_db(
 	out_lines,
@@ -98,3 +96,9 @@ merged_db = gffutils.create_db(
 	merge_strategy='merge',
 	id_spec=['ID']
 	)
+
+# If the switch was set on stdin, print a gff file to stdout
+if s == True:
+    print("##gff-version 3")
+    for line in out_lines:
+        print(str(line))
