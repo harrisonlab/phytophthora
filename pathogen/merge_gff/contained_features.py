@@ -8,6 +8,7 @@ contained within this gene.
 
 import sys,argparse
 import gffutils
+from collections import defaultdict
 from itertools import chain
 
 #######################################
@@ -30,6 +31,10 @@ f = conf.inp
 o = open(conf.out, 'w')
 a = conf.A
 b = conf.B
+out_lines = []
+out_lines2 = []
+used_ids = []
+d = defaultdict(list)
 #regex = conf.str
 #out_f = open(conf.out, 'w')
 
@@ -58,27 +63,57 @@ for gene in genes:
         # print (strand)
         list = db.region(region = gene, strand=strand, featuretype = 'gene')
         c = 0
-        start = []
-        end = []
+        # start = []
+        # end = []
+        start = ""
+        end = ""
+        # B_ID = ""
+        B_ID = []
+        B_note = []
+        B_name = []
         for contained_feature in list:
-#            print(contained_feature)
+            out_lines.append(str(contained_feature))
+            # print(contained_feature)
             if not a in contained_feature.source:
-                print(contained_feature)
+#                print(contained_feature)
                 c += 1
+                if 'ID' in contained_feature.attributes:
+                    # B_ID = "".join(contained_feature.attributes['ID'])
+                    B_ID.extend(contained_feature.attributes['ID'])
+                if 'Note' in contained_feature.attributes:
+                    B_note.extend(contained_feature.attributes['Note'])
+                # if 'Name' in contained_feature.attributes:
+                #     B_name.extend(contained_feature.attributes['Name'])
                 # start.append(contained_feature.start)
                 # end.append(contained_feature.end)
             else:
-                print(contained_feature)
-                ID = "".join(contained_feature.attributes['ID'])
-        print("number of ORF_fragments in this gene:\t" + str(c))
+                out_lines.append(str(contained_feature))
+#                print(contained_feature)
+                A_ID = "".join(contained_feature.attributes['ID'])
+        out_lines.append("number of ORF_fragments in this gene:\t" + str(c))
+        # print("number of ORF_fragments in this gene:\t" + str(c))
         if c > 1:
-            o.write(ID + "\n")
-        # if c > 1:
-        #     print("A consensus of these gene features may look like:")
-        #     start.sort()
-        #     end.sort()
-        #     print("start:\t" + str(min(start)))
-        #     print("end:\t" + str(max(end)))
+            o.write(A_ID + "\n")
+        if c >= 1:
+            # out_lines2.append("A consensus of these gene features may look like:")
+            # print(str(B_ID))
+            # gene.attributes['ID']
+            gene['Note'] = B_note
+            # B_name.append(B_ID)
+            gene['Name'] = B_ID
+            out_lines2.append(str(gene))
+            used_ids.extend(gene['ID'])
+            used_ids.extend(B_ID)
+
+            for child in db.children(gene):
+                # print(child)
+                out_lines2.append(str(child))
+            # a.start
+            # a.end
+            # start.sort()
+            # end.sort()
+            # print("start:\t" + str(min(start)))
+            # print("end:\t" + str(max(end)))
 
 
     elif b in gene.source:
@@ -92,5 +127,54 @@ for gene in genes:
 #          within these genes         #
 #######################################
 
+# print(str("\n".join(out_lines)))
+# print("\n".join(out_lines2))
+#
+
+
+# print("Used IDs are:\t" + str(used_ids))
+
+for k in used_ids:
+    d[k].append("True")
+
+# print(d.keys())
+
+genes = db.features_of_type('gene')
+found = 0
+unmatched = 0
+for gene in genes:
+    this_id = "".join(gene.attributes['ID'])
+    if this_id in d:
+        # print("found gene:\t" + this_id)
+        found += 1
+    else:
+        # print("unmatched gene\t\t" + this_id)
+        # print(gene)
+        unmatched += 1
+        out_lines2.append(str(gene))
+        for child in db.children(gene):
+            out_lines2.append(str(child))
+
+db_lines = "\n".join(out_lines2)
+print(db_lines)
+
 print("The total number of Augustus genes are:\t" + str(aug))
 print("The total number of atg genes are:\t" + str(atg))
+
+print("Of these, this many were merged:\t" + str(found))
+print("And this many remain unmerged:\t" + str(unmatched))
+
+db3 = gffutils.create_db(
+	db_lines,
+	from_string=True,
+	dbfn=conf.out,
+	force=True,
+	keep_order=False,
+	sort_attribute_values='merge',
+	merge_strategy='merge',
+	id_spec=['ID']
+	)
+
+
+merge_num = db3.count_features_of_type(featuretype='gene')
+print("The final dataset contains the following number of features:\t" + str(merge_num))
