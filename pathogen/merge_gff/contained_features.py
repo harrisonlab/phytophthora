@@ -20,15 +20,15 @@ from itertools import chain
 ap = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 ap.add_argument('--inp',required=True,type=str,help='databases to input')
-ap.add_argument('--out_txt',required=True,type=str,help='Name of output text document of IDs')
+ap.add_argument('--out_txt',required=False,type=str,help='Name of output text document of IDs')
 ap.add_argument('--out_db',required=True,type=str,help='Name of output database containing the merged unique features')
-ap.add_argument('--gff',required=False,action='store_true',help='Will print the output in .gff3 format to stdout if set')
+ap.add_argument('--out_gff',required=False,type=str,help='Name of output gff document of final database')
 ap.add_argument('--A',required=True,type=str,help='Genes that may encapsulate other genes are from source A')
 ap.add_argument('--B',required=True,type=str,help='Source of genes that may be encapsulated by genes from A')
 conf = ap.parse_args() #sys.argv
 
 f = conf.inp
-o_txt = open(conf.out_txt, 'w')
+
 a = conf.A
 b = conf.B
 # out_lines = []
@@ -36,9 +36,11 @@ out_lines1 = []
 out_lines2 = []
 used_ids = []
 d = defaultdict(list)
-s = conf.gff
 merge_count = 0
-
+if conf.out_txt:
+    o_txt = open(conf.out_txt, 'w')
+if conf.out_gff:
+    o_gff = open(conf.out_gff, 'w')
 
 #######################################
 #          Open the gffutils          #
@@ -155,9 +157,11 @@ for gene in genes:
 #                                     #
 #######################################
 
-# Output IDs of A genes which have been used to merge:
-for line in out_lines1:
-    o_txt.write(line + "\n")
+# If been told to print a text output of seq IDs:
+if 'o_txt' in locals():
+    # Output IDs of A genes which have been used to merge:
+    for line in out_lines1:
+        o_txt.write(line + "\n")
 
 # Create a db from lines of merged genes, their sub-features
 # and from genes that did not intersect with any other genes
@@ -176,23 +180,22 @@ db3 = gffutils.create_db(
 
 
 # if the gff switch was set:
-if s == True:
+if 'o_gff' in locals():
     # Print a gff output of the new database to stdout
-    print("##gff-version 3")
+    o_gff.write("##gff-version 3\n")
     for feature in db3.all_features():
-        print(feature)
-# If it wasn't set
-else:
-    # Print summary statistics
-    print("The total number of Augustus genes are:\t" + str(aug))
-    print("The total number of atg genes are:\t" + str(atg))
-    print("Of these, this many were merged:\t" + str(found))
-    print("Into this many features:\t" + str(merge_count))
-    print("And this many remain unmerged:\t" + str(unmatched))
-    # Count the number of genes following merging
-    # (Including genes without intersections)
-    merge_num = db3.count_features_of_type(featuretype='gene')
-    print("The final dataset contains the following number of features:\t" + str(merge_num))
+        o_gff.write(str(feature) + "\n")
+
+# Print summary statistics
+print("The total number of Augustus genes are:\t" + str(aug))
+print("The total number of atg genes are:\t" + str(atg))
+print("Of these, this many were merged:\t" + str(found))
+print("Into this many features:\t" + str(merge_count))
+print("And this many remain unmerged:\t" + str(unmatched))
+# Count the number of genes following merging
+# (Including genes without intersections)
+merge_num = db3.count_features_of_type(featuretype='gene')
+print("The final dataset contains the following number of features:\t" + str(merge_num))
 
 
 quit()
