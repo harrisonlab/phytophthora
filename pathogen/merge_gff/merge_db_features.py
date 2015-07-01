@@ -68,21 +68,6 @@ def merge_func(func_db):
                 # From the first itteration of the function, if this is the
                 # case, then take the list of IDs from the notes attribute
                 # and add them to the new list of IDs.
-                # m = re.match(r"merged\[(.*)\]", "".join(feature.attributes['Note']))
-                # if (
-                #     'Note' in feature.attributes
-                #     and m and m.group(1)
-                #     ):
-                #     # m = re.match(r"merged\[(.*)\]", "".join(feature.attributes['Note']))
-                #     # if m.group(1):
-                #     # if m and m.group(1):
-                #         # print(m.group(0))
-                #     prev_ids = m.group(1)
-                #     # print(prev_ids)
-                #     for prev_id in prev_ids.split(" "):
-                #         list.append(prev_id)
-                # else:
-                #     list.append(x)
                 dont_append = False
                 prev_notes = []
                 if 'Note' in feature.attributes:
