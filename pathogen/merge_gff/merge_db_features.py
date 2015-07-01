@@ -68,13 +68,36 @@ def merge_func(func_db):
                 # From the first itteration of the function, if this is the
                 # case, then take the list of IDs from the notes attribute
                 # and add them to the new list of IDs.
+                # m = re.match(r"merged\[(.*)\]", "".join(feature.attributes['Note']))
+                # if (
+                #     'Note' in feature.attributes
+                #     and m and m.group(1)
+                #     ):
+                #     # m = re.match(r"merged\[(.*)\]", "".join(feature.attributes['Note']))
+                #     # if m.group(1):
+                #     # if m and m.group(1):
+                #         # print(m.group(0))
+                #     prev_ids = m.group(1)
+                #     # print(prev_ids)
+                #     for prev_id in prev_ids.split(" "):
+                #         list.append(prev_id)
+                # else:
+                #     list.append(x)
+                dont_append = False
+                prev_notes = []
                 if 'Note' in feature.attributes:
-                    m = re.match(r"merged\[(.*)\]", "".join(feature.attributes['Note']))
-                    if m.group(1):
-                        prev_ids = m.group(1)
-                        for prev_id in prev_ids.split(" "):
-                            list.append(prev_id)
-                else:
+                    note_list = []
+                    note_list = feature.attributes['Note']
+                    for note in note_list:
+                        m = re.match(r"merged\[(.*)\]", note)
+                        if m and m.group(1):
+                            prev_ids = m.group(1)
+                            for prev_id in prev_ids.split(" "):
+                                list.append(prev_id)
+                                dont_append = True
+                        else:
+                            prev_notes.append(note)
+                if dont_append == False:
                     list.append(x)
             # Identify overlaps a second time, this time to perfrom merging.
             overlaps = func_db.region(region = gene, strand=strand, featuretype = 'gene')
@@ -88,7 +111,8 @@ def merge_func(func_db):
                 out_list = " ".join(sorted(set(list)))
                 new.source = str(conf.source)
                 new.attributes['ID'] = [str(conf.id) + "_" + str(i)]
-                new.attributes['Note'] = ['merged[' + out_list + ']']
+                prev_notes.append(str('merged[' + out_list + ']'))
+                new.attributes['Note'] = prev_notes
                 out_lines.append(new)
     return(out_lines)
 
