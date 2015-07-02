@@ -59,22 +59,13 @@ print(regex)
 ID_list = []
 for t in type_list:
 	print("looking in features of type:\t" + t)
-	# result = []
 	for feature in db.features_of_type(t, limit=None, strand=None, order_by=None, reverse=False, completely_within=False):
 		if 'Note' in feature.attributes:
-			# if all(word in str(feature.attributes['Note']) for word in regex):
 			k = "".join(feature['ID'])
-			# print(feature.attributes['Note'])
 			if not k in d:
 					for this_regex in regex:
 						if all(word in str(feature.attributes['Note']) for word in this_regex):
-					# if all(word in str(feature.attributes['Note']) for word in regex):
-					# if (word in "\t".join(feature.attributes['Note']) for word in regex):
-					# ID_list.append(feature['ID'])
-					# 	result.append(feature.ID)
-						# higher_feat = feature
 							if t == 'gene':
-								# print(feature)
 								out_f.write(str(feature) + "\n")
 								k = "".join(feature['ID'])
 								d[k].append("True")
@@ -83,23 +74,14 @@ for t in type_list:
 								parents = db.parents(feature, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
 								for higher_feat in parents:
 									out_f.write(str(higher_feat) + "\n")
-									# print(higher_feat)
 									k = "".join(higher_feat['ID'])
 									d[k].append("True")
 									children = db.children(higher_feat, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
 							for lower_feat in children:
 								out_f.write(str(lower_feat) + "\n")
-								# print(lower_feat)
 								k = "".join(lower_feat['ID'])
 								d[k].append("True")
 							break
 
-# print(ID_list)
-
-# for ID in ID_list:
-
-
-# print("Number of features with both WY and RxLR annotations:")
-# print(len(result))
 
 quit()
