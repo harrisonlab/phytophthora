@@ -1,5 +1,12 @@
 #!/usr/bin/python
 
+#######################################
+#            Set Variables            #
+#                                     #
+#                                     #
+#######################################
+
+
 '''
 
 This script builds a gffutils database from one or more gff files.
@@ -9,8 +16,36 @@ in the final feature.
 
 '''
 
+import os
+import sys
+import optparse
+import os.path
 import gffutils
 from itertools import chain
+
+
+from optparse import OptionParser
+parser=OptionParser()
+parser.add_option("--gff_files",   dest="gff_input",   default="",   help="A list of gff files to build the database from"   )
+(options, args) = parser.parse_args()
+
+gff_input = options.gff_input
+
+codeVersion = "00-00-01"
+
+#######################################
+#            Open Files               #
+#                &                    #
+#       Make temporary databases      #
+#######################################
+
+for i, InFile in enumerate.gff_input
+	db_name = "test" + i + "db"
+	db_list.append(db_name)
+	db = gffutils.create_db(gff_fn1, dbfn=db_name, force=True, keep_order=True, \
+	merge_strategy='merge', sort_attribute_values=True)
+
+	d = {i:db.all_features(limit=None, strand=None, featuretype=None, order_by=None, reverse=False, completely_within=False)}
 
 #-------------------------
 # Make temporary databases
@@ -56,6 +91,7 @@ result = []
 for i in db3.features_of_type('transcript', limit=None, strand=None, order_by=None, reverse=False, completely_within=False):
 	if 'RxLR_motif' in str(i.attributes['Note']) and 'WY_hmmer' in str(i.attributes['Note']) :
 		result.append(i)
-len(result)		
+print("Number of features with both WY and RxLR annotations:")
+print(len(result))		
 
 quit()
