@@ -34,6 +34,20 @@ The following genomes were publicly available
 	done
 ```
 
+<!-- 
+The 310 genome's scaffolds only contained numbers stopping cegma from running properly.
+The script was as ajusted as so:
+
+```shell
+	cat assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa | sed 's/>/>NODE_/g' > assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed2.fa
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+	for Genome in $(ls assembly/external_group/P.parisitica/310/dna/*_310.i2.scaffolds.genome.parsed2.fa); do
+		echo $Genome
+		qsub $ProgDir/sub_cegma.sh $Genome dna; 
+	done
+```
+ -->
+
 To run the path pipe script all spaces and pipe symbols had to be removed
 from the headers of fasta files. This was performed using the following commands: 
 
@@ -44,7 +58,98 @@ from the headers of fasta files. This was performed using the following commands
 	done
 ```
 
+#Repeat masking
+
+Rpeatmasking was performed on assemblies:
+
+
+```shell
+	for Genome in $(ls assembly/external_group/P.*/*/dna/*.genome.parsed.fa | grep -v 'rm'); do
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+		qsub $ProgDir/rep_modeling.sh $Genome
+		qsub $ProgDir/transposonPSI.sh $Genome 
+	done
+```
+<!-- 
+The P infestans genome contained contigs with headers 
+longer than 50 characters in length. This prevented the
+rep_modeling script from working. To get around this the
+Fasta headers had to be corrected and the repeat masking
+resubmitted.
+
+```shell
+	Genome=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+	Genome_parsed=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed2.fa
+	cat $Genome | sed 's/.*supercontig_supercontig:/>/g' > $Genome_parsed
+	for Genome in $(ls $Genome_parsed); do
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+		qsub $ProgDir/rep_modeling.sh $Genome
+		qsub $ProgDir/transposonPSI.sh $Genome 
+	done
+```
+ -->
+
+
 #Augustus gene prediction
+#Gene Prediction
+
+
+Gene prediction followed three steps:
+	Pre-gene prediction
+		- Quality of genome assemblies were assessed using Cegma to see how many core eukaryotic genes can be identified. 
+	Gene model training
+		- Gene models were trained for the 10300 repeatmasked geneome using assembled RNAseq data and predicted CEGMA genes.
+	Gene prediction
+		- Gene models were used to predict genes in the 103033 genome. This used RNAseq data as hints for gene models.
+
+<!-- 
+##Pre-gene prediction
+
+Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
+
+This was first performed on the published unmasked assemblies:
+
+```shell
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+cd /home/groups/harrisonlab/project_files/idris/
+for Genome in $(ls repeat_masked/P.parisitica/310/*/*_contigs_unmasked_parsed.fa); do 
+echo $Genome; 
+qsub $ProgDir/sub_cegma.sh $Genome dna;
+done
+```
+
+These results were then moved to a directory for unmasked genomes
+```shell
+	mv gene_pred/cegma/P.cactorum/10300 gene_pred/cegma/P.cactorum/10300_unmasked
+```
+
+The analysis was then repeated for the 10300 repeatmasked genome:
+```shell
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+cd /home/groups/harrisonlab/project_files/idris/
+for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_hardmasked_parsed.fa); do 
+echo $Genome; 
+qsub $ProgDir/sub_cegma.sh $Genome dna;
+done
+```
+
+These results were moved to a directory for repeatmasked data.
+```shell
+	mv gene_pred/cegma/P.cactorum/10300 gene_pred/cegma/P.cactorum/10300_hardmasked
+```
+
+Outputs were summarised using the commands:
+```shell
+	for File in $(ls gene_pred/cegma/P.cactorum/10300*/*_dna_cegma.completeness_report); do 
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev); 
+		Species=$(echo $File | rev | cut -f3 -d '/' | rev); 
+		printf "$Species\t$Strain\n"; 
+		cat $File | head -n18 | tail -n+4;printf "\n"; 
+	done > gene_pred/cegma/P.cactorum/10300_cegma_results_dna_summary.txt
+	
+	less gene_pred/cegma/P.cactorum/10300_cegma_results_dna_summary.txt
+```
+ -->
 
 ## Gene prediction
 
@@ -57,6 +162,68 @@ from the headers of fasta files. This was performed using the following commands
 		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel
 	done
 ```
+
+
+Gene predicted was also performed on repeatmasked assemblies
+
+
+```shell
+	for File in $(ls assembly/external_group/P.*/*/dna/*.dna_rm.*.fa.gz); do 
+		OutFile=$(echo $File | sed 's/.fa.gz/.parsed.fa/g'); 
+		echo $OutFile; 
+		cat $File | gunzip -fc | sed 's/ /_/g' | sed 's/|/_/g' > $OutFile; 
+	done
+```
+
+```shell
+	for Genome in $(ls assembly/external_group/*/*/dna/*.dna_rm.*.parsed.fa); do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+		ConcatRNA=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+		GeneModel=P.cactorum_10300
+		echo $Genome
+		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel
+	done
+```
+
+The P. parisitica genome 310 could not be used for gene prediction as it's nodes
+needed to be further parsed (as they only contained numbers. These were modified
+and resubmitted as follows:
+
+```shell
+	for Genome in $(ls repeat_masked/P.parisitica/310/dna_repmask/310_contigs_hardmasked.fa); do
+		ModGenome=$(echo $Genome | sed 's/hardmasked.fa/hardmasked_parsed.fa/g')
+		cat $Genome | sed 's/>/>Node_/g' > $ModGenome
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+		ConcatRNA=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+		GeneModel=P.cactorum_10300
+		echo $Genome
+		qsub $ProgDir/augustus_pipe.sh $ModGenome $ConcatRNA $GeneModel
+	done
+```
+
+When these predictions had finished the output augustus directory was renamed to reflect
+that these genes had predicted from masked assemblies.
+
+```shell
+	mv gene_pred/augustus gene_pred/augustus_masked
+```
+
+
+<!-- 
+Gene prediction was also performed on the P. infestans T30-4 genome following
+Repeatmasking by our pipeline. This
+
+```shell
+	for Genome in $(ls repeat_masked/P.infestans/T30-4/dna_repmask/T30-4_contigs_hardmasked.fa); do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+		ConcatRNA=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+		GeneModel=P.cactorum_10300
+		echo $Genome
+		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRNA $GeneModel
+	done
+```
+
+ -->
 
 
 ##Predict secreted proteins
@@ -437,6 +604,16 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 		echo $Genome
 		qsub $ProgDir/path_pipe.sh $Genome 
 	done
+```
+
+This pipeline was also run on repeatmasked genomes:
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
+for Genome in $(ls assembly/external_group/*/*/dna/*.dna_rm.*.parsed.fa); do
+echo $Genome
+qsub $ProgDir/path_pipe.sh $Genome 
+done
 ```
 
 ##RxLR Prediction
@@ -1006,8 +1183,55 @@ $ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 	done
 ```
 
+#Combining gff files
 
+##Adding notes to effector gff files
+Before combining gff files from multiple sources, the program used to predict 
+the gff features were named as 'Notes' in the attributes column of the gff file.
 
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Note=RxLR_motif
+	for File in $(ls analysis/sigP_rxlr/P.*/*/*_aug_RxLR_finder.gff); do
+		Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+		OutFile=analysis/sigP_rxlr/$Organism/$Strain/"$Strain"_aug_RxLR_finder_source.gff
+		$ProgDir/add_note_to_gff.pl $File $Note > $OutFile
+	done
+```
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Note=WY_hmmer
+	for File in $(ls analysis/hmmer/WY/P.*/*/*_aug_WY_hmmer.gff); do
+		Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+		OutFile=analysis/hmmer/WY/$Organism/$Strain/"$Strain"_aug_WY_hmmer_source.gff
+		$ProgDir/add_note_to_gff.pl $File $Note > $OutFile
+	done
+```
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	Note=CRN_motif
+	for File in $(ls analysis/CRN/P.*/*/*_aug_LxLFLAK_HVLVVVP.gff); do
+		Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+		OutFile=analysis/CRN/$Organism/$Strain/"$Strain"_LxLFLAK_HVLVVVP_source.gff
+		$ProgDir/add_note_to_gff.pl $File $Note > $OutFile
+	done
+```
+
+```shell
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+Note=CRN_hmm
+for File in $(ls analysis/hmmer/CRN/P.*/*/*_aug_CRN_hmmer.gff); do
+Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+OutFile=analysis/CRN/$Organism/$Strain/"$Strain"_aug_CRN_hmmer_source.gff
+$ProgDir/add_note_to_gff.pl $File $Note > $OutFile
+done
+```
 
 # Comparing Augustus predictions and atg.pl predictions
 
