@@ -556,11 +556,206 @@ The best assemblies were used to perform repeatmasking
 	
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-	BestAss10300=assembly/abyss/P.cactorum/10300/10300_abyss_51/10300_abyss-unitigs.fa
+	BestAss10300=assembly/abyss/P.cactorum/10300/10300_abyss_51/10300_abyss-scaffolds_1000bp.fa
 
 	qsub $ProgDir/rep_modeling.sh $BestAss10300
 	qsub $ProgDir/transposonPSI.sh $BestAss10300
 ```
+
+##Parsing Assemblies
+```
+for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_*.fa | grep -v 'parsed'); do 
+ls $Genome; 
+OutName=$(echo $Genome | sed 's/.fa/_parsed.fa/g')
+cat $Genome | sed 's/>/>NODE_/g' | sed 's/ .*//' > $OutName
+done
+```
+
+
+#Gene Prediction
+
+
+Gene prediction followed three steps:
+	Pre-gene prediction
+		- Quality of genome assemblies were assessed using Cegma to see how many core eukaryotic genes can be identified. 
+	Gene model training
+		- Gene models were trained for the 10300 repeatmasked geneome using assembled RNAseq data and predicted CEGMA genes.
+	Gene prediction
+		- Gene models were used to predict genes in the 103033 genome. This used RNAseq data as hints for gene models.
+
+#Pre-gene prediction
+
+Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
+
+This was first performed on the 10300 unmasked assembly:
+
+```shell
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+cd /home/groups/harrisonlab/project_files/idris/
+for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_unmasked_parsed.fa); do 
+echo $Genome; 
+qsub $ProgDir/sub_cegma.sh $Genome dna;
+done
+```
+
+These results were then moved to a directory for unmasked genomes
+```shell
+	mv gene_pred/cegma/P.cactorum/10300 gene_pred/cegma/P.cactorum/10300_unmasked
+```
+
+The analysis was then repeated for the 10300 repeatmasked genome:
+```shell
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+cd /home/groups/harrisonlab/project_files/idris/
+for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_hardmasked_parsed.fa); do 
+echo $Genome; 
+qsub $ProgDir/sub_cegma.sh $Genome dna;
+done
+```
+
+These results were moved to a directory for repeatmasked data.
+```shell
+	mv gene_pred/cegma/P.cactorum/10300 gene_pred/cegma/P.cactorum/10300_hardmasked
+```
+
+Outputs were summarised using the commands:
+```shell
+	for File in $(ls gene_pred/cegma/P.cactorum/10300*/*_dna_cegma.completeness_report); do 
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev); 
+		Species=$(echo $File | rev | cut -f3 -d '/' | rev); 
+		printf "$Species\t$Strain\n"; 
+		cat $File | head -n18 | tail -n+4;printf "\n"; 
+	done > gene_pred/cegma/P.cactorum/10300_cegma_results_dna_summary.txt
+	
+	less gene_pred/cegma/P.cactorum/10300_cegma_results_dna_summary.txt
+```
+
+
+
+
+
+
+
+
+<!-- 
+#Gene model training
+
+Data quality was visualised using fastqc:
+```shell
+	for RawData in raw_rna/paired/*/*/*/*.fastq.gz; do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+		echo $RawData; 
+		qsub $ProgDir/run_fastqc.sh $RawData
+	done
+```
+
+Trimming was performed on data to trim adapters from 
+sequences and remove poor quality data. This was done with fastq-mcf
+
+```shell
+	for StrainPath in raw_rna/paired/*/*; do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_full_adapters.fa
+		ReadsF=$(ls $StrainPath/F/*.fastq.gz)
+		ReadsR=$(ls $StrainPath/R/*.fastq.gz)
+		echo $ReadsF
+		echo $ReadsR
+		qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters RNA
+	done
+```
+
+Data quality was visualised once again following trimming:
+```shell
+	for TrimData in qc_rna/paired/*/*/*/*.fastq.gz; do 
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+		echo $RawData; 
+		qsub $ProgDir/run_fastqc.sh $TrimData
+	done
+```	
+
+RNAseq data was assembled into transcriptomes using Trinity
+```shell
+	for StrainPath in qc_rna/paired/*/*; do
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/transcriptome_assembly
+		ReadsF=$(ls $StrainPath/F/*.fastq.gz)
+		ReadsR=$(ls $StrainPath/R/*.fastq.gz)	
+		echo $ReadsF
+		echo $ReadsR
+		qsub $ProgDir/transcriptome_assembly_trinity.sh $ReadsF $ReadsR
+	done
+```	
+Gene training was performed using RNAseq data. The cluster can not run this script using qlogin. As such it was run on the head node (-naughty) using screen.
+Training for 650 and 1166 was performed in two instances of screen and occassionally viewed to check progress over time.
+(screen is detached after opening using ctrl+a then ctrl+d. - if just ctrl+d is pressed the instance of screen is deleted. - be careful)
+```shell
+	screen -a
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+	Assembly650=assembly/trinity/A.alternata_ssp._gaisen/650/650_rna_contigs/Trinity.fasta 
+	Genome650=repeat_masked/A.alternata_ssp._gaisen/650/A.alternata_ssp._gaisen_650_67_repmask/650_contigs_unmasked.fa
+	$ProgDir/training_by_transcriptome.sh $Assembly650 $Genome650
+
+	screen -a
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+	Assembly1166=assembly/trinity/A.alternata_ssp._tenuissima/1166/1166_rna_contigs/Trinity.fasta 
+	Genome1166=repeat_masked/A.alternata_ssp._tenuissima/1166/A.alternata_ssp._tenuissima_1166_43_repmask/1166_contigs_unmasked.fa
+	$ProgDir/training_by_transcriptome.sh $Assembly1166 $Genome1166
+```
+
+Quality of Trinity assemblies were assessed using Cegma to assess gene-space within the transcriptome
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+	for Transcriptome in $(ls assembly/trinity/A.*/*/*_rna_contigs/Trinity.fasta); do  
+		echo $Transcriptome;  
+		qsub $ProgDir/sub_cegma.sh $Transcriptome rna; 
+	done
+```
+Outputs were summarised using the commands:
+```shell
+	for File in $(ls gene_pred/cegma/A.alternata_ssp._*/*/*_rna_cegma.completeness_report); do 
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev); 
+		Species=$(echo $File | rev | cut -f3 -d '/' | rev); 
+		printf "$Species\t$Strain\n"; 
+		cat $File | head -n18 | tail -n+4;printf "\n"; 
+	done > gene_pred/cegma/cegma_results_rna_summary.txt
+	
+	less gene_pred/cegma/cegma_results_rna_summary.txt
+```
+	
+ -->
+ 
+ 
+ <!-- 
+ 
+#Gene prediction
+
+Gene prediction was performed for A. alternata isolates. 
+RNAseq reads were used as Hints for the location of CDS. 
+A concatenated dataset of both ssp. tenuissima and ssp. gaisen RNAseq reads were used as hints for all strains.
+Genes were predicted for ssp. tenuissima using the gene model trained to ssp. tenunissima. 
+Genes were predicted for ssp. gaisen using the gene model trained to ssp. gaisen. 
+Genes were predicted for ssp. arborescens using the gene model trained to ssp. tenuisima.
+
+
+```shell
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+	mkdir -p qc_rna/concatenated
+	RnaFiles=$(ls qc_rna/paired/A.alternata_ssp._*/*/*/*.fastq.gz | paste -s -d ' ')
+	ConcatRna=qc_rna/concatenated/A.alternata_RNA_650_1166.fa.gz
+	cat $RnaFiles > $ConcatRna
+	
+	for Genome in repeat_masked/A.alternata_ssp._*/*/*/*_contigs_unmasked.fa; do
+		Species=$(printf $Genome | rev | cut -f4 -d '/' | rev)
+		if [ "$Species" == 'A.alternata_ssp._tenuissima' ]; then 
+			GeneModel=A.alternata_ssp._tenuissima_1166
+		elif [ "$Species" == 'A.alternata_ssp._gaisen' ]; then 
+			GeneModel=A.alternata_ssp._gaisen_650
+		elif [ "$Species" == 'A.alternata_ssp._arborescens' ]; then 
+			GeneModel=A.alternata_ssp._tenuissima_1166
+		fi
+		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRna $GeneModel
+	done
+```
+ -->
 
 
 <!--
