@@ -52,4 +52,4 @@ features = db.features_of_type(t, limit=None, strand=None, order_by=None, revers
 
 for feature in features:
     ID = "".join(feature.attributes['ID'])
-    o.write(str(ID))
+    o.write(str(ID) + "\n")
