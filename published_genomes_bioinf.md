@@ -6,7 +6,7 @@ The following genomes were publicly available
 ```bash
 	ls assembly/external_group/*/*/dna/*.genome.fa
 ```
-```
+```bash
 	assembly/external_group/P.fragariae/309-62/dna/P.fragariae_309.62.genome.fa
 	assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.fa
 	assembly/external_group/P.kernoviae/00238-432/dna/Phytophthora_kernoviae.GCA_000333075.1.26.dna.genome.fa
@@ -381,6 +381,31 @@ between the signal peptide cleavage site and 100aa downstream:
 	done
 ```
 
+The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identfy RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
+
+The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
+
+```bash
+	for Pathz in $(ls gene_pred/sigP_aug/P.*/*/*_aug_sp.aa); do
+		ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+		Strain=$(echo $Pathz | cut -d '/' -f4);
+		Organism=$(echo $Pathz | cut -d '/' -f3) ;
+		OutDir=analysis/sigP_rxlr/"$Organism"/"$Strain";
+		mkdir -p $OutDir;
+		printf "\nstrain: $Strain\tspecies: $Organism\n";
+		printf "the number of SigP gene is:\t";
+		cat $Pathz | grep '>' | wc -l;
+		printf "the number of SigP-RxLR genes are:\t";
+		$ProgDir/RxLR_EER_regex_finder.py $Pathz > $OutDir/"$Strain"_aug_RxLR_EER_regex.fa;
+		cat $OutDir/"$Strain"_aug_RxLR_EER_regex.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_aug_RxLR_regex.txt
+		cat $OutDir/"$Strain"_aug_RxLR_regex.txt | wc -l
+		printf "the number of SigP-RxLR-EER genes are:\t";
+		cat $OutDir/"$Strain"_aug_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' |  cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_aug_RxLR_EER_regex.txt
+		cat $OutDir/"$Strain"_aug_RxLR_EER_regex.txt | wc -l
+		printf "\n"
+	done
+```
+
 ###Domain searching
 
 Hmm models for the WY domain contained in many RxLRs were used to search gene
@@ -552,6 +577,38 @@ between the signal peptide cleavage site and 100aa downstream:
 	done
 ```
 
+
+The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identfy RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
+
+The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
+
+```bash
+	for Pathz in $(ls analysis/rxlr_atg/P.*/*/*.sp.pve); do
+		ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+		Strain=$(echo $Pathz | cut -d '/' -f4);
+		Organism=$(echo $Pathz | cut -d '/' -f3) ;
+		OutDir=analysis/rxlr_atg/"$Organism"/"$Strain";
+		mkdir -p $OutDir;
+		printf "\nstrain: $Strain\tspecies: $Organism\n";
+		printf "the number of SigP gene is:\t";
+		cat $Pathz | grep '>' | wc -l;
+		printf "the number of SigP-RxLR genes are:\t";
+		$ProgDir/RxLR_EER_regex_finder.py $Pathz > $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa;
+		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_ORF_RxLR_regex.txt
+		cat $OutDir/"$Strain"_ORF_RxLR_regex.txt | wc -l
+		printf "the number of SigP-RxLR-EER genes are:\t";
+		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' |  cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt
+		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt | wc -l
+		printf "\n"
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+		Col2=RxLR_EER_regex_finder.py
+		GeneNames=$OutDir/"$Strain"_ORF_RxLR_regex.txt
+		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutDir/"$Strain"_ORF_RxLR_regex.gff3
+	done
+```
+
+
 ####Domain searching
 
 Hmm models for the WY domain contained in many RxLRs were used to search gene
@@ -714,6 +771,36 @@ using the program rxlr_finder.py:
 	done
 ```
 
+
+The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identfy RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
+
+The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
+
+```bash
+	for Pathz in $(ls analysis/rxlr_atg_unmasked/P.*/*/*.sp.pve); do
+		ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+		Strain=$(echo $Pathz | cut -d '/' -f4);
+		Organism=$(echo $Pathz | cut -d '/' -f3) ;
+		OutDir=analysis/rxlr_atg_unmasked/"$Organism"/"$Strain";
+		mkdir -p $OutDir;
+		printf "\nstrain: $Strain\tspecies: $Organism\n";
+		printf "the number of SigP gene is:\t";
+		cat $Pathz | grep '>' | wc -l;
+		printf "the number of SigP-RxLR genes are:\t";
+		$ProgDir/RxLR_EER_regex_finder.py $Pathz > $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa;
+		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_ORF_RxLR_regex.txt
+		cat $OutDir/"$Strain"_ORF_RxLR_regex.txt | wc -l
+		printf "the number of SigP-RxLR-EER genes are:\t";
+		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' |  cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt
+		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt | wc -l
+		printf "\n"
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+		Col2=RxLR_EER_regex_finder.py
+		GeneNames=$OutDir/"$Strain"_ORF_RxLR_regex.txt
+		GeneModels=analysis/rxlr_atg_unmasked/"$Organism"/"$Strain"/"$Strain"_ORF.gff3
+		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutDir/"$Strain"_ORF_RxLR_regex.gff3
+	done
+```
 
 ###Domain searching
 
@@ -1087,7 +1174,7 @@ than gtf format.
 Gff features from atg.pl were corrected to .gff3 format.
 This was done using the following commands:
 
-```
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 	for StrainDir in $(ls -d analysis/rxlr_atg/P*/*); do
 		Organism=$(echo $StrainDir | rev | cut -f2 -d '/' | rev)
