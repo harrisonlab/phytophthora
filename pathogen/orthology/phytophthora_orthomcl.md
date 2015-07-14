@@ -115,6 +115,7 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
   ProjDir=/home/groups/harrisonlab/project_files/idris
   cd $ProjDir
   IsolateAbrv=Pcac_Pinf_P.ram_P.soj
+  IsolateAbrv2=Pcac_Pinf_Pram_Psoj
   WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
   mkdir -p $WorkDir
   mkdir -p $WorkDir/formatted
@@ -197,32 +198,81 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
     BlastOut=$(echo $File | sed 's/.fa/.tab/g')
     qsub $ProgDir/blast_500.sh $BlastDB $File $BlastOut
   done
-  MergeHits=$WorkDir/"$IsolateAbrv"_blast.tab
+```
+
+## Merge the all-vs-all blast results  
+```bash  
   printf "" > $MergeHits
   for Num in $(ls $WorkDir/splitfiles/*.tab | rev | cut -f1 -d '_' | rev | sort -n); do
     File=$(ls $WorkDir/splitfiles/*_$Num)
-    cat $File >> $MergeHits
-  done
+    cat $File
+  done > $MergeHits
+```
 
+## Perform ortholog identification
+```bash
+  orthomclBlastParser $MergeHits $WorkDir/goodProteins >> $WorkDir/"$IsolateAbrv"_similar.txt
+  ls -lh $WorkDir/"$IsolateAbrv"_similar.txt # The database will be 5x the size of this file = ~2.5Gb
+  cp ~/testing/armita_orthomcl/orthomcl.config $WorkDir/"$IsolateAbrv2"_orthomcl.config
+  sed -i "s/orthologTable=.*/orthologTable="$IsolateAbrv2"_Ortholog/g" $WorkDir/"$IsolateAbrv2"_orthomcl.config
+  sed -i "s/inParalogTable=.*/inParalogTable="$IsolateAbrv2"_InParalog/g" $WorkDir/"$IsolateAbrv2"_orthomcl.config
+  sed -i "s/coOrthologTable=.*/coOrthologTable="$IsolateAbrv2"_CoOrtholog/g" $WorkDir/"$IsolateAbrv2"_orthomcl.config
 
-  Fasta_files_dir=compliant_files
-  mkdir $Fasta_files_dir
-  cp ../$Good_proteins_file $Fasta_files_dir/.
-  SimilarSequences=similarSequences.txt
-  orthomclBlastParser $BlastOut $Fasta_files_dir >> $SimilarSequences
-  ls -lh $SimilarSequences # The database will be 5x the size of this file
+  orthomclLoadBlast $WorkDir/"$IsolateAbrv2"_orthomcl.config $WorkDir/"$IsolateAbrv"_similar.txt
+  Log_file=$WorkDir/orthoMCL.log
+  # orthomclPairs $OrthoConfig $Log_file cleanup=yes
+  orthomclPairs $WorkDir/"$IsolateAbrv"_orthomcl.config $Log_file cleanup=yes #<startAfter=TAG>
+```
 
-  OrthoConfig=~/testing/armita_orthomcl/orthomcl.config
-  orthomclLoadBlast $OrthoConfig $SimilarSequences
-  Log_file=orthoMCL.log
-  orthomclPairs $OrthoConfig $Log_file cleanup=yes #<startAfter=TAG>
+```bash  
+  orthomclDumpPairsFiles $OrthoConfig
+  mv pairs $WorkDir/pairs
+  mv mclInput $WorkDir/mclInput.txt
   orthomclDumpPairsFiles $OrthoConfig
   MclInput=mclInput
   MclOutput=mclOutput
   mcl $MclInput --abc -I 1.5 -o $MclOutput
-  Groups_output=groups.txt
-  orthomclMclToGroups $MclOutput $Groups_output
-  GitDir=~/git_repos/emr_repos/tools/pathogen/orthology/OrthoMCL
-  GroupMatrix=groups_matrix.tab
-  $GitDir/orthoMCLgroups2tab $Fasta_files_dir/$Good_proteins_file $Groups_output > $GroupMatrix
+  $WorkDir/mclOutput.txt
+  mcl $WorkDir/mclInput.txt --abc -I 1.5 -o $WorkDir/mclOutput.txt
+  OrthoGroups="$IsolateAbrv"_orthogroups.txt
+  cat $WorkDir/mclOutput.txt | orthomclMclToGroups orthogroup 1 > $WorkDir/$OrthoGroups
+  GitDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  $GitDir/orthoMCLgroups2tab.py $Good_proteins_file $WorkDir/$OrthoGroups > $WorkDir/"$IsolateAbrv"_orthogroups.tab
+```
+
+
+## Plot venn diagrams:
+
+```R
+
+
+  mydata <- read.table("$WorkDir/"$IsolateAbrv"_orthogroups.tab")
+  transposedata <- t(mydata)
+  summary(transposedata)
+  # sum(transposedata[, "P414"])
+  # sum(transposedata[, "T304"])
+  area1=sum(transposedata[, 1])
+  area2=sum(transposedata[, 2])
+  colname1 <- paste(colnames(transposedata)[1])
+  colname2 <- paste(colnames(transposedata)[2])
+  label1 <- paste(colname1, ' (', area1, ')', sep="" )
+  label2 <- paste(colname2, ' (', area2, ')', sep="" )
+  n12=nrow(subset(transposedata, 414==1 & T304==1))
+  n12=nrow(subset(transposedata, transposedata[,1]==1 & transposedata[,2]==1))
+  pdf('414_vs_T30-4_venn.pdf')
+  draw.pairwise.venn(area1, area2, n12,
+      category = c(label1, label2), euler.d = TRUE, scaled = TRUE, inverted = FALSE, ext.text = TRUE, ext.percent = rep(0.05, 3),
+      lwd = rep(2, 2), lty = rep("solid", 2), col = rep("black", 2), fill = NULL,
+      alpha = rep(0.5, 2), label.col = rep("black", 3), cex = rep(1, 3),
+      fontface = rep("plain", 3), fontfamily = rep("serif", 3), cat.pos = c(-50, 50),
+      cat.dist = rep(0.025, 2), cat.cex = rep(1, 2), cat.col = rep("black", 2),
+      cat.fontface = rep("plain", 2), cat.fontfamily = rep("serif", 2),
+      cat.just = rep(list(c(0.5, 0.5)), 2), cat.default.pos = "outer",
+      cat.prompts = FALSE,
+      ext.pos = rep(0, 2), ext.dist = rep(0, 2), ext.line.lty = "solid",
+      ext.length = rep(0.95, 2), ext.line.lwd = 1, rotation.degree = 0,
+      rotation.centre = c(0.5, 0.5), ind = TRUE, sep.dist = 0.05, offset = 0
+  )
+  dev.off()
+  q()
 ```
