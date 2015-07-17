@@ -202,6 +202,7 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
 
 ## Merge the all-vs-all blast results  
 ```bash  
+  MergeHits="$IsolateAbrv"_blast.tab
   printf "" > $MergeHits
   for Num in $(ls $WorkDir/splitfiles/*.tab | rev | cut -f1 -d '_' | rev | sort -n); do
     File=$(ls $WorkDir/splitfiles/*_$Num)
@@ -213,12 +214,13 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
 ```bash
   orthomclBlastParser $MergeHits $WorkDir/goodProteins >> $WorkDir/"$IsolateAbrv"_similar.txt
   ls -lh $WorkDir/"$IsolateAbrv"_similar.txt # The database will be 5x the size of this file = ~2.5Gb
-  cp ~/testing/armita_orthomcl/orthomcl.config $WorkDir/"$IsolateAbrv2"_orthomcl.config
-  sed -i "s/orthologTable=.*/orthologTable="$IsolateAbrv2"_Ortholog/g" $WorkDir/"$IsolateAbrv2"_orthomcl.config
-  sed -i "s/inParalogTable=.*/inParalogTable="$IsolateAbrv2"_InParalog/g" $WorkDir/"$IsolateAbrv2"_orthomcl.config
-  sed -i "s/coOrthologTable=.*/coOrthologTable="$IsolateAbrv2"_CoOrtholog/g" $WorkDir/"$IsolateAbrv2"_orthomcl.config
+  cp ~/testing/armita_orthomcl/orthomcl.config $WorkDir/"$IsolateAbrv"_orthomcl.config
+  sed -i "s/similarSequencesTable=.*/similarSequencesTable="$IsolateAbrv"_SimilarSequences/g" $WorkDir/"$IsolateAbrv"_orthomcl.config
+  sed -i "s/orthologTable=.*/orthologTable="$IsolateAbrv"_Ortholog/g" $WorkDir/"$IsolateAbrv"_orthomcl.config
+  sed -i "s/inParalogTable=.*/inParalogTable="$IsolateAbrv"_InParalog/g" $WorkDir/"$IsolateAbrv"_orthomcl.config
+  sed -i "s/coOrthologTable=.*/coOrthologTable="$IsolateAbrv"_CoOrtholog/g" $WorkDir/"$IsolateAbrv"_orthomcl.config
 
-  orthomclLoadBlast $WorkDir/"$IsolateAbrv2"_orthomcl.config $WorkDir/"$IsolateAbrv"_similar.txt
+  orthomclLoadBlast $WorkDir/"$IsolateAbrv"_orthomcl.config $WorkDir/"$IsolateAbrv"_similar.txt
   Log_file=$WorkDir/orthoMCL.log
   # orthomclPairs $OrthoConfig $Log_file cleanup=yes
   orthomclPairs $WorkDir/"$IsolateAbrv"_orthomcl.config $Log_file cleanup=yes #<startAfter=TAG>
