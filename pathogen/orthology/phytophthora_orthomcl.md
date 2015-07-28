@@ -211,7 +211,15 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
 ```
 
 ## Perform ortholog identification
+
 ```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  MergeHits="$IsolateAbrv"_blast.tab
+  GoodProtDir=$WorkDir/goodProteins
+  $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProtDir
+```
+
+<!-- ```bash
   orthomclBlastParser $MergeHits $WorkDir/goodProteins >> $WorkDir/"$IsolateAbrv"_similar.txt
   ls -lh $WorkDir/"$IsolateAbrv"_similar.txt # The database will be 5x the size of this file = ~2.5Gb
   cp ~/testing/armita_orthomcl/orthomcl.config $WorkDir/"$IsolateAbrv"_orthomcl.config
@@ -240,14 +248,19 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
   cat $WorkDir/mclOutput.txt | orthomclMclToGroups orthogroup 1 > $WorkDir/$OrthoGroups
   GitDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   $GitDir/orthoMCLgroups2tab.py $Good_proteins_file $WorkDir/$OrthoGroups > $WorkDir/"$IsolateAbrv"_orthogroups.tab
-```
+``` -->
 
 
 ## Plot venn diagrams:
 
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
+  $ProgDir/venn_diag_4_way.r --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+```
+
+
+<!--
 ```R
-
-
   mydata <- read.table("$WorkDir/"$IsolateAbrv"_orthogroups.tab")
   transposedata <- t(mydata)
   summary(transposedata)
@@ -277,4 +290,4 @@ blastall -d goodProteins.fasta -p blastp -v 100000 -b 100000 -e 1e-5 -m 8 # -F '
   )
   dev.off()
   q()
-```
+``` -->
