@@ -113,13 +113,40 @@
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   MergeHits="$IsolateAbrv"_blast.tab
-  GoodProtDir=$WorkDir/goodProteins
-  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProtDir
+  GoodProts=$WorkDir/goodProteins/goodProteins.fasta
+  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts
 ```
 
 ## Plot venn diagrams:
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
-  $ProgDir/venn_diag_4_way.r --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+  $ProgDir/ven_diag_5_way.R --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+```
+
+Output was a pdf file of the venn diagram.
+
+The following additional information was also provided. THe format of the
+following lines is as follows:
+
+Isolate name (total number of orthogroups)
+number of unique singleton genes
+number of unique groups of inparalogs
+
+```
+  [1] "Pcac (8580)"
+  [1] 1529
+  [1] 63
+  [1] "Pinf (7969)"
+  [1] 724
+  [1] 157
+  [1] "Ppar (8518)"
+  [1] 822
+  [1] 114
+  [1] "Pram (6682)"
+  [1] 115
+  [1] 57
+  [1] "Psoj (7461)"
+  [1] 645
+  [1] 152
 ```
