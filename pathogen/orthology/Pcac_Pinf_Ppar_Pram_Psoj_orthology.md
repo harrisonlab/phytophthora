@@ -114,7 +114,7 @@
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   MergeHits="$IsolateAbrv"_blast.tab
   GoodProtDir=$WorkDir/goodProteins
-  $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProtDir
+  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProtDir
 ```
 
 ## Plot venn diagrams:
