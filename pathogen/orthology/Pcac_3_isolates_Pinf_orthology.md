@@ -16,8 +16,26 @@
 
 ### for P.cac 10300
 ```bash
-  Taxon_code=Pcac
+  Taxon_code=Pc_1
   Fasta_file=gene_pred/augustus_unmasked/P.cactorum/10300/10300_augustus_preds.aa
+  Id_field=1
+  orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
+  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
+```
+
+### for P.cac 404
+```bash
+  Taxon_code=Pc_2
+  Fasta_file=gene_pred/augustus_unmasked/P.cactorum/404/404_augustus_preds.aa
+  Id_field=1
+  orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
+  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
+```
+
+### for P.cac 414
+```bash
+  Taxon_code=Pc_3
+  Fasta_file=gene_pred/augustus_unmasked/P.cactorum/414/414_augustus_preds.aa
   Id_field=1
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
   mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
@@ -31,34 +49,6 @@
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
   mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
 ```
-
-### for P.par 310
-```bash
-  Taxon_code=Ppar
-  Fasta_file=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
-  Id_field=1
-  orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
-  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
-```
-
-### for P.ram T3163428
-```bash
-  Taxon_code=Pram
-  Fasta_file=assembly/external_group/P.ramorum/164328/pep/Phytophthora_ramorum.ASM14973v1.26.pep.all.fa
-  Id_field=1
-  orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
-  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
-```
-
-### for P.soj 67593
-```bash
-  Taxon_code=Psoj
-  Fasta_file=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
-  Id_field=1
-  orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
-  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
-```
-
 
 ## Filter proteins into good and poor sets.
 
