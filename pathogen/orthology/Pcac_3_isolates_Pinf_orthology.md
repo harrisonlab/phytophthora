@@ -103,8 +103,8 @@
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   MergeHits="$IsolateAbrv"_blast.tab
-  GoodProtDir=$WorkDir/goodProteins
-  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProtDir
+  GoodProts=$WorkDir/goodProteins/goodProteins.fasta
+  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts
 ```
 
 ## Plot venn diagrams:
