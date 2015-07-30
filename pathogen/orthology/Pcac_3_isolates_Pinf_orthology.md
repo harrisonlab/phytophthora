@@ -113,3 +113,27 @@
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
   $ProgDir/venn_diag_4_way.r --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
 ```
+
+Output was a pdf file of the venn diagram.
+
+The following additional information was also provided. The format of the
+following lines is as follows:
+
+Isolate name (total number of orthogroups)
+number of unique singleton genes
+number of unique groups of inparalogs
+
+```
+  [1] "Pc_1 (8811)"
+  [1] 108
+  [1] 4
+  [1] "Pc_2 (8771)"
+  [1] 109
+  [1] 2
+  [1] "Pc_3 (8784)"
+  [1] 101
+  [1] 1
+  [1] "Pinf (8639)"
+  [1] 1047
+  [1] 306
+```
