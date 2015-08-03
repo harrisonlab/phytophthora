@@ -405,6 +405,122 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 		printf "\n"
 	done
 ```
+Results were as follows:
+
+```
+	strain: 10300	species: P.cactorum
+	the number of SigP gene is:	1856
+	the number of SigP-RxLR genes are:	133
+	the number of SigP-RxLR-EER genes are:	61
+
+
+	strain: 404	species: P.cactorum
+	the number of SigP gene is:	1655
+	the number of SigP-RxLR genes are:	119
+	the number of SigP-RxLR-EER genes are:	56
+
+
+	strain: 414	species: P.cactorum
+	the number of SigP gene is:	1688
+	the number of SigP-RxLR genes are:	125
+	the number of SigP-RxLR-EER genes are:	58
+
+
+	strain: JHVZ02	species: P.fragariae
+	the number of SigP gene is:	2098
+	the number of SigP-RxLR genes are:	209
+	the number of SigP-RxLR-EER genes are:	110
+
+
+	strain: 371	species: P.ideai
+	the number of SigP gene is:	1440
+	the number of SigP-RxLR genes are:	90
+	the number of SigP-RxLR-EER genes are:	44
+
+
+	strain: T30-4	species: P.infestans
+	the number of SigP gene is:	1841
+	the number of SigP-RxLR genes are:	142
+	the number of SigP-RxLR-EER genes are:	66
+
+
+	strain: 00238-432	species: P.kernoviae
+	the number of SigP gene is:	1314
+	the number of SigP-RxLR genes are:	100
+	the number of SigP-RxLR-EER genes are:	61
+
+
+	strain: MPF4	species: P.lateralis
+	the number of SigP gene is:	1394
+	the number of SigP-RxLR genes are:	102
+	the number of SigP-RxLR-EER genes are:	59
+
+
+	strain: 310	species: P.parisitica
+	the number of SigP gene is:	1570
+	the number of SigP-RxLR genes are:	130
+	the number of SigP-RxLR-EER genes are:	71
+
+
+	strain: chvinca01	species: P.parisitica
+	the number of SigP gene is:	1495
+	the number of SigP-RxLR genes are:	119
+	the number of SigP-RxLR-EER genes are:	64
+
+
+	strain: cj01a1	species: P.parisitica
+	the number of SigP gene is:	1652
+	the number of SigP-RxLR genes are:	144
+	the number of SigP-RxLR-EER genes are:	85
+
+
+	strain: cj02b3	species: P.parisitica
+	the number of SigP gene is:	1499
+	the number of SigP-RxLR genes are:	110
+	the number of SigP-RxLR-EER genes are:	60
+
+
+	strain: cj05e6	species: P.parisitica
+	the number of SigP gene is:	1503
+	the number of SigP-RxLR genes are:	114
+	the number of SigP-RxLR-EER genes are:	63
+
+
+	strain: iac_01_95	species: P.parisitica
+	the number of SigP gene is:	1499
+	the number of SigP-RxLR genes are:	119
+	the number of SigP-RxLR-EER genes are:	69
+
+
+	strain: p10297	species: P.parisitica
+	the number of SigP gene is:	1620
+	the number of SigP-RxLR genes are:	150
+	the number of SigP-RxLR-EER genes are:	93
+
+
+	strain: p1569	species: P.parisitica
+	the number of SigP gene is:	1640
+	the number of SigP-RxLR genes are:	140
+	the number of SigP-RxLR-EER genes are:	80
+
+
+	strain: p1976	species: P.parisitica
+	the number of SigP gene is:	1615
+	the number of SigP-RxLR genes are:	138
+	the number of SigP-RxLR-EER genes are:	83
+
+
+	strain: 164328	species: P.ramorum
+	the number of SigP gene is:	2244
+	the number of SigP-RxLR genes are:	221
+	the number of SigP-RxLR-EER genes are:	147
+
+
+	strain: 67593	species: P.sojae
+	the number of SigP gene is:	2691
+	the number of SigP-RxLR genes are:	278
+	the number of SigP-RxLR-EER genes are:	152
+```
 
 ###Domain searching
 
@@ -414,7 +530,7 @@ models predicted with Augustus. These were run with the following commands:
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
 	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
-	for Proteome in $(ls gene_pred/augustus/P.*/*/*_augustus_preds.aa); do
+	for Proteome in $(ls gene_pred/augustus_unmasked/P.*/*/*_augustus_preds.aa); do
 		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
 		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 		OutDir=analysis/hmmer/WY/$Organism/$Strain
@@ -422,11 +538,170 @@ models predicted with Augustus. These were run with the following commands:
 		HmmResults="$Strain"_aug_WY_hmmer_out.txt
 		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
 		echo "$Organism $Strain"
-		cat $OutDir/$HmmResults | sed '/inclusion threshold/q' | tail -n +16 | head -n -1 | wc -l
-		cat $OutDir/$HmmResults | sed '1,/inclusion threshold/d' | sed '/Domain annotation for each sequence/q' | tail -n +2 | head -n -3 | wc -l
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
 		HmmFasta="$Strain"_aug_WY_hmmer_out.fa
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
 	done
+```
+Results were as follows:
+
+```
+	P.cactorum 10300
+	Initial search space (Z):              17801  [actual number of targets]
+	Domain search space  (domZ):              93  [number of targets reported over threshold]
+	P.cactorum 404
+	Initial search space (Z):              16704  [actual number of targets]
+	Domain search space  (domZ):              80  [number of targets reported over threshold]
+	P.cactorum 414
+	Initial search space (Z):              17141  [actual number of targets]
+	Domain search space  (domZ):              83  [number of targets reported over threshold]
+	P.fragariae 309-62
+	Initial search space (Z):              18903  [actual number of targets]
+	Domain search space  (domZ):             103  [number of targets reported over threshold]
+	P.fragariae JHVZ02
+	Initial search space (Z):              26596  [actual number of targets]
+	Domain search space  (domZ):             133  [number of targets reported over threshold]
+	P.ideai 371
+	Initial search space (Z):              15901  [actual number of targets]
+	Domain search space  (domZ):              67  [number of targets reported over threshold]
+	P.infestans T30-4
+	Initial search space (Z):              18326  [actual number of targets]
+	Domain search space  (domZ):             121  [number of targets reported over threshold]
+	P.infestans T30-4_unmasked
+	Initial search space (Z):              38832  [actual number of targets]
+	Domain search space  (domZ):             124  [number of targets reported over threshold]
+	P.kernoviae 00238-432
+	Initial search space (Z):              12862  [actual number of targets]
+	Domain search space  (domZ):              53  [number of targets reported over threshold]
+	P.lateralis MPF4
+	Initial search space (Z):              12923  [actual number of targets]
+	Domain search space  (domZ):              68  [number of targets reported over threshold]
+	P.parisitica 310
+	Initial search space (Z):              14054  [actual number of targets]
+	Domain search space  (domZ):             118  [number of targets reported over threshold]
+	P.parisitica chvinca01
+	Initial search space (Z):              13589  [actual number of targets]
+	Domain search space  (domZ):             101  [number of targets reported over threshold]
+	P.parisitica cj01a1
+	Initial search space (Z):              14771  [actual number of targets]
+	Domain search space  (domZ):             113  [number of targets reported over threshold]
+	P.parisitica cj02b3
+	Initial search space (Z):              13590  [actual number of targets]
+	Domain search space  (domZ):              97  [number of targets reported over threshold]
+	P.parisitica cj05e6
+	Initial search space (Z):              13500  [actual number of targets]
+	Domain search space  (domZ):              97  [number of targets reported over threshold]
+	P.parisitica iac_01_95
+	Initial search space (Z):              13551  [actual number of targets]
+	Domain search space  (domZ):              98  [number of targets reported over threshold]
+	P.parisitica p10297
+	Initial search space (Z):              14779  [actual number of targets]
+	Domain search space  (domZ):             127  [number of targets reported over threshold]
+	P.parisitica p1569
+	Initial search space (Z):              14934  [actual number of targets]
+	Domain search space  (domZ):             119  [number of targets reported over threshold]
+	P.parisitica p1976
+	Initial search space (Z):              14833  [actual number of targets]
+	Domain search space  (domZ):             121  [number of targets reported over threshold]
+	P.ramorum 164328
+	Initial search space (Z):              18326  [actual number of targets]
+	Domain search space  (domZ):             194  [number of targets reported over threshold]
+	P.sojae 67593
+	Initial search space (Z):              25649  [actual number of targets]
+	Domain search space  (domZ):             220  [number of targets reported over threshold]
+```
+
+### From Augustus gene models - Hmm evidence of RxLR effectors
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+	for Proteome in $(ls gene_pred/augustus_unmasked/P.*/*/*_augustus_preds.aa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_RxLR_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"__Aug_RxLR_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+	done
+```
+
+Results were as follows:
+
+Note: The number of genes used in the P. infestans genome shown here was noted
+to indicate that this gene prediction was performed on the published masked
+and unmasked gene models.
+
+```
+	P.cactorum 10300
+	Initial search space (Z):              17801  [actual number of targets]
+	Domain search space  (domZ):              70  [number of targets reported over threshold]
+	P.cactorum 404
+	Initial search space (Z):              16704  [actual number of targets]
+	Domain search space  (domZ):              64  [number of targets reported over threshold]
+	P.cactorum 414
+	Initial search space (Z):              17141  [actual number of targets]
+	Domain search space  (domZ):              66  [number of targets reported over threshold]
+	P.fragariae 309-62
+	Initial search space (Z):              18903  [actual number of targets]
+	Domain search space  (domZ):              91  [number of targets reported over threshold]
+	P.fragariae JHVZ02
+	Initial search space (Z):              26596  [actual number of targets]
+	Domain search space  (domZ):             120  [number of targets reported over threshold]
+	P.ideai 371
+	Initial search space (Z):              15901  [actual number of targets]
+	Domain search space  (domZ):              44  [number of targets reported over threshold]
+	P.infestans T30-4
+	Initial search space (Z):              18326  [actual number of targets]
+	Domain search space  (domZ):              70  [number of targets reported over threshold]
+	P.infestans T30-4_unmasked
+	Initial search space (Z):              38832  [actual number of targets]
+	Domain search space  (domZ):              77  [number of targets reported over threshold]
+	P.kernoviae 00238-432
+	Initial search space (Z):              12862  [actual number of targets]
+	Domain search space  (domZ):              71  [number of targets reported over threshold]
+	P.lateralis MPF4
+	Initial search space (Z):              12923  [actual number of targets]
+	Domain search space  (domZ):              68  [number of targets reported over threshold]
+	P.parisitica 310
+	Initial search space (Z):              14054  [actual number of targets]
+	Domain search space  (domZ):              80  [number of targets reported over threshold]
+	P.parisitica chvinca01
+	Initial search space (Z):              13589  [actual number of targets]
+	Domain search space  (domZ):              69  [number of targets reported over threshold]
+	P.parisitica cj01a1
+	Initial search space (Z):              14771  [actual number of targets]
+	Domain search space  (domZ):              99  [number of targets reported over threshold]
+	P.parisitica cj02b3
+	Initial search space (Z):              13590  [actual number of targets]
+	Domain search space  (domZ):              67  [number of targets reported over threshold]
+	P.parisitica cj05e6
+	Initial search space (Z):              13500  [actual number of targets]
+	Domain search space  (domZ):              71  [number of targets reported over threshold]
+	P.parisitica iac_01_95
+	Initial search space (Z):              13551  [actual number of targets]
+	Domain search space  (domZ):              79  [number of targets reported over threshold]
+	P.parisitica p10297
+	Initial search space (Z):              14779  [actual number of targets]
+	Domain search space  (domZ):             108  [number of targets reported over threshold]
+	P.parisitica p1569
+	Initial search space (Z):              14934  [actual number of targets]
+	Domain search space  (domZ):              92  [number of targets reported over threshold]
+	P.parisitica p1976
+	Initial search space (Z):              14833  [actual number of targets]
+	Domain search space  (domZ):              97  [number of targets reported over threshold]
+	P.ramorum 164328
+	Initial search space (Z):              18326  [actual number of targets]
+	Domain search space  (domZ):             158  [number of targets reported over threshold]
+	P.sojae 67593
+	Initial search space (Z):              25649  [actual number of targets]
+	Domain search space  (domZ):             173  [number of targets reported over threshold]
 ```
 
 
@@ -583,29 +858,29 @@ The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identf
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
 
 ```bash
-	for Pathz in $(ls analysis/rxlr_atg/P.*/*/*.sp.pve); do
-		ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
-		Strain=$(echo $Pathz | cut -d '/' -f4);
-		Organism=$(echo $Pathz | cut -d '/' -f3) ;
-		OutDir=analysis/rxlr_atg/"$Organism"/"$Strain";
-		mkdir -p $OutDir;
-		printf "\nstrain: $Strain\tspecies: $Organism\n";
-		printf "the number of SigP gene is:\t";
-		cat $Pathz | grep '>' | wc -l;
-		printf "the number of SigP-RxLR genes are:\t";
-		$ProgDir/RxLR_EER_regex_finder.py $Pathz > $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa;
-		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_ORF_RxLR_regex.txt
-		cat $OutDir/"$Strain"_ORF_RxLR_regex.txt | wc -l
-		printf "the number of SigP-RxLR-EER genes are:\t";
-		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' |  cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt
-		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt | wc -l
-		printf "\n"
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-		Col2=RxLR_EER_regex_finder.py
-		GeneNames=$OutDir/"$Strain"_ORF_RxLR_regex.txt
-		GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_ORF.gff
-		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutDir/"$Strain"_ORF_RxLR_regex.gff3
-	done
+for Pathz in $(ls gene_pred/sigP_aug/P.*/*/*_aug_sp.aa); do
+ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+Strain=$(echo $Pathz | cut -d '/' -f4);
+Organism=$(echo $Pathz | cut -d '/' -f3) ;
+OutDir=analysis/rxlr_atg/"$Organism"/"$Strain";
+mkdir -p $OutDir;
+printf "\nstrain: $Strain\tspecies: $Organism\n";
+printf "the number of SigP gene is:\t";
+cat $Pathz | grep '>' | wc -l;
+printf "the number of SigP-RxLR genes are:\t";
+$ProgDir/RxLR_EER_regex_finder.py $Pathz > $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa;
+cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_Aug_RxLR_regex.txt
+cat $OutDir/"$Strain"_Aug_RxLR_regex.txt | wc -l
+printf "the number of SigP-RxLR-EER genes are:\t";
+cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' |  cut -f1 | sed 's/>//g' | sed 's/ //g' > $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt
+cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt | wc -l
+printf "\n"
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+Col2=RxLR_EER_regex_finder.py
+GeneNames=$OutDir/"$Strain"_Aug_RxLR_regex.txt
+GeneModels=analysis/rxlr_atg/"$Organism"/"$Strain"/"$Strain"_Aug.gff
+$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutDir/"$Strain"_Aug_RxLR_regex.gff3
+done
 ```
 
 
@@ -807,8 +1082,8 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
-	for Proteome in $(ls analysis/rxlr_atg/P.*/*/*.aa_cat.fa); do
+		HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+		for Proteome in $(ls analysis/rxlr_atg_unmasked/P.*/*/*.aa_cat.fa); do
 		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
 		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 		OutDir=analysis/hmmer/WY/$Organism/$Strain
@@ -816,8 +1091,28 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 		HmmResults="$Strain"_ORF_WY_hmmer_out.txt
 		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
 		echo "$Organism $Strain"
-		cat $OutDir/$HmmResults | sed '/inclusion threshold/q' | tail -n +16 | head -n -1 | wc -l
-		cat $OutDir/$HmmResults | sed '1,/inclusion threshold/d' | sed '/Domain annotation for each sequence/q' | tail -n +2 | head -n -3 | wc -l		HmmFasta="$Strain"_ORF_WY_hmmer_out.fa
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+	done
+```
+
+### From Augustus gene models - Hmm evidence of RxLR effectors
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+	for Proteome in $(ls analysis/rxlr_atg_unmasked/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_ORF_RxLR_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_ORF_RxLR_hmmer.fa
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
 	done
 ```
