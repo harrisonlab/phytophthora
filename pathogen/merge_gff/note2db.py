@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 '''
-This tool can be used to add a note attribute to a gff feature in a 
-gffutils database. Gff features matching a given ID will have notes 
+This tool can be used to add a note attribute to a gff feature in a
+gffutils database. Gff features matching a given ID will have notes
 added to them. IDs can be searched in other attributes as well such
 as Names using the "--attribute" option
 '''
@@ -76,10 +76,10 @@ gffutils.create_db(
 	in_db,
 	dbfn=conf.out_db,
 	force=True,
-	keep_order=True, 
+	keep_order=True,
 	merge_strategy='merge',
-	transform=transform_func, 
-	sort_attribute_values=True
+	transform=transform_func,
+	sort_attribute_values=False
 	)
-	
+
 print("Number of features with notes added:\t" + str(i))
