@@ -30,10 +30,8 @@ db1 = gffutils.create_db(
 	conf.inp,
 	dbfn=conf.db,
 	force=True,
-	keep_order=True, 
+	keep_order=True,
 	merge_strategy='merge',
-	transform=transform_func, 
-	sort_attribute_values=True
+	transform=transform_func,
+	sort_attribute_values=False
 	)
-
-
