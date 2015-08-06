@@ -51,17 +51,34 @@ print("No. IDs in infile:\t" + str(dict_len))
 new_note = conf.str
 a = conf.attribute
 i = 0
+# return_list = []
 def transform_func(x):
 	if a in x.attributes:
+#		return_list = ''
 		this_id = "".join(x.attributes[a])
 		if this_id in dict.keys():
 			if not 'Note' in x.attributes:
 				x.attributes['Note'] = new_note
 			else:
 				x.attributes['Note'].append(new_note)
+#			return_list.append(x)
+			parents = in_db.parents(x, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
+#			print ("parents:")
+			for higher_feat in parents:
+#				print (higher_feat)
+				if not 'Note' in higher_feat.attributes:
+#					print("no note")
+					higher_feat.attributes['Note'] = new_note
+				else:
+#					print("note present")
+					higher_feat.attributes['Note'].append(new_note)
+#				return_list.append(higher_feat)
+#				print (higher_feat)
 			global i
 			i += 1
 	return x
+#	return return_list
+
 
 #######################################
 #        Create output database       #
