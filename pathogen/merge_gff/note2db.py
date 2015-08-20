@@ -62,16 +62,16 @@ def transform_func(x):
 			else:
 				x.attributes['Note'].append(new_note)
 #			return_list.append(x)
-			parents = in_db.parents(x, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
+#			parents = in_db.parents(x, level=None, featuretype=None, order_by=None, reverse=False, completely_within=False, limit=None)
 #			print ("parents:")
-			for higher_feat in parents:
+#			for higher_feat in parents:
 #				print (higher_feat)
-				if not 'Note' in higher_feat.attributes:
+#				if not 'Note' in higher_feat.attributes:
 #					print("no note")
-					higher_feat.attributes['Note'] = new_note
-				else:
+#					higher_feat.attributes['Note'] = new_note
+#				else:
 #					print("note present")
-					higher_feat.attributes['Note'].append(new_note)
+#					higher_feat.attributes['Note'].append(new_note)
 #				return_list.append(higher_feat)
 #				print (higher_feat)
 			global i
@@ -88,6 +88,8 @@ def transform_func(x):
 
 f = conf.in_db
 in_db = gffutils.FeatureDB(f)
+
+# for feature in in_db.all_:
 
 gffutils.create_db(
 	in_db,
