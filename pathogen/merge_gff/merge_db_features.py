@@ -70,6 +70,8 @@ def merge_func(func_db):
                 # and add them to the new list of IDs.
                 dont_append = False
                 prev_notes = []
+#                if 'Note' in gene.attributes:
+#                    prev_notes = gene.attributes['Note']
                 if 'Note' in feature.attributes:
                     note_list = []
                     note_list = feature.attributes['Note']
@@ -84,6 +86,7 @@ def merge_func(func_db):
                             prev_notes.append(note)
                 if dont_append == False:
                     list.append(x)
+                # for transcripts in feature.children()
             # Identify overlaps a second time, this time to perfrom merging.
             overlaps = func_db.region(region = gene, strand=strand, featuretype = 'gene')
             merged = func_db.merge(overlaps, ignore_strand=False)
@@ -95,10 +98,24 @@ def merge_func(func_db):
                 i += 1
                 out_list = " ".join(sorted(set(list)))
                 new.source = str(conf.source)
-                new.attributes['ID'] = [str(conf.id) + "_" + str(i)]
+                this_id = str(conf.id) + "_" + str(i)
+                new.attributes['ID'] = [this_id]
                 prev_notes.append(str('merged[' + out_list + ']'))
                 new.attributes['Note'] = prev_notes
                 out_lines.append(new)
+                # Identify which genes were merged to make new features.
+                # Maintain the old gene features as child feature transcripts
+                # Within the newly created genes.
+                seqid = new.seqid
+                start = new.start
+                stop = new.stop
+                merged_features = func_db.region(region=(seqid, start, stop), strand=strand, featuretype = 'gene')
+                for transcript in merged_features:
+                    # print(transcript)
+                    transcript.featuretype = 'transcript'
+                    transcript.attributes['parents'] = [this_id]
+                    out_lines.append(transcript)
+
     return(out_lines)
 
 
