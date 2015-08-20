@@ -1117,6 +1117,88 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 	done
 ```
 
+### F) From ORF fragments - Hmm evidence of RxLR effectors
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+	for Proteome in $(ls analysis/rxlr_atg_unmasked/P.*/*/*.aa_cat.fa); do
+		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_ORF_RxLR_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_ORF_RxLR_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+	done
+```
+Results were as follows:
+```
+	P.cactorum 10300
+	Initial search space (Z):             456656  [actual number of targets]
+	Domain search space  (domZ):             366  [number of targets reported over threshold]
+	P.cactorum 404
+	Initial search space (Z):             432691  [actual number of targets]
+	Domain search space  (domZ):             321  [number of targets reported over threshold]
+	P.cactorum 414
+	Initial search space (Z):             445395  [actual number of targets]
+	Domain search space  (domZ):             326  [number of targets reported over threshold]
+	P.fragariae 309-62
+	Initial search space (Z):             571132  [actual number of targets]
+	Domain search space  (domZ):             479  [number of targets reported over threshold]
+	P.fragariae SCRP245
+	Initial search space (Z):             259266  [actual number of targets]
+	Domain search space  (domZ):              32  [number of targets reported over threshold]
+	P.ideai 371
+	Initial search space (Z):             416004  [actual number of targets]
+	Domain search space  (domZ):             336  [number of targets reported over threshold]
+	P.infestans T30-4_unmasked
+	Initial search space (Z):            1415148  [actual number of targets]
+	Domain search space  (domZ):             859  [number of targets reported over threshold]
+	P.kernoviae 00238-432
+	Initial search space (Z):             406661  [actual number of targets]
+	Domain search space  (domZ):             369  [number of targets reported over threshold]
+	P.lateralis MPF4
+	Initial search space (Z):             386192  [actual number of targets]
+	Domain search space  (domZ):             330  [number of targets reported over threshold]
+	P.parisitica 310
+	Initial search space (Z):             442892  [actual number of targets]
+	Domain search space  (domZ):             606  [number of targets reported over threshold]
+	P.parisitica chvinca01
+	Initial search space (Z):             377541  [actual number of targets]
+	Domain search space  (domZ):             565  [number of targets reported over threshold]
+	P.parisitica cj01a1
+	Initial search space (Z):             426915  [actual number of targets]
+	Domain search space  (domZ):             648  [number of targets reported over threshold]
+	P.parisitica cj02b3
+	Initial search space (Z):             378215  [actual number of targets]
+	Domain search space  (domZ):             529  [number of targets reported over threshold]
+	P.parisitica cj05e6
+	Initial search space (Z):             373670  [actual number of targets]
+	Domain search space  (domZ):             548  [number of targets reported over threshold]
+	P.parisitica iac_01_95
+	Initial search space (Z):             376075  [actual number of targets]
+	Domain search space  (domZ):             556  [number of targets reported over threshold]
+	P.parisitica p10297
+	Initial search space (Z):             429443  [actual number of targets]
+	Domain search space  (domZ):             654  [number of targets reported over threshold]
+	P.parisitica p1569
+	Initial search space (Z):             436049  [actual number of targets]
+	Domain search space  (domZ):             636  [number of targets reported over threshold]
+	P.parisitica p1976
+	Initial search space (Z):             431194  [actual number of targets]
+	Domain search space  (domZ):             650  [number of targets reported over threshold]
+	P.ramorum 164328
+	Initial search space (Z):             521713  [actual number of targets]
+	Domain search space  (domZ):             601  [number of targets reported over threshold]
+	P.sojae 67593
+	Initial search space (Z):             689510  [actual number of targets]
+	Domain search space  (domZ):             738  [number of targets reported over threshold]
+```
+
 ##Crinkler Prediction
 
 ###Motif identification
@@ -1549,6 +1631,7 @@ $ProgDir/gene_list_to_gff.pl out_names.txt out2.gff atg_RxLR Name > out3.gff
 		$ProgDir/gene_list_to_gff.pl $GeneNames $GeneModels $Col2 Name > $OutFile
 	done
 ```
+
 ###Crinkler motif predictions
 
 Putative Crinkler motif containing ORFs were extracted from atg.pl gff output
@@ -1689,9 +1772,30 @@ from the gene models predicted with atg.pl
 	cat $OrfGff | grep -w -f $RxlrHeaders > $RxlrGff
 ```
 
-The bedtools program was used to do identify overlap between gff features.
+## High confidence effectors
+
+Gff files of predicted effectors from Augustus and ORF predictions were combined
+using a set of tools written for gffutils. Gene models were annotated with
+notes if the gene was a predicted effector. Gene models from ORF finder were
+merged if the showed evidence of tiling. Gene models from ORF finder were
+merged with Augustus gene models. Finally those features with notes identifying
+them as effector candidates were extracted.
+
+The commands to run this were:
+
 ```bash
-```
+	for Strain in $(ls -d analysis/atg_sp_rxlr_unmasked/P.*/* | rev | cut -f1 -d '/' | rev); do
+		echo $Strain;
+		# Orf_Gff=$(ls gene_pred/ORF_finder/*/$Strain/"$Strain"_ORF.gff);
+		Orf_Gff=analysis/atg_sp_rxlr_unmasked/P.*/$Strain/"$Strain"_ORF.gff
+		Aug_Gff=gene_pred/augustus_unmasked/P.*/*/"$Strain"_augustus_preds.gtf
+		# Aug_Gff=$(ls gene_pred/augustus/*/"$Strain"/"$Strain"_augustus_preds.gtf | grep -v 'old');
+		echo $Orf_Gff;
+		echo $Aug_Gff;
+		ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff;
+		qsub $ProgDir/merge_phytophthora_effectors.sh $Orf_Gff $Aug_Gff;
+	done
+```  
 
 
 # Benchmarking
