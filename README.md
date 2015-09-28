@@ -3,7 +3,7 @@ Phytophthora
 
 Scripts used in the analysis of Phytophthora genomes
 
-ands used during analysis of the neonectria_ditissima genome. Note - all this work was performed in the directory: /home/groups/harrisonlab/project_files/neonectria_ditissima
+ands used during analysis of phytophthora genomes. Note - all this work was performed in the directory: /home/groups/harrisonlab/project_files/idris
 
 The following is a summary of the work presented in this Readme:
 Data organisation:
@@ -32,6 +32,10 @@ and annotation.
   mkdir -p raw_dna/paired/P.cactorum/416/R
   mkdir -p raw_dna/paired/P.fragariae/A4/F
   mkdir -p raw_dna/paired/P.fragariae/A4/R
+  mkdir -p raw_dna/paired/P.fragariae/SCRP245_v2/F
+  mkdir -p raw_dna/paired/P.fragariae/SCRP245_v2/R
+  mkdir -p raw_dna/paired/P.fragariae/Bc23/F
+  mkdir -p raw_dna/paired/P.fragariae/Bc23/R
 
   RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/150716_M01678_0023_AB0YF
   cp $RawDat/Pcactorum415_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/415/F/.
@@ -40,6 +44,11 @@ and annotation.
   cp $RawDat/Pcactorum416_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/416/R/.
   cp $RawDat/PfragariaeA4_S3_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/A4/F/.
   cp $RawDat/PfragariaeA4_S3_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/A4/R/.
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/150925_M01678_0029_AC669
+  cp $RawDat/Pfrag-SCRP245_S3_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/SCRP245_v2/F/.
+  cp $RawDat/Pfrag-SCRP245_S3_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/SCRP245_v2/R/.
+  cp $RawDat/Pfrag-Bc23_S2_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/Bc23/F/.
+  cp $RawDat/Pfrag-Bc23_S2_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/Bc23/R/.
 ```
 
 
@@ -53,19 +62,31 @@ Data quality was visualised using fastqc:
 # 415
 for RawData in $(ls raw_dna/paired/P.cactorum/415/*/*.fastq.gz); do
 echo $RawData;
-ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
 done
 # 416
 for RawData in $(ls raw_dna/paired/P.cactorum/416/*/*.fastq.gz); do
 echo $RawData;
-ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
 done
 # A4
 for RawData in $(ls raw_dna/paired/P.fragariae/A4/*/*.fastq.gz); do
 echo $RawData;
-ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+done
+# SCRP245_v2
+for RawData in $(ls raw_dna/paired/P.fragariae/SCRP245_v2/*/*.fastq.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+done
+# Bc23
+for RawData in $(ls raw_dna/paired/P.fragariae/Bc23/*/*.fastq.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
 done
 ```
@@ -87,24 +108,35 @@ This was done with fastq-mcf
   done
 ```
 
+```bash
+  for Strain in SCRP245_v2 Bc23; do
+    echo $Strain
+    Read_F=$(ls raw_dna/paired/P.*/$Strain/F/*.fastq.gz)
+    Read_R=$(ls raw_dna/paired/P.*/$Strain/R/*.fastq.gz)
+    IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+    qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+  done
+```
+
 Data quality was visualised once again following trimming:
 
 ```bash
   for RawData in $(ls qc_dna/paired/P.cactorum/415/*/*.fq.gz); do
     echo $RawData;
-    ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
   # 416
   for RawData in $(ls qc_dna/paired/P.cactorum/416/*/*.fq.gz); do
     echo $RawData;
-    ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
   # A4
   for RawData in $(ls qc_dna/paired/P.fragariae/A4/*/*.fq.gz); do
     echo $RawData;
-    ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
 ```
@@ -117,7 +149,7 @@ This allowed estimation of sequencing depth and total genome size:
     echo $Strain
     Trim_F=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     Trim_R=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
-    ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/dna_qc
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
     qsub $ProgDir/kmc_kmer_counting.sh $Trim_F $Trim_R
   done
 ```
@@ -137,7 +169,7 @@ A range of hash lengths were used and the best assembly selected for subsequent 
   for Strain in 415 416 A4; do
     F_Read=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     R_Read=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
-  	ProgDir=/home/gomeza/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Species=$(echo $F_Read | rev | cut -f4 -d '/' | rev)
   	OutDir=assembly/spades/$Species/$Strain
     echo $Species
