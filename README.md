@@ -139,6 +139,35 @@ Data quality was visualised once again following trimming:
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
+  # SCRP245_v2
+  for RawData in $(ls qc_dna/paired/P.fragariae/SCRP245_v2/*/*.fq.gz); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
+  # Bc23
+  for RawData in $(ls qc_dna/paired/P.fragariae/Bc23/*/*.fq.gz); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
+```
+
+## Error correction
+
+First run error correction. (This job is CPU intensive rather than RAM intensive
+and will run on any node of the cluster).
+
+```bash
+  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
+    echo $Strain
+    Trim_F=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
+    Trim_R=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
+  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+  	OutDir=$(dirname $Trim_F | sed 's/F/corrected/')
+    echo $OutDir
+    qsub $ProgDir/sub_spades_correction.sh $F_Read $R_Read $OutDir
+  done
 ```
 
 kmer counting was performed using kmc.
