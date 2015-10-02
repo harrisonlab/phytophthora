@@ -145,6 +145,11 @@ Data quality was visualised once again following trimming:
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
+  for RawData in $(ls qc_dna/paired/P.fragariae/SCRP245_v2/*/SCRP245_v2_no_adapt.fq); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
   # Bc23
   for RawData in $(ls qc_dna/paired/P.fragariae/Bc23/*/*.fq.gz); do
     echo $RawData;
@@ -153,7 +158,11 @@ Data quality was visualised once again following trimming:
   done
 ```
 
-## Error correction
+``bash
+  qsub /home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc/qc_trimmomatic.sh raw_dna/paired/P.fragariae/SCRP245_v2/F/Pfrag-SCRP245_S3_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/SCRP245_v2/R/Pfrag-SCRP245_S3_L001_R2_001.fastq.gz /home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa qc_dna/paired/P.fragariae/SCRP245_v2
+```
+
+<!-- ## Error correction
 
 First run error correction. (This job is CPU intensive rather than RAM intensive
 and will run on any node of the cluster).
@@ -163,18 +172,18 @@ and will run on any node of the cluster).
     echo $Strain
     Trim_F=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     Trim_R=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
-  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
-  	OutDir=$(dirname $Trim_F | sed 's/F/corrected/')
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+    OutDir=$(dirname $Trim_F | sed 's/F/corrected/')
     echo $OutDir
     qsub $ProgDir/sub_spades_correction.sh $F_Read $R_Read $OutDir
   done
-```
+``` -->
 
 kmer counting was performed using kmc.
 This allowed estimation of sequencing depth and total genome size:
 
 ```bash
-  for Strain in 415 416 A4; do
+  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
     echo $Strain
     Trim_F=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     Trim_R=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
@@ -195,7 +204,7 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 
 
 ```bash
-  for Strain in 415 416 A4; do
+  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
     F_Read=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     R_Read=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
   	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
@@ -210,10 +219,13 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 Quast
 
 ```bash
+for Strain in 415 416 A4 SCRP245_v2 Bc23; do
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-	Assembly=assembly/spades/N.ditissima/R0905_v2/filtered_contigs/contigs_min_500bp.fasta
-	OutDir=assembly/spades/N.ditissima/R0905_v2/filtered_contigs
+	Assembly=$(ls -d assembly/spades/*/$Strain/filtered_contigs/contigs_min_500bp.fasta)
+	OutDir=$(ls -d assembly/spades/*/$Strain/filtered_contigs)
+  assembly/spades/$Species/$Strain
 	qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
 ```
 
 Assemblies were summarised to allow the best assembly to be determined by eye.
