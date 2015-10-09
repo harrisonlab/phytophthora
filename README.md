@@ -36,6 +36,13 @@ and annotation.
   mkdir -p raw_dna/paired/P.fragariae/SCRP245_v2/R
   mkdir -p raw_dna/paired/P.fragariae/Bc23/F
   mkdir -p raw_dna/paired/P.fragariae/Bc23/R
+  mkdir -p raw_dna/paired/P.fragariae/Nov5/F
+  mkdir -p raw_dna/paired/P.fragariae/Nov5/R
+  mkdir -p raw_dna/paired/P.fragariae/Nov77/F
+  mkdir -p raw_dna/paired/P.fragariae/Nov77/R
+  mkdir -p raw_dna/paired/P.fragariae/ONT3/F
+  mkdir -p raw_dna/paired/P.fragariae/ONT3/R
+
 
   RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/150716_M01678_0023_AB0YF
   cp $RawDat/Pcactorum415_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/415/F/.
@@ -49,6 +56,13 @@ and annotation.
   cp $RawDat/Pfrag-SCRP245_S3_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/SCRP245_v2/R/.
   cp $RawDat/Pfrag-Bc23_S2_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/Bc23/F/.
   cp $RawDat/Pfrag-Bc23_S2_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/Bc23/R/.
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/150918_M01678_0028_AC60K
+  cp $RawDat/Pfrag-Nov-5_S2_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/Nov5/F/.
+  cp $RawDat/Pfrag-Nov-5_S2_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/Nov5/R/.
+  cp $RawDat/Pfrag-Nov-77_S3_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/Nov77/F/.
+  cp $RawDat/Pfrag-Nov-77_S3_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/Nov77/R/.
+  cp $RawDat/Pfrag-ONT-3_S1_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/ONT3/F/.
+  cp $RawDat/Pfrag-ONT-3_S1_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/ONT3/R/.
 ```
 
 
@@ -89,6 +103,24 @@ echo $RawData;
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
 done
+# Nov5
+for RawData in $(ls raw_dna/paired/P.fragariae/Nov5/*/*.fastq.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+done
+# Nov77
+for RawData in $(ls raw_dna/paired/P.fragariae/Nov77/*/*.fastq.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+done
+# ONT3
+for RawData in $(ls raw_dna/paired/P.fragariae/ONT3/*/*.fastq.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+done
 ```
 
 
@@ -110,6 +142,17 @@ This was done with fastq-mcf
 
 ```bash
   for Strain in SCRP245_v2 Bc23; do
+    echo $Strain
+    Read_F=$(ls raw_dna/paired/P.*/$Strain/F/*.fastq.gz)
+    Read_R=$(ls raw_dna/paired/P.*/$Strain/R/*.fastq.gz)
+    IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+    qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+  done
+```
+
+```bash
+  for Strain in Nov5 Nov77 ONT3; do
     echo $Strain
     Read_F=$(ls raw_dna/paired/P.*/$Strain/F/*.fastq.gz)
     Read_R=$(ls raw_dna/paired/P.*/$Strain/R/*.fastq.gz)
@@ -156,6 +199,24 @@ Data quality was visualised once again following trimming:
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
+  # Nov5
+  for RawData in $(ls qc_dna/paired/P.fragariae/Nov5/*/*.fq.gz); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
+  # Nov77
+  for RawData in $(ls qc_dna/paired/P.fragariae/Nov77/*/*.fq.gz); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
+  # ONT3
+  for RawData in $(ls qc_dna/paired/P.fragariae/ONT3/*/*.fq.gz); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
 ```
 
 ``bash
@@ -183,7 +244,8 @@ kmer counting was performed using kmc.
 This allowed estimation of sequencing depth and total genome size:
 
 ```bash
-  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
+  # for Strain in 415 416 A4 SCRP245_v2 Bc23 Nov5 Nov77; do
+  for Strain in ONT3; do
     echo $Strain
     Trim_F=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     Trim_R=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
@@ -204,15 +266,17 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 
 
 ```bash
-  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
+  #  for Strain in 415 416 A4 SCRP245_v2 Bc23 Nov5 Nov77; do
+  for Strain in ONT3; do
     F_Read=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     R_Read=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
+    CovCutoff='10'
   	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Species=$(echo $F_Read | rev | cut -f4 -d '/' | rev)
   	OutDir=assembly/spades/$Species/$Strain
     echo $Species
     echo $Strain
-    qsub $ProgDir/submit_SPAdes.sh $F_Read $R_Read $OutDir correct
+    qsub $ProgDir/submit_dipSPAdes.sh $F_Read $R_Read $OutDir correct $CovCutoff
   done
 ```
 
