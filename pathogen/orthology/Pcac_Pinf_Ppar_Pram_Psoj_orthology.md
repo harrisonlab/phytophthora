@@ -150,3 +150,51 @@ number of unique groups of inparalogs
   [1] 645
   [1] 152
 ```
+
+# Downstream analysis
+
+Particular orthogroups were analysed for expansion in isolates.
+
+This section details the commands used and the results observed.
+
+### P. cactorum unique RxLR families
+
+P. cactorum strain 10300 RxLR genes were parsed to the same format as the gene
+names used in the analysis:
+
+```bash
+  RxLR_Names_10300=analysis/sigP_rxlr/P.cactorum/10300/10300_aug_RxLR_EER_regex.txt
+  RxLR_Dir=analysis/orthology/orthomcl/Pcac_Pinf_Pram_Psoj/Pcac_RxLR
+  Orthogroups=analysis/orthology/orthomcl/Pcac_Pinf_Pram_Psoj/Pcac_Pinf_Pram_Psoj_orthogroups.txt
+  RxLR_ID_10300=$RxLR_Dir/10300_aug_RxLR_EER_IDs.txt
+  mkdir -p $RxLR_Dir
+  cat $RxLR_Names_10300 | sed 's/g/Pcac|g/g' > $RxLR_ID_10300
+```
+
+Ortholog groups containing RxLR proteins were identified using the following
+commands:
+```bash
+  RxLR_Orthogroup_10300=$RxLR_Dir/Pcac_RxLR_Orthogroups.txt
+  cat $Orthogroups | grep -w -f $RxLR_ID_10300 > $RxLR_Orthogroup_10300
+  RxLR_Orthogroup_hits_10300=$RxLR_Dir/Pcac_RxLR_Orthogroups_hits.txt
+  cat $Orthogroups | grep -o -w -f $RxLR_ID_10300 > $RxLR_Orthogroup_hits_10300
+```
+
+All 61 predicted RxLRs were found to have orthologs in other taxa. The 61 RxLRs
+were distributed through 41 orthogroups.
+
+Orthogroup 8 was a large gene family of 298 genes. This included 46 P. cactorum
+gene including 11 P. cactorum RxLRs.
+```bash
+  cat $Orthogroups | grep -w 'orthogroup8' | sed 's/ /\n/g' | sort | wc -l
+  Orthogroup8_Pcac_ID=$RxLR_Dir/Pcac_RxLR_Orthogroups8_IDs.txt
+  cat $Orthogroups | grep -w 'orthogroup8' | sed 's/ /\n/g' | sort | grep 'Pcac' > $Orthogroup8_Pcac_ID.txt
+  cat $Orthogroups | grep -w 'orthogroup8' | sed 's/ /\n/g' | sort | cut -f1 -d'|' | uniq -c
+```
+```
+  1 orthogroup8:
+  46 Pcac
+  100 Pinf
+  73 Pram
+  74 Psoj
+```
