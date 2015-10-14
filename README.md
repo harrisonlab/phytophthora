@@ -266,17 +266,17 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 
 
 ```bash
-  #  for Strain in 415 416 A4 SCRP245_v2 Bc23 Nov5 Nov77; do
-  for Strain in ONT3; do
+  for Strain in 415 416 A4 SCRP245_v2 Bc23 Nov5 Nov77 ONT3; do
     F_Read=$(ls qc_dna/paired/P.*/$Strain/F/*.fq.gz)
     R_Read=$(ls qc_dna/paired/P.*/$Strain/R/*.fq.gz)
     CovCutoff='10'
-  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Species=$(echo $F_Read | rev | cut -f4 -d '/' | rev)
-  	OutDir=assembly/spades/$Species/$Strain
+    OutDir=assembly/spades/$Species/$Strain
     echo $Species
     echo $Strain
-    qsub $ProgDir/submit_dipSPAdes.sh $F_Read $R_Read $OutDir correct $CovCutoff
+    qsub $ProgDir/submit_SPAdes.sh $F_Read $R_Read $OutDir correct $CovCutoff
+    # qsub $ProgDir/submit_dipSPAdes.sh $F_Read $R_Read $OutDir correct $CovCutoff
   done
 ```
 
