@@ -4,12 +4,12 @@
 Scripts used for the analysis of the P. cactorum isolate 10300.
 Note - all this work was performed in the directory:
 /home/groups/harrisonlab/project_files/idris
-. As such this script relies upon adhering to a 
+. As such this script relies upon adhering to a
 specific directory structure.
 
 The following is a summary of the work presented in this Readme.
 
-The following processes were applied to Alternaria genomes prior to analysis:
+The following processes were applied to the P. cactorum 10300 genome prior to analysis:
 Data qc
 Genome assembly
 Repeatmasking
@@ -61,34 +61,34 @@ programs:
 
 Data quality was visualised using fastqc:
 ```shell
-	for RawData in $(ls raw_dna/paired/P.cactorum/10300/*/*.fastq*); do 
+	for RawData in $(ls raw_dna/paired/P.cactorum/10300/*/*.fastq*); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		echo $RawData; 
+		echo $RawData;
 		qsub $ProgDir/run_fastqc.sh $RawData
 	done
-	for RawData in $(ls raw_dna/mate-paired/P.cactorum/10300/*/*001.fastq.gz); do 
+	for RawData in $(ls raw_dna/mate-paired/P.cactorum/10300/*/*001.fastq.gz); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		echo $RawData; 
+		echo $RawData;
 		qsub $ProgDir/run_fastqc.sh $RawData
 	done
 ```
 
 
-Trimming was performed on data to trim adapters from 
+Trimming was performed on data to trim adapters from
 sequences and remove poor quality data. This was done with fastq-mcf
 
 ```shell
-	for ReadsF in $(ls raw_dna/paired/P.cactorum/10300/F/*.fastq); do 
+	for ReadsF in $(ls raw_dna/paired/P.cactorum/10300/F/*.fastq); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_full_adapters.fa
+		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
 		ReadsR=$(echo $ReadsF | sed -E s%/F/%/R/%g | sed s/_R1/_R2/g)
 		ls $ReadsF
 		ls $ReadsR
 		qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
 	done
-	for StrainPath in $(ls -d raw_dna/mate-paired/P.cactorum/10300); do 
+	for StrainPath in $(ls -d raw_dna/mate-paired/P.cactorum/10300); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_TruSeq_mate_adapters.fa
+		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
 		ReadsF=$(ls $StrainPath/F/*001.fastq.gz)
 		ReadsR=$(ls $StrainPath/R/*001.fastq.gz)
 		echo $ReadsF
@@ -99,9 +99,9 @@ sequences and remove poor quality data. This was done with fastq-mcf
 
 Data quality was visualised once again following trimming:
 ```shell
-	for RawData in $(ls qc_dna/*/P.cactorum/10300/*/*.fq.gz); do 
+	for RawData in $(ls qc_dna/*/P.cactorum/10300/*/*.fq.gz); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		echo $RawData; 
+		echo $RawData;
 		qsub $ProgDir/run_fastqc.sh $RawData
 	done
 ```
@@ -121,7 +121,7 @@ following commands:
 	wget https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2
 	tar -jxvf  fastx_toolkit-0.0.14.tar.bz2
 	cd fastx_toolkit-0.0.14
-	make --prefix /home/armita/prog/fastx_toolkit-0.0.14 && make && 
+	make --prefix /home/armita/prog/fastx_toolkit-0.0.14 && make &&
 	# Then the the bin directory was added to my profile
 ```
 
@@ -135,9 +135,9 @@ and then submit the reversed reads to fastqc for visualisation:
 	cat qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -z -Q33 -o qc_dna/mate-paired/P.cactorum/10300/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 	logout
 	cd /home/groups/harrisonlab/project_files/idris
-	for RevRreads in $(ls qc_dna/mate-paired/P.cactorum/10300/*/*_trim_rev.fq.gz); do 
+	for RevRreads in $(ls qc_dna/mate-paired/P.cactorum/10300/*/*_trim_rev.fq.gz); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		echo $RevRreads; 
+		echo $RevRreads;
 		qsub $ProgDir/run_fastqc.sh $RevRreads
 	done
 ```
@@ -146,7 +146,7 @@ kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
 ```shell
-	for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do 
+	for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		TrimF=$(ls $TrimPath/F/*.fq.gz)
 		TrimR=$(ls $TrimPath/R/*.fq.gz)
@@ -159,7 +159,7 @@ This allowed estimation of sequencing depth and total genome size
 	done
 ```
 
- 
+
 
 #Assembly
 
@@ -174,7 +174,7 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 Velvet is installed in the master files directory of the cluster. There it was configured
 to accept sequence data from two genomic libraries and to run with a max kmer length of 151.
 A local install of velvet in my user profile was recompiled to accept up to 5 genomic libraries
-as inputs and to accept longer maximum kmer lengths. The commands used to recompile velvet were 
+as inputs and to accept longer maximum kmer lengths. The commands used to recompile velvet were
 as follows:
 ```shell
 	cd ~/prog/velvet_1.2.08
@@ -191,6 +191,7 @@ The command used to submit this assembly to the SGE was:
 ```
 
 The script can be viewed in the repository harrison_lab/phytophthora/assembly .
+<!--
 However, for reference, the variables set in this script were:
 
 ```shell
@@ -225,7 +226,8 @@ However, for reference, the variables set in this script were:
 
 Unfortunately this assembly required more RAM than available on the 96Gb worker node.
 
-As such Velvet can not be used until a node with more RAM become available. 
+As such Velvet can not be used until a node with more RAM become available.
+-->
 
 ## Abyss assembly
 
@@ -234,6 +236,10 @@ As such Velvet can not be used until a node with more RAM become available.
 Abyss is very sensitive to the presence of junction adapter sequences in
 matepair datasets. To remove the occurence of any junction adapters the program
 nextclip was used.
+
+Cateory A reads contain adapters in both reads of a pair. Category B and C reads
+contain an adapter in a single read of the pair. Category D reads don't contain
+adapters in the either read of the pair.
 ```shell
 	qlogin
 	cd /home/groups/harrisonlab/project_files/idris
@@ -252,8 +258,8 @@ nextclip was used.
 	nextclip -i F_Read.fq -j R_Read.fq -o "$OutName" > logfile.txt
 	rm F_Read.fq
 	rm R_Read.fq
-	for File in (ls *.fq); do
-		gzip *.fq
+	for File in $(ls *.fastq); do
+		gzip $File
 	done
 	cp -r $WorkDir $CurDir/qc_dna/mate-paired/P.cactorum/10300/.
 	rm -r $WorkDir
@@ -275,14 +281,14 @@ However due to openmpi not being installed on the cluster this scrip didn't work
 
 
 Abyss did work when using qlogin to work on the worker nodes of the cluster.
-Therefore the following commands were used to perform assembly while using 
+Therefore the following commands were used to perform assembly while using
 qlogin within a 'screen' session.
 
 These were the commands used:
 
 ```shell
 	screen -a
-	qlogin -pe smp 16 -l virtual_free=0.9G
+	qlogin -l h=blacklace11 -l virtual_free=12G -pe smp 8
 
 	#---	Step 1		---
 	# 		Set Variables
@@ -312,8 +318,8 @@ These were the commands used:
 	Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
 	Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
 
-	Lib5F=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R1.fastq.gz
-	Lib5R=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R2.fastq.gz
+	Lib5F=$CurPath/$MatePath/nextclip_no_rev/P.cactorum_10300_trim_clip_D_R1.fastq.gz
+	Lib5R=$CurPath/$MatePath/nextclip_no_rev/P.cactorum_10300_trim_clip_D_R2.fastq.gz
 
 
 	#---	Step 2		---
@@ -344,12 +350,12 @@ These were the commands used:
 	# 		Assemble
 	#----------------------
 
-	# for KmerSz in 31 35 41 45 51 55 61 64; do
-	for KmerSz in 60 61 62 63; do
-		AssemblyDir="$AssemblyName"_"$KmerSz"
-		mkdir -p $AssemblyDir
-		echo "Running Abyss with kmer size:\t $KmerSz\n" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
-		abyss-pe -C $AssemblyDir k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4' mp='mp5' pe1='../Lib1_1.fq.gz ../Lib1_2.fq.gz' pe2='../Lib2_1.fq.gz ../Lib2_2.fq.gz' pe3='../Lib3_1.fq.gz ../Lib3_2.fq.gz' pe4='../Lib4_1.fq.gz ../Lib4_2.fq.gz' mp5='../Lib5_1.fq.gz ../Lib5_2.fq.gz' 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
+	for KmerSz in 41 47 49 51 53 55 61; do
+	# for KmerSz in 60 61 62 63; do
+	AssemblyDir="$AssemblyName"_"$KmerSz"
+	mkdir -p $AssemblyDir
+	echo "Running Abyss with kmer size:\t $KmerSz\n" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
+	abyss-pe -C $AssemblyDir k=$KmerSz np=16 j=16 name=$AssemblyName lib='pe1 pe2 pe3 pe4' mp='mp5' pe1='../Lib1_1.fq.gz ../Lib1_2.fq.gz' pe2='../Lib2_1.fq.gz ../Lib2_2.fq.gz' pe3='../Lib3_1.fq.gz ../Lib3_2.fq.gz' pe4='../Lib4_1.fq.gz ../Lib4_2.fq.gz' mp5='../Lib5_1.fq.gz ../Lib5_2.fq.gz' 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_Abyss.log
 	done
 
 	#---	Step 4		---
@@ -377,15 +383,15 @@ These were the commands used:
 
 
 
-	#---	Step 5		---
-	# 		Exit
-	#----------------------
+#---	Step 5		---
+# 		Exit
+#----------------------
 
-	logout
+logout
 
 	# Exit screen using crt+a ctrl+d
 
-``` 
+```
 
 The results of abyss assemblies at different kmers were summarised using the commands:
 ```shell
@@ -395,156 +401,62 @@ The results of abyss assemblies at different kmers were summarised using the com
 	done > assembly/abyss/P.cactorum/10300/assembly_stats.csv
 ```
 
-The output files from abyss did not summarise the number of contaigs
-that were assembled longer than 1000bp. These were determined using 
-the program 
+The output files from abyss did not summarise the number of contigs
+that were assembled longer than 500bp. These were determined using
+the program
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
-	for Unitigs in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds.fa); do
+		for Unitigs in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds.fa); do
 		echo $Unitigs
-		Contigs1Kb=$(echo $Unitigs | sed 's/.fa/_1000bp.fa/g')
-		$ProgDir/filter_abyss_contigs.py $Unitigs 1000 > $Contigs1Kb
+		Contigs500=$(echo $Unitigs | sed 's/.fa/_500bp.fa/g')
+		$ProgDir/filter_abyss_contigs.py $Unitigs 500 > $Contigs500
 		printf "the number of assembled contigs are:\t"
-		cat $Contigs1Kb | grep '>' | wc -l
+		cat $Contigs500 | grep '>' | wc -l
 		printf "The number of bases in these contigs (including N/n characters) are:\t"
-		cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | wc -c
+		cat $Contigs500 | grep -v '>' | tr -d ' \t\n\r\f' | wc -c
 		printf "The number of bases in these contigs (excluding N/n characters) are:\t"
-		cat $Contigs1Kb | grep -v '>' | tr -d ' \t\n\r\f' | tr -d 'nN' | wc -c
+		cat $Contigs500 | grep -v '>' | tr -d ' \t\n\r\f' | tr -d 'nN' | wc -c
 	done
 ```
 
-From this the kmer length of 51 was identified as the best assembly due to 
-having a high number of bases in the assembly, with low contig numbers and 
+From this the kmer length of 51 was identified as the best assembly due to
+having a high number of bases in the assembly, with low contig numbers and
 showing the greatest N20-N80 values of the assemblies.
 
-##Dip-spades assembly
 
- Mulitple assembly programs were trialed to identify which resulted in the best assembly syayistics. 
- The program dip-spades was  run. Spades is designed for bacterial and small genomes. Dipspades has 
- been designed to work on small diploid genomes.
- 
- The commands used to run dip-spades were as follows:
- 
- 
-```shell
-	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/assembly
-	qsub $ProgDir/dip-spades_10300_assembly.sh
+### Run Quast
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    for Assembly in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds_500bp.fa); do
+		Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+		Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+    OutDir=assembly/abyss/$Organism/$Strain/$Kmer
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
 ```
- 
-<!-- 
 
- ```shell
-	 screen -a
-	 qlogin -pe smp 8 -l virtual_free=4G
- 
- 	#---	Step 1		---
-	# 		Set Variables
-	#----------------------
+### Renaming contigs
 
-	Strain=10300
-	Organism=P.cactorum
-	# KmerSz=31
+Contigs were renamed in accordance with ncbi recomendations.
 
-	CurPath=/home/groups/harrisonlab/project_files/idris
-	TrimPath=qc_dna/paired/P.cactorum/10300
-	MatePath=qc_dna/mate-paired/P.cactorum/10300
-
-	AssemblyName="$Strain"_dip-spades
-	WorkDir=/tmp/"$Strain"_dip-spades
-	OutDir=$CurPath/assembly/dip-spades/$Organism/$Strain
-
-	Lib1F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane4_300bp_R1_trim.fq.gz
-	Lib1R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane4_300bp_R2_trim.fq.gz
-
-	Lib2F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
-	Lib2R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
-
-	Lib3F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
-	Lib3R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
-
-	Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
-	Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
-
-	Lib5F=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R1.fastq.gz
-	Lib5R=$CurPath/$MatePath/nextclip/P.cactorum_10300_trim_rev_clip_D_R2.fastq.gz
-
-
-	#---	Step 2		---
-	# 		Copy data onto
-	#		Worker node
-	#----------------------
-
-	mkdir -p $WorkDir
-	cd $WorkDir
-
-	cp $Lib1F Lib1_1.fq.gz
-	cp $Lib1R Lib1_2.fq.gz
-
-	cp $Lib2F Lib2_1.fq.gz
-	cp $Lib2R Lib2_2.fq.gz
-
-	cp $Lib3F Lib3_1.fq.gz
-	cp $Lib3R Lib3_2.fq.gz
-
-	cp $Lib4F Lib4_1.fq.gz
-	cp $Lib4R Lib4_2.fq.gz
-
-	cp $Lib5F Lib5_1.fq.gz
-	cp $Lib5R Lib5_2.fq.gz
-
-
-	#---	Step 3		---
-	# 		Assemble
-	#----------------------
-
-	echo "Running dip-spades" 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_dipspades.log
-	dipspades.py --pe1-1 Lib1_1.fq.gz --pe1-2 Lib1_2.fq.gz \
-	--pe2-1 Lib2_1.fq.gz --pe2-2 Lib2_2.fq.gz \
-	--pe3-1 Lib3_1.fq.gz --pe3-2 Lib3_2.fq.gz \
-	--pe4-1 Lib4_1.fq.gz --pe4-2 Lib4_2.fq.gz \
-	--mp1-1 Lib5_2.fq.gz --mp1-2 Lib5_1.fq.gz \
-	-t 16 -m 96 -k 21,33,55,77 --careful -o $AssemblyName 2>&1 |  tee -a $WorkDir/"$Organism"_"$Strain"_dipspades.log
-
-	#---	Step 4		---
-	# 		Cleanup
-	#----------------------
-
-	rm Lib1_1.fq.gz
-	rm Lib1_2.fq.gz
-
-	rm Lib2_1.fq.gz
-	rm Lib2_2.fq.gz
-
-	rm Lib3_1.fq.gz
-	rm Lib3_2.fq.gz
-
-	rm Lib4_1.fq.gz
-	rm Lib4_2.fq.gz
-
-	rm Lib5_1.fq.gz
-	rm Lib5_2.fq.gz
-
-	mkdir -p $OutDir
-	cp -r $WorkDir/$AssemblyName/* $OutDir/.
-	rm -r $WorkDir
-
-
-
-	#---	Step 5		---
-	# 		Exit
-	#----------------------
-
-	logout
-
-	# Exit screen using crt+a ctrl+d
-
- ```
-
- -->
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+  touch tmp.csv
+  for Assembly in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_53/10300_abyss-scaffolds_500bp.fa); do
+		Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+		Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+    OutDir=assembly/abyss/$Organism/$Strain/$Kmer
+    $ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/10300_abyss-scaffolds_500bp_renamed.fa --coord_file tmp.csv
+  done
+  rm tmp.csv
+```
 
 #Repeat masking
 
-repeat masking was performed on the abyss (kmer51) assembly of 
+repeat masking was performed on the abyss (kmer51) assembly of
 the P. cactorum 10300 genome. The commands used were as follows:
 
 
@@ -552,23 +464,14 @@ Repeat masking was performed and used the following programs:
 	Repeatmasker
 	Repeatmodeler
 
-The best assemblies were used to perform repeatmasking
-	
+The best assembly was used to perform repeatmasking
+
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-	BestAss10300=assembly/abyss/P.cactorum/10300/10300_abyss_51/10300_abyss-scaffolds_1000bp.fa
+	BestAss10300=assembly/abyss/P.cactorum/10300/10300_abyss_53/10300_abyss-scaffolds_500bp_renamed.fa
 
 	qsub $ProgDir/rep_modeling.sh $BestAss10300
 	qsub $ProgDir/transposonPSI.sh $BestAss10300
-```
-
-##Parsing Assemblies
-```
-for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_*.fa | grep -v 'parsed'); do 
-ls $Genome; 
-OutName=$(echo $Genome | sed 's/.fa/_parsed.fa/g')
-cat $Genome | sed 's/>/>NODE_/g' | sed 's/ .*//' > $OutName
-done
 ```
 
 
@@ -577,7 +480,7 @@ done
 
 Gene prediction followed three steps:
 	Pre-gene prediction
-		- Quality of genome assemblies were assessed using Cegma to see how many core eukaryotic genes can be identified. 
+		- Quality of genome assemblies were assessed using Cegma to see how many core eukaryotic genes can be identified.
 	Gene model training
 		- Gene models were trained for the 10300 repeatmasked geneome using assembled RNAseq data and predicted CEGMA genes.
 	Gene prediction
@@ -590,202 +493,301 @@ Quality of genome assemblies was assessed by looking for the gene space in the a
 This was first performed on the 10300 unmasked assembly:
 
 ```shell
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-cd /home/groups/harrisonlab/project_files/idris/
-for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_unmasked_parsed.fa); do 
-echo $Genome; 
-qsub $ProgDir/sub_cegma.sh $Genome dna;
-done
-```
-
-These results were then moved to a directory for unmasked genomes
-```shell
-	mv gene_pred/cegma/P.cactorum/10300 gene_pred/cegma/P.cactorum/10300_unmasked
-```
-
-The analysis was then repeated for the 10300 repeatmasked genome:
-```shell
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-cd /home/groups/harrisonlab/project_files/idris/
-for Genome in $(ls repeat_masked/P.cactorum/10300/*/*_contigs_hardmasked_parsed.fa); do 
-echo $Genome; 
-qsub $ProgDir/sub_cegma.sh $Genome dna;
-done
-```
-
-These results were moved to a directory for repeatmasked data.
-```shell
-	mv gene_pred/cegma/P.cactorum/10300 gene_pred/cegma/P.cactorum/10300_hardmasked
-```
-
-Outputs were summarised using the commands:
-```shell
-	for File in $(ls gene_pred/cegma/P.cactorum/10300*/*_dna_cegma.completeness_report); do 
-		Strain=$(echo $File | rev | cut -f2 -d '/' | rev); 
-		Species=$(echo $File | rev | cut -f3 -d '/' | rev); 
-		printf "$Species\t$Strain\n"; 
-		cat $File | head -n18 | tail -n+4;printf "\n"; 
-	done > gene_pred/cegma/P.cactorum/10300_cegma_results_dna_summary.txt
-	
-	less gene_pred/cegma/P.cactorum/10300_cegma_results_dna_summary.txt
-```
-
-
-
-
-
-
-
-
-<!-- 
-#Gene model training
-
-Data quality was visualised using fastqc:
-```shell
-	for RawData in raw_rna/paired/*/*/*/*.fastq.gz; do 
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		echo $RawData; 
-		qsub $ProgDir/run_fastqc.sh $RawData
-	done
-```
-
-Trimming was performed on data to trim adapters from 
-sequences and remove poor quality data. This was done with fastq-mcf
-
-```shell
-	for StrainPath in raw_rna/paired/*/*; do 
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/illumina_full_adapters.fa
-		ReadsF=$(ls $StrainPath/F/*.fastq.gz)
-		ReadsR=$(ls $StrainPath/R/*.fastq.gz)
-		echo $ReadsF
-		echo $ReadsR
-		qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters RNA
-	done
-```
-
-Data quality was visualised once again following trimming:
-```shell
-	for TrimData in qc_rna/paired/*/*/*/*.fastq.gz; do 
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		echo $RawData; 
-		qsub $ProgDir/run_fastqc.sh $TrimData
-	done
-```	
-
-RNAseq data was assembled into transcriptomes using Trinity
-```shell
-	for StrainPath in qc_rna/paired/*/*; do
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/transcriptome_assembly
-		ReadsF=$(ls $StrainPath/F/*.fastq.gz)
-		ReadsR=$(ls $StrainPath/R/*.fastq.gz)	
-		echo $ReadsF
-		echo $ReadsR
-		qsub $ProgDir/transcriptome_assembly_trinity.sh $ReadsF $ReadsR
-	done
-```	
-Gene training was performed using RNAseq data. The cluster can not run this script using qlogin. As such it was run on the head node (-naughty) using screen.
-Training for 650 and 1166 was performed in two instances of screen and occassionally viewed to check progress over time.
-(screen is detached after opening using ctrl+a then ctrl+d. - if just ctrl+d is pressed the instance of screen is deleted. - be careful)
-```shell
-	screen -a
-	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
-	Assembly650=assembly/trinity/A.alternata_ssp._gaisen/650/650_rna_contigs/Trinity.fasta 
-	Genome650=repeat_masked/A.alternata_ssp._gaisen/650/A.alternata_ssp._gaisen_650_67_repmask/650_contigs_unmasked.fa
-	$ProgDir/training_by_transcriptome.sh $Assembly650 $Genome650
-
-	screen -a
-	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
-	Assembly1166=assembly/trinity/A.alternata_ssp._tenuissima/1166/1166_rna_contigs/Trinity.fasta 
-	Genome1166=repeat_masked/A.alternata_ssp._tenuissima/1166/A.alternata_ssp._tenuissima_1166_43_repmask/1166_contigs_unmasked.fa
-	$ProgDir/training_by_transcriptome.sh $Assembly1166 $Genome1166
-```
-
-Quality of Trinity assemblies were assessed using Cegma to assess gene-space within the transcriptome
-```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-	for Transcriptome in $(ls assembly/trinity/A.*/*/*_rna_contigs/Trinity.fasta); do  
-		echo $Transcriptome;  
-		qsub $ProgDir/sub_cegma.sh $Transcriptome rna; 
+	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked_parsed.fa
+	qsub $ProgDir/sub_cegma.sh $Genome dna
+```
+
+## Gene prediction
+
+Gene prediction was performed using Braker1.
+ * The commands used to do this can be found in /gene_prediction/10300_braker1_prediction.md
+
+
+<!-- ```bash
+	for Genome in $(ls repeat_masked/P.cactorum/10300/10300_abyss_51_repmask/10300_contigs_unmasked_parsed.fa); do
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+		ConcatRna=qc_rna/paired/genbank/P.cactorum/10300_genbank_appended.fastq
+		Organism=P.cactorum
+		Strain=10300
+		echo $Genome
+		GeneModel=P.cactorum_10300
+		OutDir=gene_pred/augustus/Model-"$GeneModel"/$Organism/$Strain
+		qsub $ProgDir/submit_augustus.sh $GeneModel $Genome false $OutDir
+		GeneModel=fusarium
+		OutDir=gene_pred/augustus/Model-"$GeneModel"/$Organism/$Strain
+		qsub $ProgDir/submit_augustus.sh $GeneModel $Genome false $OutDir
+		GeneModel=P.cactorum_10300
+		OutDir=gene_pred/augustus/Model-"$GeneModel"_hints/$Organism/$Strain
+		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRna $GeneModel $OutDir
 	done
+``` -->
+
+
+#Functional annotation
+
+Interproscan was used to give gene models functional annotations.
+Annotation was run using the commands below:
+
+Note: This is a long-running script. As such, these commands were run using
+'screen' to allow jobs to be submitted and monitored in the background.
+This allows the session to be disconnected and reconnected over time.
+
+Screen ouput detailing the progress of submission of interporscan jobs
+was redirected to a temporary output file named interproscan_submission.log .
+
+```bash
+	screen -a
+	cd /home/groups/harrisonlab/project_files/idris
+	getAnnoFasta.pl gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+	Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	ProgDir/sub_interproscan.sh $Proteome
 ```
-Outputs were summarised using the commands:
-```shell
-	for File in $(ls gene_pred/cegma/A.alternata_ssp._*/*/*_rna_cegma.completeness_report); do 
-		Strain=$(echo $File | rev | cut -f2 -d '/' | rev); 
-		Species=$(echo $File | rev | cut -f3 -d '/' | rev); 
-		printf "$Species\t$Strain\n"; 
-		cat $File | head -n18 | tail -n+4;printf "\n"; 
-	done > gene_pred/cegma/cegma_results_rna_summary.txt
-	
-	less gene_pred/cegma/cegma_results_rna_summary.txt
-```
-	
- -->
- 
- 
- <!-- 
- 
-#Gene prediction
 
-Gene prediction was performed for A. alternata isolates. 
-RNAseq reads were used as Hints for the location of CDS. 
-A concatenated dataset of both ssp. tenuissima and ssp. gaisen RNAseq reads were used as hints for all strains.
-Genes were predicted for ssp. tenuissima using the gene model trained to ssp. tenunissima. 
-Genes were predicted for ssp. gaisen using the gene model trained to ssp. gaisen. 
-Genes were predicted for ssp. arborescens using the gene model trained to ssp. tenuisima.
+Following interproscan annotation split files were combined using the following
+commands:
 
-
-```shell
-	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
-	mkdir -p qc_rna/concatenated
-	RnaFiles=$(ls qc_rna/paired/A.alternata_ssp._*/*/*/*.fastq.gz | paste -s -d ' ')
-	ConcatRna=qc_rna/concatenated/A.alternata_RNA_650_1166.fa.gz
-	cat $RnaFiles > $ConcatRna
-	
-	for Genome in repeat_masked/A.alternata_ssp._*/*/*/*_contigs_unmasked.fa; do
-		Species=$(printf $Genome | rev | cut -f4 -d '/' | rev)
-		if [ "$Species" == 'A.alternata_ssp._tenuissima' ]; then 
-			GeneModel=A.alternata_ssp._tenuissima_1166
-		elif [ "$Species" == 'A.alternata_ssp._gaisen' ]; then 
-			GeneModel=A.alternata_ssp._gaisen_650
-		elif [ "$Species" == 'A.alternata_ssp._arborescens' ]; then 
-			GeneModel=A.alternata_ssp._tenuissima_1166
-		fi
-		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRna $GeneModel
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	for StrainPath in $(ls -d gene_pred/interproscan/F.*/*); do
+		Strain=$(basename $StrainPath)
+		Organism=$(echo $StrainPath | rev | cut -d "/" -f2 | rev)
+		echo $Strain
+		PredGenes=gene_pred/augustus/"$Organism"/"$Strain"/"$Strain"_augustus_preds.aa
+		InterProRaw=gene_pred/interproscan/"$Organism"/"$Strain"/raw
+		$ProgDir/append_interpro.sh $PredGenes $InterProRaw
 	done
-```
- -->
+
+#Genomic analysis
+
+## RxLR genes
+
+Putative RxLR genes were identified within Augustus gene models using a number
+of approaches:
+
+ * A) From Augustus gene models - Signal peptide & RxLR motif  
+ * B) From Augustus gene models - Hmm evidence of WY domains  
+ * C) From Augustus gene models - Hmm evidence of RxLR effectors
+ * D) From Augustus gene models - Hmm evidence of CRN effectors  
+ <!-- * D) From ORF fragments - Signal peptide & RxLR motif  
+ * E) From ORF fragments - Hmm evidence of WY domains  
+ * F) From ORF fragments - Hmm evidence of RxLR effectors   -->
 
 
-<!--
+### A) From Augustus gene models - Signal peptide & RxLR motif
+
+Required programs:
+ * SigP
+ * biopython
 
 
+Proteins that were predicted to contain signal peptides were identified using
+the following commands:
 
-
-
-The script 
-
-```shell
-	
-	ProgArgs="$MinHash $MaxHash $HashStep $GenomeSz $ExpCov $MinCov " \
-	. "$Lib1InsLgth $Lib1F $Lib1R " . "$Lib2InsLgth $Lib2F $Lib2R " \
-	. "$Lib3InsLgth $Lib3F $Lib3R " . "$Lib4InsLgth $Lib4F $Lib4R " \
-	. "$Lib5InsLgth $Lib5F $Lib5R"	
-```
-
-
-
-Assemblies were summarised to allow the best assembly to be determined by eye
-
-```shell
-	for StrainPath in $(ls -d assembly/velvet/P.cactorum/10300); do
-		printf "N50\tMax_contig_size\tNumber of bases in contigs\tNumber of contigs\tNumber of contigs >=1kb\tNumber of contigs in N50\tNumber of bases in contigs >=1kb\tGC Content of contigs\n" > $StrainPath/P.cactorum_10300_assembly_stats.csv
-		for StatsFile in $(ls $StrainPath/*/stats.txt); do 
-			cat $StatsFile | rev | cut -f1 -d ' ' | rev | paste -d '\t' -s >> $StrainPath/P.cactorum_10300_assembly_stats.csv
+```bash
+	# getAnnoFasta.pl gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+	Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+	Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+	SplitDir=gene_pred/braker_split/$Organism/$Strain
+	mkdir -p $SplitDir
+	BaseName="$Organism""_$Strain"_braker_preds
+	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+	for File in $(ls $SplitDir/*_braker_preds_*); do
+		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+		while [ $Jobs -ge 32 ]; do
+			sleep 10
+			printf "."
+			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
 		done
+		printf "\n"
+		echo $File
+		qsub $ProgDir/pred_sigP.sh $File
 	done
-	tail -n+1 assembly/velvet/P.cactorum/10300/P.cactorum_10300_assembly_stats.csv > assembly/velvet/P.cactorum_10300_assembly_stats.csv
 ```
 
- -->
+The batch files of predicted secreted proteins needed to be combined into a
+single file for each strain. This was done with the following commands:
+```bash
+	SplitDir=gene_pred/braker_split/P.cactorum/10300
+	Strain=$(echo $SplitDir | cut -d '/' -f4)
+	Organism=$(echo $SplitDir | cut -d '/' -f3)
+	InStringAA=''
+	InStringNeg=''
+	InStringTab=''
+	InStringTxt=''
+	for GRP in $(ls -l $SplitDir/*_braker_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
+		InStringAA="$InStringAA gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
+		InStringNeg="$InStringNeg gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
+		InStringTab="$InStringTab gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
+		InStringTxt="$InStringTxt gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
+	done
+	cat $InStringAA > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.aa
+	cat $InStringNeg > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
+	tail -n +2 -q $InStringTab > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.tab
+	cat $InStringTxt > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.txt
+```
+The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
+
+The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
+
+```bash
+	ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+	for Secretome in $(ls gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa); do
+		Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
+		Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
+		OutDir=analysis/RxLR_effectors/RxLR_EER_regex_finder/"$Organism"/"$Strain";
+		mkdir -p $OutDir;
+		printf "\nstrain: $Strain\tspecies: $Organism\n";
+		printf "the number of SigP gene is:\t";
+		cat $Secretome | grep '>' | wc -l;
+		printf "the number of SigP-RxLR genes are:\t";
+		$ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa;
+		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_Aug_RxLR_regex.txt
+		cat $OutDir/"$Strain"_Aug_RxLR_regex.txt | wc -l
+		printf "the number of SigP-RxLR-EER genes are:\t";
+		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt
+		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt | wc -l
+		printf "\n"
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_regex.txt > $OutDir/"$Strain"_Aug_RxLR_regex.gff3
+		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt > $OutDir/"$Strain"_Aug_RxLR_EER_regex.gff3
+	done
+```
+
+strain: 10300	species: P.cactorum
+the number of SigP gene is:	2204
+the number of SigP-RxLR genes are:	207
+the number of SigP-RxLR-EER genes are:	109
+
+### B) From Augustus gene models - Hmm evidence of WY domains
+Hmm models for the WY domain contained in many RxLRs were used to search gene models predicted with Braker1. These were run with the following commands:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_WY_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_Aug_WY_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_WY_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_WY_hmmer.gff3
+	done
+```
+
+P.cactorum 10300
+Initial search space (Z):              20689  [actual number of targets]
+Domain search space  (domZ):             171  [number of targets reported over threshold]
+
+### C) From Augustus gene models - Hmm evidence of RxLR effectors
+```bash
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_RxLR_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_Aug_RxLR_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+		# Col2=cropped.hmm
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		# $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $GeneModels $Col2 Name > $OutDir/"$Strain"_Aug_RxLR_hmmer.gff3
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_RxLR_hmmer.gff3
+	done
+```
+
+P.cactorum 10300
+Initial search space (Z):              20689  [actual number of targets]
+Domain search space  (domZ):             124  [number of targets reported over threshold]
+
+### D) From Augustus gene models - Hmm evidence of CRN effectors
+
+A hmm model relating to crinkler domains was used to identify putative crinklers
+in Augustus gene models. This was done with the following commands:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_CRN_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | sed '/inclusion threshold/q' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | sed '1,/inclusion threshold/d' | sed '/Domain annotation for each sequence/q' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_CRN_hmmer.gff3
+	done
+```
+
+P.cactorum 10300
+84
+7
+
+## 5. BLAST Searches
+
+## 5.1 Identifying RxLR homolgs
+
+nucleotide sequence of previously characterised RxLR genes were used to perform
+BLAST searches against assemlies.
+
+A query file was built from the RxLRs identified from transcriptome sequencing
+in Chen et al 2014.
+```bash
+	cat analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.csv | grep -v 'Additional' | grep -v 'Index' | grep -v -e '^,' | cut -f 2,5 -d ',' | sed -r 's/^/>/g' | sed 's/,/\n/g' > analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa
+```
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+	Query=analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa
+	qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+	Query=analysis/blast_homology/oomycete_avr_genes/appended_oomycete_avr_cds.fasta
+	qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+```
+
+Once blast searches had completed, the BLAST hits were converted to GFF
+annotations:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	BlastHits=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.csv
+	HitsGff=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.gff
+	Column2=Avr_homolog
+	NumHits=1
+	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+	BlastHits=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.csv
+	HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
+	Column2=Chen_RxLR
+	NumHits=1
+	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+```
