@@ -475,7 +475,7 @@ The best assembly was used to perform repeatmasking
 ```
 
 
-#Gene Prediction
+# Gene Prediction
 
 
 Gene prediction followed three steps:
@@ -486,7 +486,7 @@ Gene prediction followed three steps:
 	Gene prediction
 		- Gene models were used to predict genes in the 103033 genome. This used RNAseq data as hints for gene models.
 
-#Pre-gene prediction
+## Pre-gene prediction
 
 Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
 
@@ -498,11 +498,22 @@ This was first performed on the 10300 unmasked assembly:
 	qsub $ProgDir/sub_cegma.sh $Genome dna
 ```
 
-## Gene prediction
+## Gene prediction 1 - Braker1 gene model training and prediction
 
 Gene prediction was performed using Braker1.
  * The commands used to do this can be found in /gene_prediction/10300_braker1_prediction.md
 
+## Gene prediction 2 - atg.pl prediction of ORFs
+
+Open reading frame predictions were made using the atg.pl script as part of the
+path_pipe.sh pipeline. This pipeline also identifies open reading frames containing
+Signal peptide sequences and RxLRs. This pipeline was run with the following commands:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
+	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked_parsed.fa
+	qsub $ProgDir/path_pipe.sh $Genome
+```
 
 <!-- ```bash
 	for Genome in $(ls repeat_masked/P.cactorum/10300/10300_abyss_51_repmask/10300_contigs_unmasked_parsed.fa); do
