@@ -100,7 +100,7 @@ Gene prediction followed three steps:
 	Gene model training
 		- Gene models were trained for the 10300 repeatmasked geneome using assembled RNAseq data and predicted CEGMA genes.
 	Gene prediction
-		- Gene models were used to predict genes in the 103033 genome. This used RNAseq data as hints for gene models.
+		- Gene models were used to predict genes in the 10300 genome. This used RNAseq data as hints for gene models.
 
 <!--
 ##Pre-gene prediction
