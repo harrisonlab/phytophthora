@@ -511,7 +511,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
-	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked_parsed.fa
+	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
 	qsub $ProgDir/path_pipe.sh $Genome
 ```
 
