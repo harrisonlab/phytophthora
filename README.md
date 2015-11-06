@@ -222,6 +222,13 @@ Data quality was visualised once again following trimming:
 ``bash
   qsub /home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc/qc_trimmomatic.sh raw_dna/paired/P.fragariae/SCRP245_v2/F/Pfrag-SCRP245_S3_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/SCRP245_v2/R/Pfrag-SCRP245_S3_L001_R2_001.fastq.gz /home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa qc_dna/paired/P.fragariae/SCRP245_v2
 ```
+```bash
+  for RawData in $(ls qc_dna/paired/P.fragariae/SCRP245_v2/*/*.fq); do
+    echo $RawData;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    qsub $ProgDir/run_fastqc.sh $RawData;
+  done
+```
 
 <!-- ## Error correction
 
@@ -283,13 +290,13 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 Quast
 
 ```bash
-for Strain in 415 416 A4 SCRP245_v2 Bc23; do
-	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-	Assembly=$(ls -d assembly/spades/*/$Strain/filtered_contigs/contigs_min_500bp.fasta)
-	OutDir=$(ls -d assembly/spades/*/$Strain/filtered_contigs)
-  assembly/spades/$Species/$Strain
-	qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-done
+  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
+  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  	Assembly=$(ls -d assembly/spades/*/$Strain/filtered_contigs/contigs_min_500bp.fasta)
+  	OutDir=$(ls -d assembly/spades/*/$Strain/filtered_contigs)
+    assembly/spades/$Species/$Strain
+  	qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
 ```
 
 Assemblies were summarised to allow the best assembly to be determined by eye.
@@ -320,10 +327,30 @@ In the meantime contigs with a coverage lower than 10 were filtered out using th
 
 ```bash
 	~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants/remove_contaminants.py --inp ../neonectria_ditissima/assembly/spades/N.ditissima/R0905_v2/filtered_contigs/contigs_min_500bp_10x_headers.fasta  --out assembly/spades/N.galligena/R0905_v2/filtered_contigs/contigs_min_500bp_10x_filtered_renamed.fasta  --coord_file editfile.tab
-
+```
 We run Quast again.
-
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
 	Assembly=assembly/spades/N.ditissima/R0905_v2/filtered_contigs/contigs_min_500bp_10x_headers.fasta
 	OutDir=assembly/spades/N.ditissima/R0905_v2/contigs_min_500bp_10x_headers
 	qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+```
+
+
+
+<!--
+## 5. BLAST Searches
+
+## 5.1 Identifying SIX genes
+
+Protein sequence of previously characterised SIX genes used to BLAST against
+assemlies.
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Query=analysis/blast_homology/oomycete_avr_genes/appended_oomycete_avr_cds.fasta
+	for Assembly in $(ls assembly/spades/*/*/*/contigs_min_500bp.fasta); do
+		echo $Assembly
+		qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+	done
+``` -->
