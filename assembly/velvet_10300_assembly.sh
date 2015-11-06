@@ -1,18 +1,18 @@
 #!/bin/bash
 #$ -S /bin/bash
 #$ -cwd
-#$ -pe smp 16
-#$ -l virtual_free=4G
+#$ -pe smp 1
+#$ -l virtual_free=200G
 
-set -u
-set -e
-set -o pipefail
+# set -u
+# set -e
+# set -o pipefail
 
 #	velvet_10300_assembly.sh
 #
-#	This script Runs genome assembly via velvet on trimmed sequence data for 
+#	This script Runs genome assembly via velvet on trimmed sequence data for
 #	P. cactorum isolate 10300. Assembly is performed at a range of hash lengths.
-#	Sequence data for five illumina runs are used. This requires velvet to be 
+#	Sequence data for five illumina runs are used. This requires velvet to be
 #	compiled with 5 categories. As such a local install of velvet is used which
 #	has been compiled accordingly.
 
@@ -42,8 +42,8 @@ Lib2InsLgth=1000
 Lib2F=$CurPath/$TrimPath/F/Pcactorum_ID136_lane5_1Kb_R1_trim.fq.gz
 Lib2R=$CurPath/$TrimPath/R/Pcactorum_ID136_lane5_1Kb_R2_trim.fq.gz
 Lib3InsLgth=1000
-Lib3F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz  
-Lib3R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz  
+Lib3F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane3_1Kb_R1_trim.fq.gz
+Lib3R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane3_1Kb_R2_trim.fq.gz
 Lib4InsLgth=300
 Lib4F=$CurPath/$TrimPath/F/Pcactorum_ID141_lane4_300bp_R1_trim.fq.gz
 Lib4R=$CurPath/$TrimPath/R/Pcactorum_ID141_lane4_300bp_R2_trim.fq.gz
@@ -56,7 +56,7 @@ Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 # TrimPath=qc_dna/paired/P.cactorum/10300
 # MatePath=qc_dna/mate-paired/P.cactorum/10300
 # ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/velvet_1.2.08
-# 
+#
 # MinHash=31
 # MaxHash=31
 # HashStep=2
@@ -70,7 +70,7 @@ Lib5R=$CurPath/$MatePath/R/Pcact10300_S2_L001_R2_001_trim_rev.fq.gz
 # Lib2F=$CurPath/tmp_F_2.fq.gz
 # Lib2R=$CurPath/tmp_F_2.fq.gz
 # Lib3InsLgth=1000
-# Lib3F=$CurPath/tmp_F_3.fq.gz  
+# Lib3F=$CurPath/tmp_F_3.fq.gz
 # Lib3R=$CurPath/tmp_F_3.fq.gz
 # Lib4InsLgth=300
 # Lib4F=$CurPath/tmp_F_4.fq.gz
