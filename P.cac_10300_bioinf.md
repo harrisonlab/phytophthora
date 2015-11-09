@@ -510,9 +510,11 @@ path_pipe.sh pipeline. This pipeline also identifies open reading frames contain
 Signal peptide sequences and RxLRs. This pipeline was run with the following commands:
 
 ```bash
-	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
-	qsub $ProgDir/path_pipe.sh $Genome
+	qsub $ProgDir/run_ORF_finder.sh $Genome
+	# ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
+	# qsub $ProgDir/path_pipe.sh $Genome
 ```
 
 <!-- ```bash
@@ -801,4 +803,19 @@ annotations:
 	Column2=Chen_RxLR
 	NumHits=1
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+```
+
+## 5.2 Looking for consensus Phytophthora sequencing consortium genes.
+
+The phytophthora sequencing consortium has predicted genes for P. cactorum using
+maker. The sequencing consortium gene models were blasted against the 10300
+genome to identify consensus between these gene models and Braker1 gene models.
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+  Query=analysis/blast_homology/seq_consortium_genes/Pcact_combine.fasta
+  for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
+    echo $Assembly
+    qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+  done
 ```
