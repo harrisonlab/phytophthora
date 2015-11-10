@@ -353,4 +353,21 @@ assemlies.
 		echo $Assembly
 		qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
 	done
-``` -->
+```
+
+## 5.2 Looking for consensus Phytophthora sequencing consortium genes.
+
+The phytophthora sequencing consortium has predicted genes for P. cactorum using
+maker. The sequencing consortium gene models were blasted against the 10300
+genome to identify consensus between these gene models and Braker1 gene models.
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+  Query=analysis/blast_homology/seq_consortium_genes/Pcact_combine.fasta
+  for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
+    echo $Assembly
+    qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+  done
+```
+
+-->
