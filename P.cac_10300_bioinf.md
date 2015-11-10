@@ -517,6 +517,16 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 	# qsub $ProgDir/path_pipe.sh $Genome
 ```
 
+The Gff files from the the ORF finder are not in true Gff3 format. These were
+corrected using the following commands:
+
+```bash
+	ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	ORF_Gff=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF.gff
+	ORF_Gff_mod=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+	$ProgDir/gff_corrector.pl $ORF_Gff > $ORF_Gff_mod
+```
+
 <!-- ```bash
 	for Genome in $(ls repeat_masked/P.cactorum/10300/10300_abyss_51_repmask/10300_contigs_unmasked_parsed.fa); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
@@ -571,7 +581,7 @@ commands:
 		InterProRaw=gene_pred/interproscan/"$Organism"/"$Strain"/raw
 		$ProgDir/append_interpro.sh $PredGenes $InterProRaw
 	done
-
+```
 #Genomic analysis
 
 ## RxLR genes
@@ -766,6 +776,232 @@ P.cactorum 10300
 84
 7
 
+
+### E) From ORF gene models - Signal peptide & RxLR motif
+
+Required programs:
+ * SigP
+ * biopython
+
+
+Proteins that were predicted to contain signal peptides were identified using
+the following commands:
+
+```bash
+	# getAnnoFasta.pl gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+	Proteome=gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa
+	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+	Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+	SplitDir=gene_pred/ORF_split/$Organism/$Strain
+	mkdir -p $SplitDir
+	BaseName="$Organism""_$Strain"_ORF_preds
+	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+	for File in $(ls $SplitDir/*_ORF_preds_*); do
+		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+		while [ $Jobs -ge 32 ]; do
+			sleep 10
+			printf "."
+			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+		done
+		printf "\n"
+		echo $File
+		qsub $ProgDir/pred_sigP.sh $File
+	done
+```
+
+The batch files of predicted secreted proteins needed to be combined into a
+single file for each strain. This was done with the following commands:
+```bash
+	SplitDir=gene_pred/ORF_split/P.cactorum/10300
+	Strain=$(echo $SplitDir | cut -d '/' -f4)
+	Organism=$(echo $SplitDir | cut -d '/' -f3)
+	InStringAA=''
+	InStringNeg=''
+	InStringTab=''
+	InStringTxt=''
+	for GRP in $(ls -l $SplitDir/*_ORF_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
+		InStringAA="$InStringAA gene_pred/ORF_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp.aa";  
+		InStringNeg="$InStringNeg gene_pred/ORF_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp_neg.aa";  
+		InStringTab="$InStringTab gene_pred/ORF_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp.tab";
+		InStringTxt="$InStringTxt gene_pred/ORF_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp.txt";  
+	done
+	cat $InStringAA > gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
+	cat $InStringNeg > gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_neg_sp.aa
+	tail -n +2 -q $InStringTab > gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.tab
+	cat $InStringTxt > gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.txt
+```
+
+Names of ORFs containing signal peptides were extracted from fasta files. This
+included information on the position and hmm score of RxLRs.
+
+```bash
+	FastaFile=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
+	SigP_headers=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_names.txt
+	cat $FastaFile | grep '>' | sed -r 's/>//g' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | sed 's/--//g' > $SigP_headers
+```
+
+Due to the nature of predicting ORFs, some features overlapped with one another.
+A single ORF was selected from each set of overlapped ORFs. This was was
+selected on the basis of its SignalP Hmm score. Biopython was used to identify
+overlapps and identify the ORF with the best signalP score.
+
+```bash
+Organism=P.cactorum
+Strain=10300
+ORF_Gff=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+
+SigP_fasta=gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp.aa
+SigP_headers=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_names.txt
+
+SigP_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_unmerged.gff
+SigP_Merged_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.gff
+SigP_Merged_txt=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.txt
+SigP_Merged_AA=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.aa
+
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_gff_for_sigP_hits.pl $SigP_headers $ORF_Gff SigP Name >$SigP_Gff
+ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+$ProgDir/make_gff_database.py --inp $SigP_Gff --db sigP_ORF.db
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/merge_sigP_ORFs.py --inp sigP_ORF.db --id sigP_ORF --out sigP_ORF_merged.db --gff > $SigP_Merged_Gff
+cat $SigP_Merged_Gff | grep 'transcript' | rev | cut -f1 -d'=' | rev > $SigP_Merged_txt
+$ProgDir/extract_from_fasta.py --fasta $SigP_fasta --headers $SigP_Merged_txt > $SigP_Merged_AA
+
+
+	$ProgDir/merge_db_features.py --inp sigP_ORF.db --id sigP_ORF --source Badgers --out sigP_ORF_merged.db
+	$ProgDir/extract_from_fasta.py --fasta $SigP_fasta --headers sigP_ORF_merged.txt
+```
+
+
+
+The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
+
+The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
+
+```bash
+	ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+	for Secretome in $(ls gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa); do
+		Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
+		Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
+		OutDir=analysis/RxLR_effectors/RxLR_EER_regex_finder/"$Organism"/"$Strain";
+		mkdir -p $OutDir;
+		printf "\nstrain: $Strain\tspecies: $Organism\n";
+		printf "the number of SigP gene is:\t";
+		cat $Secretome | grep '>' | wc -l;
+		printf "the number of SigP-RxLR genes are:\t";
+		$ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa;
+		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_Aug_RxLR_regex.txt
+		cat $OutDir/"$Strain"_Aug_RxLR_regex.txt | wc -l
+		printf "the number of SigP-RxLR-EER genes are:\t";
+		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt
+		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt | wc -l
+		printf "\n"
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_regex.txt > $OutDir/"$Strain"_Aug_RxLR_regex.gff3
+		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt > $OutDir/"$Strain"_Aug_RxLR_EER_regex.gff3
+	done
+```
+
+strain: 10300	species: P.cactorum
+the number of SigP gene is:
+the number of SigP-RxLR genes are:
+the number of SigP-RxLR-EER genes are:
+<!--
+### B) From Augustus gene models - Hmm evidence of WY domains
+Hmm models for the WY domain contained in many RxLRs were used to search gene models predicted with Braker1. These were run with the following commands:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_WY_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_Aug_WY_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_WY_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_WY_hmmer.gff3
+	done
+```
+
+P.cactorum 10300
+Initial search space (Z):              20689  [actual number of targets]
+Domain search space  (domZ):             171  [number of targets reported over threshold]
+
+### C) From Augustus gene models - Hmm evidence of RxLR effectors
+```bash
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_RxLR_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_Aug_RxLR_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+		# Col2=cropped.hmm
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		# $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $GeneModels $Col2 Name > $OutDir/"$Strain"_Aug_RxLR_hmmer.gff3
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_RxLR_hmmer.gff3
+	done
+```
+
+P.cactorum 10300
+Initial search space (Z):              20689  [actual number of targets]
+Domain search space  (domZ):             124  [number of targets reported over threshold]
+
+### D) From Augustus gene models - Hmm evidence of CRN effectors
+
+A hmm model relating to crinkler domains was used to identify putative crinklers
+in Augustus gene models. This was done with the following commands:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_CRN_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | sed '/inclusion threshold/q' | tail -n +16 | head -n -1 | wc -l
+		cat $OutDir/$HmmResults | sed '1,/inclusion threshold/d' | sed '/Domain annotation for each sequence/q' | tail -n +2 | head -n -3 | wc -l
+		HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_CRN_hmmer.gff3
+	done
+```
+
+P.cactorum 10300
+84
+7
+
+-->
+
+
 ## 5. BLAST Searches
 
 ## 5.1 Identifying RxLR homolgs
@@ -804,6 +1040,9 @@ annotations:
 	NumHits=1
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
 ```
+
+
+
 
 ## 5.2 Looking for consensus Phytophthora sequencing consortium genes.
 
