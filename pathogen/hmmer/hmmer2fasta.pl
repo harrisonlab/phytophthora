@@ -34,7 +34,7 @@ while (my $line = <HMM>) {
 open FASTA, $fastaFile;
 while (my $line = <FASTA>) {
 	$line =~ s/^\s+|\s+$//g;
-	if ($line =~ m/^>/) {$header = substr($line, 1)}
+	if ($line =~ m/^>/) {my @split_line = split(/\s/, $line); $header = substr($split_line[0], 1)}
 	else { $fastaHash{$header} .= $line; }
 }
 
@@ -42,22 +42,22 @@ foreach (@hmmLines) {
 	my $hmmHit = $_;
 	$hmmHit =~ s/^\s+|\s+$//g;
 	my @aoHit = split(/\s+/, $hmmHit);
-	my $eval = shift @aoHit; 
-	my $score = shift @aoHit; 
-	my $bias = shift @aoHit;  
-	my $best_eval = shift @aoHit; 
-	my $best_score = shift @aoHit; 
-	my $best_bias = shift @aoHit; 
-	my $exp_domains = shift @aoHit; 
-	my $num_domains = shift @aoHit; 
-	my $seq_name = shift @aoHit; 
-	my $description = shift @aoHit; 
+	my $eval = shift @aoHit;
+	my $score = shift @aoHit;
+	my $bias = shift @aoHit;
+	my $best_eval = shift @aoHit;
+	my $best_score = shift @aoHit;
+	my $best_bias = shift @aoHit;
+	my $exp_domains = shift @aoHit;
+	my $num_domains = shift @aoHit;
+	my $seq_name = shift @aoHit;
+	my $description = shift @aoHit;
 # search for hmm hit names in dictionary
 # if hit print hmm hit name, score, number of domains and e-number
 # print hit sequence
 	if ($fastaHash{$seq_name}) {
 		my $seq = $fastaHash{$seq_name};
-		printf ">$seq_name\t" . "-hmm_score $score\t" . "-no._domains $num_domains\t" . "\n";
+		printf ">$seq_name\t" . "-hmm_score=$score\t" . "-no._domains=$num_domains\t" . "\n";
 		printf "$seq\n";
 	}
 #  	my $seq = $fastaHash{$seq_name};
@@ -65,4 +65,3 @@ foreach (@hmmLines) {
 }
 
 exit;
-
