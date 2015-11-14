@@ -494,7 +494,7 @@ This was first performed on the 10300 unmasked assembly:
 
 ```shell
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked_parsed.fa
+	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
 	qsub $ProgDir/sub_cegma.sh $Genome dna
 ```
 
@@ -572,15 +572,28 @@ Following interproscan annotation split files were combined using the following
 commands:
 
 ```bash
-	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
-	for StrainPath in $(ls -d gene_pred/interproscan/F.*/*); do
-		Strain=$(basename $StrainPath)
-		Organism=$(echo $StrainPath | rev | cut -d "/" -f2 | rev)
-		echo $Strain
-		PredGenes=gene_pred/augustus/"$Organism"/"$Strain"/"$Strain"_augustus_preds.aa
-		InterProRaw=gene_pred/interproscan/"$Organism"/"$Strain"/raw
-		$ProgDir/append_interpro.sh $PredGenes $InterProRaw
+	PredGenes=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	InterProRaw=gene_pred/interproscan/10300/P.cactorum/raw
+	OutDir=gene_pred/interproscan/P.cactorum/10300
+	Organism=P.cactorum
+	Strain=10300
+	mkdir -p $OutDir
+	printf "" > $OutDir/"$Strain"_interproscan.tsv
+	printf "" > $OutDir/"$Strain"_interproscan.xml
+	printf "" > $OutDir/interpro_features.gff
+	printf "" > $OutDir/"$Strain"_interpro.gff3
+	for File in $(ls -v $InterProRaw/*_split_*.tsv); do
+		cat $File >> $OutDir/"$Strain"_interproscan.tsv
 	done
+	for File in $(ls -v $InterProRaw/*_split_*.xml); do
+		cat $File >> $OutDir/"$Strain"_interproscan.xml
+	done
+	for File in $(ls -v $InterProRaw/*_split_*.gff3); do
+		FastaStart=$(cat $File | grep -E "^##FASTA" -n | cut -d ':' -f1)
+		cat $File | head -n "$FastaStart" | grep -v -E "^#" >> $OutDir/interpro_features.gff
+	done
+	cat $OutDir/interpro_features.gff $PredGenes >> $OutDir/"$Strain"_interpro.gff3
+	rm $OutDir/interpro_features.gff
 ```
 #Genomic analysis
 
@@ -906,7 +919,7 @@ the number of SigP-RxLR-EER genes are: 170
 ### F) From ORF gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search ORFs predicted with atg.pl. These were run with the following commands:
 
-<!--
+
 ```bash
 	for Secretome in $(ls gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_merged.aa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
@@ -933,8 +946,8 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
 P.cactorum 10300
 Initial search space (Z):              15271  [actual number of targets]
 Domain search space  (domZ):             113  [number of targets reported over threshold]
--->
 
+<!--
 ```bash
 	for Proteome in $(ls gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
@@ -960,11 +973,11 @@ Domain search space  (domZ):             113  [number of targets reported over t
 
 P.cactorum 10300
 Initial search space (Z):             459307  [actual number of targets]
-Domain search space  (domZ):            1124  [number of targets reported over threshold]
+Domain search space  (domZ):            1124  [number of targets reported over threshold] -->
 
 ### G) From ORF gene models - Hmm evidence of RxLR effectors
 
-<!-- ```bash
+```bash
 	for Secretome in $(ls gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_merged.aa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
 		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
@@ -989,9 +1002,9 @@ Domain search space  (domZ):            1124  [number of targets reported over t
 
 P.cactorum 10300
 Initial search space (Z):              15271  [actual number of targets]
-Domain search space  (domZ):             145  [number of targets reported over threshold] -->
+Domain search space  (domZ):             145  [number of targets reported over threshold]
 
-
+<!--
 ```bash
 	for Proteome in $(ls gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
@@ -1017,14 +1030,14 @@ Domain search space  (domZ):             145  [number of targets reported over t
 
 P.cactorum 10300
 Initial search space (Z):             459307  [actual number of targets]
-Domain search space  (domZ):             365  [number of targets reported over threshold]
+Domain search space  (domZ):             365  [number of targets reported over threshold] -->
 
 
 ### H) From ORF gene models - Hmm evidence of CRN effectors
 
 A hmm model relating to crinkler domains was used to identify putative crinklers
 in ORF gene models. This was done with the following commands:
-<!--
+
 ```bash
 	for Secretome in $(ls gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_merged.aa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
@@ -1044,14 +1057,14 @@ in ORF gene models. This was done with the following commands:
 		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
 		SigP_Merged_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.gff
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-		$ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_CRN_hmmer.gff3
+		$ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_CRN_hmmer.gff3
 	done
 ```
 P.cactorum 10300
 Initial search space (Z):              15271  [actual number of targets]
-Domain search space  (domZ):              18  [number of targets reported over threshold] -->
+Domain search space  (domZ):              18  [number of targets reported over threshold]
 
-
+<!--
 ```bash
 	for Proteome in $(ls gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
@@ -1077,7 +1090,7 @@ Domain search space  (domZ):              18  [number of targets reported over t
 
 P.cactorum 10300
 Initial search space (Z):             459307  [actual number of targets]
-Domain search space  (domZ):             225  [number of targets reported over threshold]
+Domain search space  (domZ):             225  [number of targets reported over threshold] -->
 
 ## 5. BLAST Searches
 
@@ -1091,6 +1104,8 @@ in Chen et al 2014.
 ```bash
 	cat analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.csv | grep -v 'Additional' | grep -v 'Index' | grep -v -e '^,' | cut -f 2,5 -d ',' | sed -r 's/^/>/g' | sed 's/,/\n/g' > analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa
 ```
+
+### 5.1.a Blasting for Chen et al P. cactorum RxLRs:
 
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
@@ -1118,6 +1133,40 @@ annotations:
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
 ```
 
+### 5.1.a Blasting for Hmmer predicted RxLRs from publihsed genomes.
+
+These RxLRs were predicted from RxLR Hmm motifs.
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+	PinfRxLR=analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_pub_RxLR_hmmer.fa
+	qsub $ProgDir/blast_pipe.sh $PinfRxLR dna $Assembly
+	PparRxLR=analysis/RxLR_effectors/hmmer_RxLR/P.parisitica/310/310_pub_RxLR_hmmer.fa
+	qsub $ProgDir/blast_pipe.sh $PinfRxLR dna $Assembly
+	PcapRxLR=analysis/RxLR_effectors/hmmer_RxLR/P.capsici/LT1534/LT1534_pub_RxLR_hmmer.fa
+	qsub $ProgDir/blast_pipe.sh $PinfRxLR dna $Assembly
+	PsojRxLR=analysis/RxLR_effectors/hmmer_RxLR/P.sojae/67593/67593_pub_RxLR_hmmer.fa
+	qsub $ProgDir/blast_pipe.sh $PinfRxLR dna $Assembly
+```
+
+
+Once blast searches had completed, the BLAST hits were converted to GFF
+annotations:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	BlastHits=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.csv
+	HitsGff=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.gff
+	Column2=Avr_homolog
+	NumHits=1
+	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+	BlastHits=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.csv
+	HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
+	Column2=Chen_RxLR
+	NumHits=1
+	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+```
 
 
 
@@ -1134,4 +1183,171 @@ genome to identify consensus between these gene models and Braker1 gene models.
     echo $Assembly
     qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
   done
+```
+
+
+# 6 Consolidating data
+
+key files were grouped together into a single location. This directory was can
+be shared with collaborators for further analysis.
+
+```bash
+	ProjDir=/home/groups/harrisonlab/project_files/idris
+
+	# P. cactorum - Assembly
+	Assembly_fa_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+	Cegma_Gff=
+	Cegma_report_Pcac=
+	Repeatmasked_txt_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.fa.tbl
+	Repeatmasked_Gff_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.gff
+	AssemblyDir=$ProjDir/collaboration/P.cactorum/10300/assembly
+	mkdir -p $AssemblyDir
+	cp $Assembly_fa_Pcac $AssemblyDir/.
+	cp $Cegma_Gff $AssemblyDir/.
+	cp $Cegma_report_Pcac $AssemblyDir/.
+	cp $Repeatmasked_txt_Pcac $AssemblyDir/.
+	cp $Repeatmasked_Gff_Pcac $AssemblyDir/.
+
+	# P. cactorum - Braker1 genes
+	Genes_aa_Pcac=$ProjDir/gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	Genes_Gff_Pcac=$ProjDir/gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+	InterPro_tsv_Pcac=$ProjDir/gene_pred/interproscan/P.cactorum/10300/10300_interproscan.tsv
+	BrakerDir=$ProjDir/collaboration/P.cactorum/10300/gene_pred/braker
+	mkdir -p $BrakerDir
+	cp $Genes_aa_Pcac $BrakerDir/.
+	cp $Genes_Gff_Pcac $BrakerDir/.
+	cp $InterPro_tsv_Pcac $BrakerDir/.
+	# P. cactorum - ORF genes
+	ORF_aa_Pcac=$ProjDir/gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa
+	ORF_Gff_Pcac=$ProjDir/gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+	ORFDir=$ProjDir/collaboration/P.cactorum/10300/gene_pred/ORFs
+	mkdir -p $ORFDir
+	cp $ORF_aa_Pcac $ORFDir/.
+	cp $ORF_Gff_Pcac $ORFDir/.
+	# P.cactorum - Secreted proteins
+	SigP_fa_Braker_Pcac=$ProjDir/gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa
+	SigP_Gff_Braker_Pcac=
+	SigP_fa_ORF_Pcac=$ProjDir/gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp.aa
+	SigP_Gff_ORF_Pcac=$ProjDir/gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_merged.gff
+	SecretedDir=$ProjDir/collaboration/P.cactorum/10300/effectors/secreted_proteins
+	mkdir -p $SecretedDir
+	cp $SigP_fa_Braker_Pcac $SecretedDir/.
+	cp $SigP_Gff_Braker_Pcac $SecretedDir/.
+	cp $SigP_fa_ORF_Pcac $SecretedDir/.
+	cp $SigP_Gff_ORF_Pcac $SecretedDir/.
+	# P. cactorum - RxLR effectors
+	RxLR_EER_fa_Braker_Pcac=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_Aug_RxLR_EER_regex.fa
+	RxLR_EER_Gff_Braker_Pcac=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_Aug_RxLR_EER_regex.gff3
+	RxLR_hmm_fa_Braker_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.fa
+	RxLR_hmm_Gff_Braker_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.gff3
+	RxLR_WY_fa_Braker_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.fa
+	RxLR_WY_Gff_Braker_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.gff3
+	RxLR_EER_fa_ORF_Pcac=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_ORF_RxLR_EER_regex.fa
+	RxLR_EER_Gff_ORF_Pcac=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_ORF_RxLR_EER_regex.gff
+	RxLR_hmm_fa_ORF_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_ORF_RxLR_hmmer.fa
+	RxLR_hmm_Gff_ORF_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_ORF_RxLR_hmmer.gff3
+	RxLR_WY_fa_ORF_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_ORF_WY_hmmer.fa
+	RxLR_WY_Gff_ORF_Pcac=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_ORF_WY_hmmer.gff
+	RxLRDir=$ProjDir/collaboration/P.cactorum/10300/effectors/RxLRs
+	mkdir -p $RxLRDir
+	cp $RxLR_EER_fa_Braker_Pcac $RxLRDir/.
+	cp $RxLR_EER_Gff_Braker_Pcac $RxLRDir/.
+	cp $RxLR_hmm_fa_Braker_Pcac $RxLRDir/.
+	cp $RxLR_hmm_Gff_Braker_Pcac $RxLRDir/.
+	cp $RxLR_WY_fa_Braker_Pcac $RxLRDir/.
+	cp $RxLR_WY_Gff_Braker_Pcac $RxLRDir/.
+	cp $RxLR_EER_fa_ORF_Pcac $RxLRDir/.
+	cp $RxLR_EER_Gff_ORF_Pcac $RxLRDir/.
+	cp $RxLR_hmm_fa_ORF_Pcac $RxLRDir/.
+	cp $RxLR_hmm_Gff_ORF_Pcac $RxLRDir/.
+	cp $RxLR_WY_fa_ORF_Pcac $RxLRDir/.
+	cp $RxLR_WY_Gff_ORF_Pcac $RxLRDir/.
+	# P. cactorum - Crinkler effectors
+	RxLR_CRN_fa_Braker_Pcac=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_aug_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_Braker_Pcac=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Aug_CRN_hmmer.gff3
+	RxLR_CRN_fa_ORF_Pcac=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_ORF_Pcac=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_hmmer.gff3
+	CrinklerDir=$ProjDir/collaboration/P.cactorum/10300/effectors/crinklers
+	mkdir -p $CrinklerDir
+	cp $RxLR_CRN_fa_Braker_Pcac $CrinklerDir/.
+	cp $RxLR_CRN_Gff_Braker_Pcac $CrinklerDir/.
+	cp $RxLR_CRN_fa_ORF_Pcac $CrinklerDir/.
+	cp $RxLR_CRN_Gff_ORF_Pcac $CrinklerDir/.
+	# P. cactorum - Blast of known pathogenicity genes
+	Chen_BlastHits_csv_Pcac=$ProjDir/analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.csv
+	Chen_BlastHits_gff_Pcac=$ProjDir/analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
+	BlastDir=$ProjDir/collaboration/P.cactorum/10300/effectors/blast_hits
+	mkdir -p $BlastDir
+	cp $Chen_BlastHits_csv_Pcac $BlastDir/.
+	cp $Chen_BlastHits_gff_Pcac $BlastDir/.
+
+	# P. infestans
+	# P. infestans - Assembly
+	Assembly_fa_Pinf=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+	AssemblyDir=$ProjDir/collaboration/P.infestans/T30-4/assembly
+	mkdir -p $AssemblyDir
+	cp $Assembly_fa_Pcac $AssemblyDir/.
+	# P. infestans - Published genes
+	Genes_aa_Pinf=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+	GenesDir=$ProjDir/collaboration/P.infestans/T30-4/gene_pred/published
+	mkdir -p $GenesDir
+	cp $Genes_aa_Pcac $GenesDir/.
+	# P. infestans - ORF genes
+	ORF_aa_Pinf=gene_pred/ORF_finder/P.infestans/T30-4/T30-4.aa_cat.fa
+	ORF_Gff_Pinf=gene_pred/ORF_finder/P.infestans/T30-4/T30-4_ORF_merged_corrected.gff
+	ORFDir=$ProjDir/collaboration/P.infestans/T30-4/gene_pred/ORFs
+	mkdir -p $ORFDir
+	cp $ORF_aa_Pinf $ORFDir/.
+	cp $ORF_Gff_Pinf $ORFDir/.
+	# P.infestans - Secreted proteins
+	SigP_fa_Pub_Pinf=gene_pred/published_sigP/P.infestans/T30-4/T30-4_pub_sp.aa
+	SigP_fa_ORF_Pinf=gene_pred/ORF_sigP/P.infestans/T30-4/T30-4_ORF_sp.aa
+	SigP_Gff_ORF_Pinf=gene_pred/ORF_sigP/P.infestans/T30-4/T30-4_ORF_sp_merged.gff
+	SecretedDir=$ProjDir/collaboration/P.infestans/T30-4/effectors/secreted_proteins
+	mkdir -p $SecretedDir
+	cp $SigP_fa_Pub_Pinf $SecretedDir/.
+	cp $SigP_fa_ORF_Pinf $SecretedDir/.
+	cp $SigP_Gff_ORF_Pinf $SecretedDir/.
+	# P. infestans - RxLR effectors
+	RxLR_EER_fa_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_pub_RxLR_EER_regex.fa
+	RxLR_EER_Gff_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_pub_RxLR_EER_regex.gff3
+	RxLR_hmm_fa_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_pub_RxLR_hmmer.fa
+	RxLR_hmm_Gff_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_pub_RxLR_hmmer.gff3
+	RxLR_WY_fa_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.infestans/T30-4/T30-4_pub_WY_hmmer.fa
+	RxLR_WY_Gff_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.infestans/T30-4/T30-4_pub_WY_hmmer.gff3
+	RxLR_EER_fa_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_ORF_RxLR_EER_regex.fa
+	RxLR_EER_Gff_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_ORF_RxLR_EER_regex.gff
+	RxLR_hmm_fa_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_ORF_RxLR_hmmer.fa
+	RxLR_hmm_Gff_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_ORF_RxLR_hmmer.gff3
+	RxLR_WY_fa_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.infestans/T30-4/T30-4_ORF_WY_hmmer.fa
+	RxLR_WY_Gff_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.infestans/T30-4/T30-4_ORF_WY_hmmer.gff
+	RxLRDir=$ProjDir/collaboration/P.infestans/T30-4/effectors/RxLRs
+	mkdir -p $RxLRDir
+	cp $RxLR_EER_fa_Pub_Pinf $RxLRDir/.
+	cp $RxLR_EER_Gff_Pub_Pinf $RxLRDir/.
+	cp $RxLR_hmm_fa_Pub_Pinf $RxLRDir/.
+	cp $RxLR_hmm_Gff_Pub_Pinf $RxLRDir/.
+	cp $RxLR_WY_fa_Pub_Pinf $RxLRDir/.
+	cp $RxLR_WY_Gff_Pub_Pinf $RxLRDir/.
+	cp $RxLR_EER_fa_ORF_Pinf $RxLRDir/.
+	cp $RxLR_EER_Gff_ORF_Pinf $RxLRDir/.
+	cp $RxLR_hmm_fa_ORF_Pinf $RxLRDir/.
+	cp $RxLR_hmm_Gff_ORF_Pinf $RxLRDir/.
+	cp $RxLR_WY_fa_ORF_Pinf $RxLRDir/.
+	cp $RxLR_WY_Gff_ORF_Pinf $RxLRDir/.
+	# P. infestans - Crinkler effectors
+	RxLR_CRN_fa_Pub_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_pub_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_Pub_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_pub_CRN_hmmer.gff3
+	RxLR_CRN_fa_ORF_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_ORF_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_ORF_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_ORF_CRN_hmmer.gff3
+	CrinklerDir=$ProjDir/collaboration/P.cactorum/10300/effectors/crinklers
+	mkdir -p $CrinklerDir
+	cp $RxLR_CRN_fa_Pub_Pinf $CrinklerDir/.
+	cp $RxLR_CRN_Gff_Pub_Pinf $CrinklerDir/.
+	cp $RxLR_CRN_fa_ORF_Pinf $CrinklerDir/.
+	cp $RxLR_CRN_Gff_ORF_Pinf $CrinklerDir/.
+
+	# P. parasitica
+	# P. capsica
+	# P. sojae
 ```
