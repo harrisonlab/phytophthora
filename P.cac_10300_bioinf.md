@@ -656,15 +656,23 @@ single file for each strain. This was done with the following commands:
 	InStringTab=''
 	InStringTxt=''
 	for GRP in $(ls -l $SplitDir/*_braker_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
-		InStringAA="$InStringAA gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
-		InStringNeg="$InStringNeg gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
-		InStringTab="$InStringTab gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
-		InStringTxt="$InStringTxt gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
+	InStringAA="$InStringAA gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
+	InStringNeg="$InStringNeg gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
+	InStringTab="$InStringTab gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
+	InStringTxt="$InStringTxt gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
 	done
 	cat $InStringAA > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.aa
 	cat $InStringNeg > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
 	tail -n +2 -q $InStringTab > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.tab
 	cat $InStringTxt > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.txt
+	Headers=gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp_headers.txt
+	# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+	# BrakerGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+	# ExtractedGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+	# cat $BrakerGff | grep -v '#' > $ExtractedGff
+	# SigPGff=gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.gff
+	# cat gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.aa | grep '>' | tr -d '>' | cut -f1 -d ' ' > $Headers
+	# $ProgDir/gene_list_to_gff.pl $Headers $ExtractedGff SigP Name Augustus > $SigPGff
 ```
 The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
 
@@ -1196,8 +1204,8 @@ be shared with collaborators for further analysis.
 
 	# P. cactorum - Assembly
 	Assembly_fa_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
-	Cegma_Gff=
-	Cegma_report_Pcac=
+	Cegma_Gff=gene_pred/cegma/P.cactorum/10300/10300_dna_cegma.cegma.gff
+	Cegma_report_Pcac=gene_pred/cegma/P.cactorum/10300/10300_dna_cegma.completeness_report
 	Repeatmasked_txt_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.fa.tbl
 	Repeatmasked_Gff_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.gff
 	AssemblyDir=$ProjDir/collaboration/P.cactorum/10300/assembly
@@ -1350,4 +1358,6 @@ be shared with collaborators for further analysis.
 	# P. parasitica
 	# P. capsica
 	# P. sojae
+
+	sscp -r collaboration armita@149.155.32.11:/home/sftp_chroot/Pcactorum/.
 ```
