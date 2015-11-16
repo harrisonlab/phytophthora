@@ -919,10 +919,10 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 	done
 ```
 
-strain: 10300	species: P.cactorum
-the number of SigP gene is: 15271
-the number of SigP-RxLR genes are: 935
-the number of SigP-RxLR-EER genes are: 170
+* strain: 10300	species: P.cactorum
+* the number of SigP gene is: 15271
+* the number of SigP-RxLR genes are: 935
+* the number of SigP-RxLR-EER genes are: 170
 
 ### F) From ORF gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search ORFs predicted with atg.pl. These were run with the following commands:
@@ -1008,9 +1008,9 @@ Domain search space  (domZ):            1124  [number of targets reported over t
 	done
 ```
 
-P.cactorum 10300
-Initial search space (Z):              15271  [actual number of targets]
-Domain search space  (domZ):             145  [number of targets reported over threshold]
+* P.cactorum 10300
+* Initial search space (Z):              15271  [actual number of targets]
+* Domain search space  (domZ):             145  [number of targets reported over threshold]
 
 <!--
 ```bash
