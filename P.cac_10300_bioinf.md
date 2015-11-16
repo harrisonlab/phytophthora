@@ -1206,7 +1206,7 @@ be shared with collaborators for further analysis.
 	Assembly_fa_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
 	Cegma_Gff=gene_pred/cegma/P.cactorum/10300/10300_dna_cegma.cegma.gff
 	Cegma_report_Pcac=gene_pred/cegma/P.cactorum/10300/10300_dna_cegma.completeness_report
-	Repeatmasked_txt_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.fa.tbl
+	Repeatmasked_txt_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.tbl
 	Repeatmasked_Gff_Pcac=$ProjDir/repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.gff
 	AssemblyDir=$ProjDir/collaboration/P.cactorum/10300/assembly
 	mkdir -p $AssemblyDir
@@ -1234,13 +1234,11 @@ be shared with collaborators for further analysis.
 	cp $ORF_Gff_Pcac $ORFDir/.
 	# P.cactorum - Secreted proteins
 	SigP_fa_Braker_Pcac=$ProjDir/gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa
-	SigP_Gff_Braker_Pcac=
 	SigP_fa_ORF_Pcac=$ProjDir/gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp.aa
 	SigP_Gff_ORF_Pcac=$ProjDir/gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_merged.gff
 	SecretedDir=$ProjDir/collaboration/P.cactorum/10300/effectors/secreted_proteins
 	mkdir -p $SecretedDir
 	cp $SigP_fa_Braker_Pcac $SecretedDir/.
-	cp $SigP_Gff_Braker_Pcac $SecretedDir/.
 	cp $SigP_fa_ORF_Pcac $SecretedDir/.
 	cp $SigP_Gff_ORF_Pcac $SecretedDir/.
 	# P. cactorum - RxLR effectors
@@ -1294,15 +1292,15 @@ be shared with collaborators for further analysis.
 	Assembly_fa_Pinf=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
 	AssemblyDir=$ProjDir/collaboration/P.infestans/T30-4/assembly
 	mkdir -p $AssemblyDir
-	cp $Assembly_fa_Pcac $AssemblyDir/.
+	cp $Assembly_fa_Pinf $AssemblyDir/.
 	# P. infestans - Published genes
 	Genes_aa_Pinf=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
 	GenesDir=$ProjDir/collaboration/P.infestans/T30-4/gene_pred/published
 	mkdir -p $GenesDir
-	cp $Genes_aa_Pcac $GenesDir/.
+	cp $Genes_aa_Pinf $GenesDir/.
 	# P. infestans - ORF genes
 	ORF_aa_Pinf=gene_pred/ORF_finder/P.infestans/T30-4/T30-4.aa_cat.fa
-	ORF_Gff_Pinf=gene_pred/ORF_finder/P.infestans/T30-4/T30-4_ORF_merged_corrected.gff
+	ORF_Gff_Pinf=gene_pred/ORF_finder/P.infestans/T30-4/T30-4_ORF_corrected.gff3
 	ORFDir=$ProjDir/collaboration/P.infestans/T30-4/gene_pred/ORFs
 	mkdir -p $ORFDir
 	cp $ORF_aa_Pinf $ORFDir/.
@@ -1318,11 +1316,9 @@ be shared with collaborators for further analysis.
 	cp $SigP_Gff_ORF_Pinf $SecretedDir/.
 	# P. infestans - RxLR effectors
 	RxLR_EER_fa_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_pub_RxLR_EER_regex.fa
-	RxLR_EER_Gff_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_pub_RxLR_EER_regex.gff3
 	RxLR_hmm_fa_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_pub_RxLR_hmmer.fa
 	RxLR_hmm_Gff_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_pub_RxLR_hmmer.gff3
 	RxLR_WY_fa_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.infestans/T30-4/T30-4_pub_WY_hmmer.fa
-	RxLR_WY_Gff_Pub_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.infestans/T30-4/T30-4_pub_WY_hmmer.gff3
 	RxLR_EER_fa_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_ORF_RxLR_EER_regex.fa
 	RxLR_EER_Gff_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/T30-4/T30-4_ORF_RxLR_EER_regex.gff
 	RxLR_hmm_fa_ORF_Pinf=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.infestans/T30-4/T30-4_ORF_RxLR_hmmer.fa
@@ -1332,11 +1328,8 @@ be shared with collaborators for further analysis.
 	RxLRDir=$ProjDir/collaboration/P.infestans/T30-4/effectors/RxLRs
 	mkdir -p $RxLRDir
 	cp $RxLR_EER_fa_Pub_Pinf $RxLRDir/.
-	cp $RxLR_EER_Gff_Pub_Pinf $RxLRDir/.
 	cp $RxLR_hmm_fa_Pub_Pinf $RxLRDir/.
-	cp $RxLR_hmm_Gff_Pub_Pinf $RxLRDir/.
 	cp $RxLR_WY_fa_Pub_Pinf $RxLRDir/.
-	cp $RxLR_WY_Gff_Pub_Pinf $RxLRDir/.
 	cp $RxLR_EER_fa_ORF_Pinf $RxLRDir/.
 	cp $RxLR_EER_Gff_ORF_Pinf $RxLRDir/.
 	cp $RxLR_hmm_fa_ORF_Pinf $RxLRDir/.
@@ -1348,16 +1341,198 @@ be shared with collaborators for further analysis.
 	RxLR_CRN_Gff_Pub_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_pub_CRN_hmmer.gff3
 	RxLR_CRN_fa_ORF_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_ORF_CRN_hmmer_out.fa
 	RxLR_CRN_Gff_ORF_Pinf=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_ORF_CRN_hmmer.gff3
-	CrinklerDir=$ProjDir/collaboration/P.cactorum/10300/effectors/crinklers
+	CrinklerDir=$ProjDir/collaboration/P.infestans/T30-4/effectors/crinklers
 	mkdir -p $CrinklerDir
 	cp $RxLR_CRN_fa_Pub_Pinf $CrinklerDir/.
-	cp $RxLR_CRN_Gff_Pub_Pinf $CrinklerDir/.
 	cp $RxLR_CRN_fa_ORF_Pinf $CrinklerDir/.
 	cp $RxLR_CRN_Gff_ORF_Pinf $CrinklerDir/.
 
 	# P. parasitica
-	# P. capsica
-	# P. sojae
+	# P. parasitica - Assembly
+	Assembly_fa_Ppar=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
+	AssemblyDir=$ProjDir/collaboration/P.parasitica/310/assembly
+	mkdir -p $AssemblyDir
+	cp $Assembly_fa_Ppar $AssemblyDir/.
+	# P. parasitica - Published genes
+	Genes_aa_Ppar=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_genes.fasta
+	GenesDir=$ProjDir/collaboration/P.parasitica/310/gene_pred/published
+	mkdir -p $GenesDir
+	cp $Genes_aa_Ppar $GenesDir/.
+	# P. parasitica - ORF genes
+	ORF_aa_Ppar=gene_pred/ORF_finder/P.parisitica/310/310.aa_cat.fa
+	ORF_Gff_Ppar=gene_pred/ORF_finder/P.parisitica/310/310_ORF_corrected.gff3
+	ORFDir=$ProjDir/collaboration/P.parasitica/310/gene_pred/ORFs
+	mkdir -p $ORFDir
+	cp $ORF_aa_Ppar $ORFDir/.
+	cp $ORF_Gff_Ppar $ORFDir/.
+	# P.parasitica - Secreted proteins
+	SigP_fa_Pub_Ppar=gene_pred/published_sigP/P.parisitica/310/310_pub_sp.aa
+	SigP_fa_ORF_Ppar=gene_pred/ORF_sigP/P.parisitica/310/310_ORF_sp.aa
+	SigP_Gff_ORF_Ppar=gene_pred/ORF_sigP/P.parisitica/310/310_ORF_sp_merged.gff
+	SecretedDir=$ProjDir/collaboration/P.parasitica/310/effectors/secreted_proteins
+	mkdir -p $SecretedDir
+	cp $SigP_fa_Pub_Ppar $SecretedDir/.
+	cp $SigP_fa_ORF_Ppar $SecretedDir/.
+	cp $SigP_Gff_ORF_Ppar $SecretedDir/.
+	# P. parasitica - RxLR effectors
+	RxLR_EER_fa_Pub_Ppar=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.parisitica/310/310_pub_RxLR_EER_regex.fa
+	RxLR_EER_Gff_Pub_Ppar=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.parisitica/310/310_pub_RxLR_EER_regex.gff3
+	RxLR_hmm_fa_Pub_Ppar=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.parisitica/310/310_pub_RxLR_hmmer.fa
+	RxLR_WY_fa_Pub_Ppar=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.parisitica/310/310_pub_WY_hmmer.fa
+	RxLR_EER_fa_ORF_Ppar=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.parisitica/310/310_ORF_RxLR_EER_regex.fa
+	RxLR_EER_Gff_ORF_Ppar=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.parisitica/310/310_ORF_RxLR_EER_regex.gff
+	RxLR_hmm_fa_ORF_Ppar=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.parisitica/310/310_ORF_RxLR_hmmer.fa
+	RxLR_hmm_Gff_ORF_Ppar=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.parisitica/310/310_ORF_RxLR_hmmer.gff3
+	RxLR_WY_fa_ORF_Ppar=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.parisitica/310/310_ORF_WY_hmmer.fa
+	RxLR_WY_Gff_ORF_Ppar=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.parisitica/310/310_ORF_WY_hmmer.gff
+	RxLRDir=$ProjDir/collaboration/P.parasitica/310/effectors/RxLRs
+	mkdir -p $RxLRDir
+	cp $RxLR_EER_fa_Pub_Ppar $RxLRDir/.
+	cp $RxLR_hmm_fa_Pub_Ppar $RxLRDir/.
+	cp $RxLR_WY_fa_Pub_Ppar $RxLRDir/.
+	cp $RxLR_EER_fa_ORF_Ppar $RxLRDir/.
+	cp $RxLR_EER_Gff_ORF_Ppar $RxLRDir/.
+	cp $RxLR_hmm_fa_ORF_Ppar $RxLRDir/.
+	cp $RxLR_hmm_Gff_ORF_Ppar $RxLRDir/.
+	cp $RxLR_WY_fa_ORF_Ppar $RxLRDir/.
+	cp $RxLR_WY_Gff_ORF_Ppar $RxLRDir/.
+	# P. parasitica - Crinkler effectors
+	RxLR_CRN_fa_Pub_Ppar=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.parisitica/310/310_pub_CRN_hmmer_out.fa
+	RxLR_CRN_fa_ORF_Ppar=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.parisitica/310/310_ORF_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_ORF_Ppar=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.parisitica/310/310_ORF_CRN_hmmer.gff3
+	CrinklerDir=$ProjDir/collaboration/P.parasitica/310/effectors/crinklers
+	mkdir -p $CrinklerDir
+	cp $RxLR_CRN_fa_Pub_Ppar $CrinklerDir/.
+	cp $RxLR_CRN_fa_ORF_Ppar $CrinklerDir/.
+	cp $RxLR_CRN_Gff_ORF_Ppar $CrinklerDir/.
 
-	sscp -r collaboration armita@149.155.32.11:/home/sftp_chroot/Pcactorum/.
+	# P. capsica
+	# P. capsici - Assembly
+	Assembly_fa_Pcap=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
+	AssemblyDir=$ProjDir/collaboration/P.capsici/LT1534/assembly
+	mkdir -p $AssemblyDir
+	cp $Assembly_fa_Pcap $AssemblyDir/.
+	# P. capsici - Published genes
+	Genes_aa_Pcap=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+	GenesDir=$ProjDir/collaboration/P.capsici/LT1534/gene_pred/published
+	mkdir -p $GenesDir
+	cp $Genes_aa_Pcap $GenesDir/.
+	# P. capsici - ORF genes
+	ORF_aa_Pcap=gene_pred/ORF_finder/P.capsici/LT1534/LT1534.aa_cat.fa
+	ORF_Gff_Pcap=gene_pred/ORF_finder/P.capsici/LT1534/LT1534_ORF_corrected.gff3
+	ORFDir=$ProjDir/collaboration/P.capsici/LT1534/gene_pred/ORFs
+	mkdir -p $ORFDir
+	cp $ORF_aa_Pcap $ORFDir/.
+	cp $ORF_Gff_Pcap $ORFDir/.
+	# P.capsici - Secreted proteins
+	SigP_fa_Pub_Pcap=gene_pred/published_sigP/P.capsici/LT1534/LT1534_pub_sp.aa
+	SigP_fa_ORF_Pcap=gene_pred/ORF_sigP/P.capsici/LT1534/LT1534_ORF_sp.aa
+	SigP_Gff_ORF_Pcap=gene_pred/ORF_sigP/P.capsici/LT1534/LT1534_ORF_sp_merged.gff
+	SecretedDir=$ProjDir/collaboration/P.capsici/LT1534/effectors/secreted_proteins
+	mkdir -p $SecretedDir
+	cp $SigP_fa_Pub_Pcap $SecretedDir/.
+	cp $SigP_fa_ORF_Pcap $SecretedDir/.
+	cp $SigP_Gff_ORF_Pcap $SecretedDir/.
+	# P. capsici - RxLR effectors
+	RxLR_EER_fa_Pub_Pcap=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.capsici/LT1534/LT1534_pub_RxLR_EER_regex.fa
+	RxLR_EER_Gff_Pub_Pcap=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.capsici/LT1534/LT1534_pub_RxLR_EER_regex.gff3
+	RxLR_hmm_fa_Pub_Pcap=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.capsici/LT1534/LT1534_pub_RxLR_hmmer.fa
+	RxLR_WY_fa_Pub_Pcap=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.capsici/LT1534/LT1534_pub_WY_hmmer.fa
+	RxLR_EER_fa_ORF_Pcap=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.capsici/LT1534/LT1534_ORF_RxLR_EER_regex.fa
+	RxLR_EER_Gff_ORF_Pcap=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.capsici/LT1534/LT1534_ORF_RxLR_EER_regex.gff
+	RxLR_hmm_fa_ORF_Pcap=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.capsici/LT1534/LT1534_ORF_RxLR_hmmer.fa
+	RxLR_hmm_Gff_ORF_Pcap=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.capsici/LT1534/LT1534_ORF_RxLR_hmmer.gff3
+	RxLR_WY_fa_ORF_Pcap=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.capsici/LT1534/LT1534_ORF_WY_hmmer.fa
+	RxLR_WY_Gff_ORF_Pcap=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.capsici/LT1534/LT1534_ORF_WY_hmmer.gff
+	RxLRDir=$ProjDir/collaboration/P.capsici/LT1534/effectors/RxLRs
+	mkdir -p $RxLRDir
+	cp $RxLR_EER_fa_Pub_Pcap $RxLRDir/.
+	cp $RxLR_hmm_fa_Pub_Pcap $RxLRDir/.
+	cp $RxLR_WY_fa_Pub_Pcap $RxLRDir/.
+	cp $RxLR_EER_fa_ORF_Pcap $RxLRDir/.
+	cp $RxLR_EER_Gff_ORF_Pcap $RxLRDir/.
+	cp $RxLR_hmm_fa_ORF_Pcap $RxLRDir/.
+	cp $RxLR_hmm_Gff_ORF_Pcap $RxLRDir/.
+	cp $RxLR_WY_fa_ORF_Pcap $RxLRDir/.
+	cp $RxLR_WY_Gff_ORF_Pcap $RxLRDir/.
+	# P. capsici - Crinkler effectors
+	RxLR_CRN_fa_Pub_Pcap=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.capsici/LT1534/LT1534_pub_CRN_hmmer_out.fa
+	RxLR_CRN_fa_ORF_Pcap=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.capsici/LT1534/LT1534_ORF_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_ORF_Pcap=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.capsici/LT1534/LT1534_ORF_CRN_hmmer.gff3
+	CrinklerDir=$ProjDir/collaboration/P.capsici/LT1534/effectors/crinklers
+	mkdir -p $CrinklerDir
+	cp $RxLR_CRN_fa_Pub_Pcap $CrinklerDir/.
+	cp $RxLR_CRN_fa_ORF_Pcap $CrinklerDir/.
+	cp $RxLR_CRN_Gff_ORF_Pcap $CrinklerDir/.
+
+	# P. sojae
+	# P. sojae - Assembly
+	Assembly_fa_Psoj=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+	AssemblyDir=$ProjDir/collaboration/P.sojae/67593/assembly
+	mkdir -p $AssemblyDir
+	cp $Assembly_fa_Psoj $AssemblyDir/.
+	# P. sojae - Published genes
+	Genes_aa_Psoj=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
+	GenesDir=$ProjDir/collaboration/P.sojae/67593/gene_pred/published
+	mkdir -p $GenesDir
+	cp $Genes_aa_Psoj $GenesDir/.
+	# P. sojae - ORF genes
+	ORF_aa_Psoj=gene_pred/ORF_finder/P.sojae/67593/67593.aa_cat.fa
+	ORF_Gff_Psoj=gene_pred/ORF_finder/P.sojae/67593/67593_ORF_corrected.gff3
+	ORFDir=$ProjDir/collaboration/P.sojae/67593/gene_pred/ORFs
+	mkdir -p $ORFDir
+	cp $ORF_aa_Psoj $ORFDir/.
+	cp $ORF_Gff_Psoj $ORFDir/.
+	# P. sojae - Secreted proteins
+	SigP_fa_Pub_Psoj=gene_pred/published_sigP/P.sojae/67593/67593_pub_sp.aa
+	SigP_fa_ORF_Psoj=gene_pred/ORF_sigP/P.sojae/67593/67593_ORF_sp.aa
+	SigP_Gff_ORF_Psoj=gene_pred/ORF_sigP/P.sojae/67593/67593_ORF_sp_merged.gff
+	SecretedDir=$ProjDir/collaboration/P.sojae/67593/effectors/secreted_proteins
+	mkdir -p $SecretedDir
+	cp $SigP_fa_Pub_Psoj $SecretedDir/.
+	cp $SigP_fa_ORF_Psoj $SecretedDir/.
+	cp $SigP_Gff_ORF_Psoj $SecretedDir/.
+	# P. sojae - RxLR effectors
+	RxLR_EER_fa_Pub_Psoj=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.sojae/67593/67593_pub_RxLR_EER_regex.fa
+	RxLR_EER_Gff_Pub_Psoj=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.sojae/67593/67593_pub_RxLR_EER_regex.gff3
+	RxLR_hmm_fa_Pub_Psoj=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.sojae/67593/67593_pub_RxLR_hmmer.fa
+	RxLR_WY_fa_Pub_Psoj=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.sojae/67593/67593_pub_WY_hmmer.fa
+	RxLR_EER_fa_ORF_Psoj=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.sojae/67593/67593_ORF_RxLR_EER_regex.fa
+	RxLR_EER_Gff_ORF_Psoj=$ProjDir/analysis/RxLR_effectors/RxLR_EER_regex_finder/P.sojae/67593/67593_ORF_RxLR_EER_regex.gff
+	RxLR_hmm_fa_ORF_Psoj=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.sojae/67593/67593_ORF_RxLR_hmmer.fa
+	RxLR_hmm_Gff_ORF_Psoj=$ProjDir/analysis/RxLR_effectors/hmmer_RxLR/P.sojae/67593/67593_ORF_RxLR_hmmer.gff3
+	RxLR_WY_fa_ORF_Psoj=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.sojae/67593/67593_ORF_WY_hmmer.fa
+	RxLR_WY_Gff_ORF_Psoj=$ProjDir/analysis/RxLR_effectors/hmmer_WY/P.sojae/67593/67593_ORF_WY_hmmer.gff
+	RxLRDir=$ProjDir/collaboration/P.sojae/67593/effectors/RxLRs
+	mkdir -p $RxLRDir
+	cp $RxLR_EER_fa_Pub_Psoj $RxLRDir/.
+	cp $RxLR_hmm_fa_Pub_Psoj $RxLRDir/.
+	cp $RxLR_WY_fa_Pub_Psoj $RxLRDir/.
+	cp $RxLR_EER_fa_ORF_Psoj $RxLRDir/.
+	cp $RxLR_EER_Gff_ORF_Psoj $RxLRDir/.
+	cp $RxLR_hmm_fa_ORF_Psoj $RxLRDir/.
+	cp $RxLR_hmm_Gff_ORF_Psoj $RxLRDir/.
+	cp $RxLR_WY_fa_ORF_Psoj $RxLRDir/.
+	cp $RxLR_WY_Gff_ORF_Psoj $RxLRDir/.
+	# P. sojae - Crinkler effectors
+	RxLR_CRN_fa_Pub_Psoj=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.sojae/67593/67593_pub_CRN_hmmer_out.fa
+	RxLR_CRN_fa_ORF_Psoj=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.sojae/67593/67593_ORF_CRN_hmmer_out.fa
+	RxLR_CRN_Gff_ORF_Psoj=$ProjDir/analysis/CRN_effectors/hmmer_CRN/P.sojae/67593/67593_ORF_CRN_hmmer.gff3
+	CrinklerDir=$ProjDir/collaboration/P.sojae/67593/effectors/crinklers
+	mkdir -p $CrinklerDir
+	cp $RxLR_CRN_fa_Pub_Psoj $CrinklerDir/.
+	cp $RxLR_CRN_fa_ORF_Psoj $CrinklerDir/.
+	cp $RxLR_CRN_Gff_ORF_Psoj $CrinklerDir/.
+
+	# Orthology analysis
+	Orthology_pdf=$ProjDir/analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.pdf  
+	Orthology_tab=$ProjDir/analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
+	Orthology_all_prots=$ProjDir/analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta
+	OrthologyDir=$ProjDir/collaboration/orthology
+	mkdir -p $OrthologyDir
+	cp $Orthology_pdf $OrthologyDir/.
+	cp $Orthology_tab $OrthologyDir/.
+	cp $Orthology_all_prots $OrthologyDir/.
+
+	scp -r collaboration armita@149.155.32.11:/home/sftp_chroot/Pcactorum/.
 ```
