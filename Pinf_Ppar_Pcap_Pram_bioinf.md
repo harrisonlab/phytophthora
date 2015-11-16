@@ -203,33 +203,33 @@ Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
 ```bash
-  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
-  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
-  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
-  Psoj_pep=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
+Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+Psoj_pep=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
 
-  for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
-    echo "$Proteome"
-  	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-  	Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-  	Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-  	SplitDir=gene_pred/published_split/$Organism/$Strain
-  	mkdir -p $SplitDir
-  	BaseName="$Organism""_$Strain"_published_preds
-  	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
-  	for File in $(ls $SplitDir/*_published_preds_*); do
-  		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-  		while [ $Jobs -ge 32 ]; do
-  			sleep 10
-  			printf "."
-  			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-  		done
-  		printf "\n"
-  		echo $File
-  		qsub $ProgDir/pred_sigP.sh $File
-  	done
-  done
+for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+echo "$Proteome"
+SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+SplitDir=gene_pred/published_split/$Organism/$Strain
+mkdir -p $SplitDir
+BaseName="$Organism""_$Strain"_published_preds
+$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+for File in $(ls $SplitDir/*_published_preds_*); do
+Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+while [ $Jobs -ge 32 ]; do
+sleep 10
+printf "."
+Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+done
+printf "\n"
+echo $File
+qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+done
+done
 ```
 
 The batch files of predicted secreted proteins needed to be combined into a
@@ -463,7 +463,7 @@ the following commands:
       done
       printf "\n"
       echo $File
-      qsub $ProgDir/pred_sigP.sh $File
+      qsub $ProgDir/pred_sigP.sh $File signalp-4.1
     done
   done
 ```
