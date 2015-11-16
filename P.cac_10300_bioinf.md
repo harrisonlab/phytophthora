@@ -623,26 +623,26 @@ the following commands:
 
 ```bash
 	# getAnnoFasta.pl gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-	Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
-	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-	Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-	Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-	SplitDir=gene_pred/braker_split/$Organism/$Strain
-	mkdir -p $SplitDir
-	BaseName="$Organism""_$Strain"_braker_preds
-	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
-	for File in $(ls $SplitDir/*_braker_preds_*); do
-		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-		while [ $Jobs -ge 32 ]; do
-			sleep 10
-			printf "."
-			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-		done
-		printf "\n"
-		echo $File
-		qsub $ProgDir/pred_sigP.sh $File
-	done
+Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+SplitDir=gene_pred/braker_split/$Organism/$Strain
+mkdir -p $SplitDir
+BaseName="$Organism""_$Strain"_braker_preds
+$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+for File in $(ls $SplitDir/*_braker_preds_*); do
+Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+while [ $Jobs -ge 32 ]; do
+sleep 10
+printf "."
+Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+done
+printf "\n"
+echo $File
+qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+done
 ```
 
 The batch files of predicted secreted proteins needed to be combined into a
@@ -827,7 +827,7 @@ the following commands:
 		done
 		printf "\n"
 		echo $File
-		qsub $ProgDir/pred_sigP.sh $File
+		qsub $ProgDir/pred_sigP.sh $File signalp-4.1
 	done
 ```
 
