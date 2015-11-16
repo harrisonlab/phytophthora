@@ -282,29 +282,30 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
   # cat $GeneModels | grep -w -f $OutDir/"$Strain"_pub_RxLR_EER_regex.txt > $OutDir/"$Strain"_pub_RxLR_EER_regex.gff3
   done
 ```
-strain: LT1534	species: P.capsici
-the number of SigP gene is:	1650
-the number of SigP-RxLR genes are:	161
-the number of SigP-RxLR-EER genes are:	108
+```
+  strain: LT1534	species: P.capsici
+  the number of SigP gene is:	1650
+  the number of SigP-RxLR genes are:	161
+  the number of SigP-RxLR-EER genes are:	108
 
 
-strain: T30-4	species: P.infestans
-the number of SigP gene is:	2187
-the number of SigP-RxLR genes are:	510
-the number of SigP-RxLR-EER genes are:	357
+  strain: T30-4	species: P.infestans
+  the number of SigP gene is:	2187
+  the number of SigP-RxLR genes are:	510
+  the number of SigP-RxLR-EER genes are:	357
 
 
-strain: 310	species: P.parisitica
-the number of SigP gene is:	2316
-the number of SigP-RxLR genes are:	312
-the number of SigP-RxLR-EER genes are:	206
+  strain: 310	species: P.parisitica
+  the number of SigP gene is:	2316
+  the number of SigP-RxLR genes are:	312
+  the number of SigP-RxLR-EER genes are:	206
 
 
-strain: 67593	species: P.sojae
-the number of SigP gene is:	2515
-the number of SigP-RxLR genes are:	231
-the number of SigP-RxLR-EER genes are:	120
-
+  strain: 67593	species: P.sojae
+  the number of SigP gene is:	2515
+  the number of SigP-RxLR genes are:	231
+  the number of SigP-RxLR-EER genes are:	120
+```
 
 
 ### B) From published gene models - Hmm evidence of WY domains
@@ -331,18 +332,20 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
   # cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_pub_WY_hmmer.gff3
   done
 ```
-P.infestans T30-4
-Initial search space (Z):              17787  [actual number of targets]
-Domain search space  (domZ):             267  [number of targets reported over threshold]
-P.parisitica 310
-Initial search space (Z):              20822  [actual number of targets]
-Domain search space  (domZ):             257  [number of targets reported over threshold]
-P.capsici LT1534
-Initial search space (Z):              19805  [actual number of targets]
-Domain search space  (domZ):             106  [number of targets reported over threshold]
-P.sojae 67593
-Initial search space (Z):              18969  [actual number of targets]
-Domain search space  (domZ):             147  [number of targets reported over threshold]
+```
+  P.infestans T30-4
+  Initial search space (Z):              17787  [actual number of targets]
+  Domain search space  (domZ):             267  [number of targets reported over threshold]
+  P.parisitica 310
+  Initial search space (Z):              20822  [actual number of targets]
+  Domain search space  (domZ):             257  [number of targets reported over threshold]
+  P.capsici LT1534
+  Initial search space (Z):              19805  [actual number of targets]
+  Domain search space  (domZ):             106  [number of targets reported over threshold]
+  P.sojae 67593
+  Initial search space (Z):              18969  [actual number of targets]
+  Domain search space  (domZ):             147  [number of targets reported over threshold]
+```
 
 ### C) From Augustus gene models - Hmm evidence of RxLR effectors
 ```bash
@@ -369,19 +372,20 @@ Domain search space  (domZ):             147  [number of targets reported over t
 		# cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_pub_RxLR_hmmer.gff3
 	done
 ```
-
-P.infestans T30-4
-Initial search space (Z):              17787  [actual number of targets]
-Domain search space  (domZ):             290  [number of targets reported over threshold]
-P.parisitica 310
-Initial search space (Z):              20822  [actual number of targets]
-Domain search space  (domZ):             217  [number of targets reported over threshold]
-P.capsici LT1534
-Initial search space (Z):              19805  [actual number of targets]
-Domain search space  (domZ):              84  [number of targets reported over threshold]
-P.sojae 67593
-Initial search space (Z):              18969  [actual number of targets]
-Domain search space  (domZ):             127  [number of targets reported over threshold]
+```
+  P.infestans T30-4
+  Initial search space (Z):              17787  [actual number of targets]
+  Domain search space  (domZ):             290  [number of targets reported over threshold]
+  P.parisitica 310
+  Initial search space (Z):              20822  [actual number of targets]
+  Domain search space  (domZ):             217  [number of targets reported over threshold]
+  P.capsici LT1534
+  Initial search space (Z):              19805  [actual number of targets]
+  Domain search space  (domZ):              84  [number of targets reported over threshold]
+  P.sojae 67593
+  Initial search space (Z):              18969  [actual number of targets]
+  Domain search space  (domZ):             127  [number of targets reported over threshold]
+```
 
 ### D) From Augustus gene models - Hmm evidence of CRN effectors
 
@@ -409,19 +413,20 @@ in Augustus gene models. This was done with the following commands:
     # cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_pub_CRN_hmmer.gff3
   done
 ```
-
-P.infestans T30-4
-Initial search space (Z):              17787  [actual number of targets]
-Domain search space  (domZ):             187  [number of targets reported over threshold]
-P.parisitica 310
-Initial search space (Z):              20822  [actual number of targets]
-Domain search space  (domZ):              42  [number of targets reported over threshold]
-P.capsici LT1534
-Initial search space (Z):              19805  [actual number of targets]
-Domain search space  (domZ):             106  [number of targets reported over threshold]
-P.sojae 67593
-Initial search space (Z):              18969  [actual number of targets]
-Domain search space  (domZ):              81  [number of targets reported over threshold]
+```
+  P.infestans T30-4
+  Initial search space (Z):              17787  [actual number of targets]
+  Domain search space  (domZ):             187  [number of targets reported over threshold]
+  P.parisitica 310
+  Initial search space (Z):              20822  [actual number of targets]
+  Domain search space  (domZ):              42  [number of targets reported over threshold]
+  P.capsici LT1534
+  Initial search space (Z):              19805  [actual number of targets]
+  Domain search space  (domZ):             106  [number of targets reported over threshold]
+  P.sojae 67593
+  Initial search space (Z):              18969  [actual number of targets]
+  Domain search space  (domZ):              81  [number of targets reported over threshold]
+```
 
 
 ### E) From ORF gene models - Signal peptide & RxLR motif
@@ -593,35 +598,36 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
   done
 ```
 
-0300	species: P.cactorum
-the number of SigP gene is:	15271
-the number of SigP-RxLR genes are:	935
-the number of SigP-RxLR-EER genes are:	170
+```
+  strain: 10300	species: P.cactorum
+  the number of SigP gene is:	15271
+  the number of SigP-RxLR genes are:	935
+  the number of SigP-RxLR-EER genes are:	170
 
 
-strain: LT1534	species: P.capsici
-the number of SigP gene is:	14865
-the number of SigP-RxLR genes are:	1004
-the number of SigP-RxLR-EER genes are:	254
+  strain: LT1534	species: P.capsici
+  the number of SigP gene is:	14865
+  the number of SigP-RxLR genes are:	1004
+  the number of SigP-RxLR-EER genes are:	254
 
 
-strain: T30-4	species: P.infestans
-the number of SigP gene is:	26646
-the number of SigP-RxLR genes are:	1664
-the number of SigP-RxLR-EER genes are:	383
+  strain: T30-4	species: P.infestans
+  the number of SigP gene is:	26646
+  the number of SigP-RxLR genes are:	1664
+  the number of SigP-RxLR-EER genes are:	383
 
 
-strain: 310	species: P.parisitica
-the number of SigP gene is:	14526
-the number of SigP-RxLR genes are:	949
-the number of SigP-RxLR-EER genes are:	309
+  strain: 310	species: P.parisitica
+  the number of SigP gene is:	14526
+  the number of SigP-RxLR genes are:	949
+  the number of SigP-RxLR-EER genes are:	309
 
 
-strain: 67593	species: P.sojae
-the number of SigP gene is:	24222
-the number of SigP-RxLR genes are:	1727
-the number of SigP-RxLR-EER genes are:	282
-
+  strain: 67593	species: P.sojae
+  the number of SigP gene is:	24222
+  the number of SigP-RxLR genes are:	1727
+  the number of SigP-RxLR-EER genes are:	282
+```
 
 
  ### F) From ORF gene models - Hmm evidence of WY domains
@@ -651,22 +657,23 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
   done
 ```
 
-P.cactorum 10300
-Initial search space (Z):              15271  [actual number of targets]
-Domain search space  (domZ):             113  [number of targets reported over threshold]
-P.capsici LT1534
-Initial search space (Z):              14865  [actual number of targets]
-Domain search space  (domZ):             117  [number of targets reported over threshold]
-P.infestans T30-4
-Initial search space (Z):              26646  [actual number of targets]
-Domain search space  (domZ):             244  [number of targets reported over threshold]
-P.parisitica 310
-Initial search space (Z):              14526  [actual number of targets]
-Domain search space  (domZ):             175  [number of targets reported over threshold]
-P.sojae 67593
-Initial search space (Z):              24222  [actual number of targets]
-Domain search space  (domZ):             159  [number of targets reported over threshold]
-
+```
+  P.cactorum 10300
+  Initial search space (Z):              15271  [actual number of targets]
+  Domain search space  (domZ):             113  [number of targets reported over threshold]
+  P.capsici LT1534
+  Initial search space (Z):              14865  [actual number of targets]
+  Domain search space  (domZ):             117  [number of targets reported over threshold]
+  P.infestans T30-4
+  Initial search space (Z):              26646  [actual number of targets]
+  Domain search space  (domZ):             244  [number of targets reported over threshold]
+  P.parisitica 310
+  Initial search space (Z):              14526  [actual number of targets]
+  Domain search space  (domZ):             175  [number of targets reported over threshold]
+  P.sojae 67593
+  Initial search space (Z):              24222  [actual number of targets]
+  Domain search space  (domZ):             159  [number of targets reported over threshold]
+```
 
 
 ### G) From ORF gene models - Hmm evidence of RxLR effectors
@@ -693,22 +700,23 @@ Domain search space  (domZ):             159  [number of targets reported over t
 		$ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_RxLR_hmmer.gff3
 	done
 ```
-
-P.cactorum 10300
-Initial search space (Z):              15271  [actual number of targets]
-Domain search space  (domZ):             145  [number of targets reported over threshold]
-P.capsici LT1534
-Initial search space (Z):              14865  [actual number of targets]
-Domain search space  (domZ):             165  [number of targets reported over threshold]
-P.infestans T30-4
-Initial search space (Z):              26646  [actual number of targets]
-Domain search space  (domZ):             277  [number of targets reported over threshold]
-P.parisitica 310
-Initial search space (Z):              14526  [actual number of targets]
-Domain search space  (domZ):             244  [number of targets reported over threshold]
-P.sojae 67593
-Initial search space (Z):              24222  [actual number of targets]
-Domain search space  (domZ):             228  [number of targets reported over threshold]
+```
+  P.cactorum 10300
+  Initial search space (Z):              15271  [actual number of targets]
+  Domain search space  (domZ):             145  [number of targets reported over threshold]
+  P.capsici LT1534
+  Initial search space (Z):              14865  [actual number of targets]
+  Domain search space  (domZ):             165  [number of targets reported over threshold]
+  P.infestans T30-4
+  Initial search space (Z):              26646  [actual number of targets]
+  Domain search space  (domZ):             277  [number of targets reported over threshold]
+  P.parisitica 310
+  Initial search space (Z):              14526  [actual number of targets]
+  Domain search space  (domZ):             244  [number of targets reported over threshold]
+  P.sojae 67593
+  Initial search space (Z):              24222  [actual number of targets]
+  Domain search space  (domZ):             228  [number of targets reported over threshold]
+```
 
 <!--
 ```bash
@@ -766,22 +774,23 @@ in ORF gene models. This was done with the following commands:
 		$ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_CRN_hmmer.gff3
 	done
 ```
-P.cactorum 10300
-Initial search space (Z):              15271  [actual number of targets]
-Domain search space  (domZ):              18  [number of targets reported over threshold]
-P.capsici LT1534
-Initial search space (Z):              14865  [actual number of targets]
-Domain search space  (domZ):              44  [number of targets reported over threshold]
-P.infestans T30-4
-Initial search space (Z):              26646  [actual number of targets]
-Domain search space  (domZ):               4  [number of targets reported over threshold]
-P.parisitica 310
-Initial search space (Z):              14526  [actual number of targets]
-Domain search space  (domZ):              14  [number of targets reported over threshold]
-P.sojae 67593
-Initial search space (Z):              24222  [actual number of targets]
-Domain search space  (domZ):              75  [number of targets reported over threshold]
-
+```
+  P.cactorum 10300
+  Initial search space (Z):              15271  [actual number of targets]
+  Domain search space  (domZ):              18  [number of targets reported over threshold]
+  P.capsici LT1534
+  Initial search space (Z):              14865  [actual number of targets]
+  Domain search space  (domZ):              44  [number of targets reported over threshold]
+  P.infestans T30-4
+  Initial search space (Z):              26646  [actual number of targets]
+  Domain search space  (domZ):               4  [number of targets reported over threshold]
+  P.parisitica 310
+  Initial search space (Z):              14526  [actual number of targets]
+  Domain search space  (domZ):              14  [number of targets reported over threshold]
+  P.sojae 67593
+  Initial search space (Z):              24222  [actual number of targets]
+  Domain search space  (domZ):              75  [number of targets reported over threshold]
+```
 <!--
 ```bash
 	for Proteome in $(ls gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa); do
