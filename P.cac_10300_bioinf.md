@@ -622,56 +622,58 @@ Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
 ```bash
-	# getAnnoFasta.pl gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
-SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-SplitDir=gene_pred/braker_split/$Organism/$Strain
-mkdir -p $SplitDir
-BaseName="$Organism""_$Strain"_braker_preds
-$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
-for File in $(ls $SplitDir/*_braker_preds_*); do
-Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-while [ $Jobs -ge 32 ]; do
-sleep 10
-printf "."
-Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-done
-printf "\n"
-echo $File
-qsub $ProgDir/pred_sigP.sh $File signalp-4.1
-done
+	Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+	Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+	Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+	SplitDir=gene_pred/braker_split/$Organism/$Strain
+	mkdir -p $SplitDir
+	BaseName="$Organism""_$Strain"_braker_preds
+	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+	for File in $(ls $SplitDir/*_braker_preds_*); do
+		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+		while [ $Jobs -ge 32 ]; do
+			sleep 10
+			printf "."
+			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+		done
+		printf "\n"
+		echo $File
+		# qsub $ProgDir/pred_sigP.sh $File
+		qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+	done
 ```
 
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
 ```bash
-	SplitDir=gene_pred/braker_split/P.cactorum/10300
-	Strain=$(echo $SplitDir | cut -d '/' -f4)
-	Organism=$(echo $SplitDir | cut -d '/' -f3)
-	InStringAA=''
-	InStringNeg=''
-	InStringTab=''
-	InStringTxt=''
-	for GRP in $(ls -l $SplitDir/*_braker_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
-	InStringAA="$InStringAA gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
-	InStringNeg="$InStringNeg gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
-	InStringTab="$InStringTab gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
-	InStringTxt="$InStringTxt gene_pred/braker_sigP/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
-	done
-	cat $InStringAA > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.aa
-	cat $InStringNeg > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
-	tail -n +2 -q $InStringTab > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.tab
-	cat $InStringTxt > gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.txt
-	Headers=gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp_headers.txt
+SplitDir=gene_pred/braker_split/P.cactorum/10300
+Strain=$(echo $SplitDir | cut -d '/' -f4)
+Organism=$(echo $SplitDir | cut -d '/' -f3)
+InStringAA=''
+InStringNeg=''
+InStringTab=''
+InStringTxt=''
+SigpDir=braker_sigP
+# SigpDir=braker_signalp-4.1
+for GRP in $(ls -l $SplitDir/*_braker_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
+InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
+InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
+InStringTab="$InStringTab gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
+InStringTxt="$InStringTxt gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
+done
+cat $InStringAA > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa
+cat $InStringNeg > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
+tail -n +2 -q $InStringTab > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.tab
+cat $InStringTxt > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.txt
+	# Headers=gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp_headers.txt
 	# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 	# BrakerGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
 	# ExtractedGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
 	# cat $BrakerGff | grep -v '#' > $ExtractedGff
-	# SigPGff=gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.gff
-	# cat gene_pred/braker_sigP/$Organism/$Strain/"$Strain"_aug_sp.aa | grep '>' | tr -d '>' | cut -f1 -d ' ' > $Headers
+	# SigPGff=gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.gff
+	# cat gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa | grep '>' | tr -d '>' | cut -f1 -d ' ' > $Headers
 	# $ProgDir/gene_list_to_gff.pl $Headers $ExtractedGff SigP Name Augustus > $SigPGff
 ```
 The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
@@ -679,8 +681,10 @@ The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identi
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
 
 ```bash
-	ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
-	for Secretome in $(ls gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa); do
+ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+SigpDir=braker_sigP
+# SigpDir=braker_signalp-4.1
+	for Secretome in $(ls gene_pred/$SigpDir/P.cactorum/10300/10300_aug_sp.aa); do
 		Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
 		Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
 		OutDir=analysis/RxLR_effectors/RxLR_EER_regex_finder/"$Organism"/"$Strain";
@@ -701,11 +705,32 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt > $OutDir/"$Strain"_Aug_RxLR_EER_regex.gff3
 	done
 ```
-
+```
 strain: 10300	species: P.cactorum
 the number of SigP gene is:	2204
 the number of SigP-RxLR genes are:	207
 the number of SigP-RxLR-EER genes are:	109
+```
+
+RxLR genes were also predicted using SignalP4.1 This showed poorer perfromance
+in prediction of RxLRs than SignalP 2:
+```
+strain: 10300	species: P.cactorum
+the number of SigP gene is:	1998
+the number of SigP-RxLR genes are:	187
+the number of SigP-RxLR-EER genes are:	103
+```
+
+This did not add any additional RxLRs above those predicted by signalP2 - a
+total of 109 genes containing the SigPRxLR motif were identified between the two
+analyses.
+
+```bash
+	SigP2File=collaboration/P.cactorum/10300/effectors/RxLRs/10300_Aug_RxLR_EER_regex.fa
+	SigP4File=$OutDir/"$Strain"_Aug_RxLR_EER_regex.fa
+	cat $SigP2File $SigP4File | grep '>' | grep 'EER' | cut -f1 | tr -d ' ' | sort | uniq | wc -l
+```
+
 
 ### B) From Augustus gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search gene models predicted with Braker1. These were run with the following commands:
