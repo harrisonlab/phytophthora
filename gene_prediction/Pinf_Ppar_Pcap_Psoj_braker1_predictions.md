@@ -36,10 +36,12 @@ Alignments of RNAseq reads were made against the published Genomes using tophat:
   Pcap=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
   Psoj=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
   for Genome in $Pinf $Ppar $Pcap $Psoj; do
+    Strain=$(echo $Genome| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Genome | rev | cut -d '/' -f4 | rev)
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
     FileF=qc_rna/raw_rna/genbank/P.cactorum/F/SRR1206032_trim.fq.gz
     FileR=qc_rna/raw_rna/genbank/P.cactorum/R/SRR1206033_trim.fq.gz
-    OutDir=alignment/P.cactorum/10300
+    OutDir=alignment/$Organism/$Strain
     qsub $ProgDir/tophat_alignment.sh $Genome $FileF $FileR $OutDir
   done
 ```
@@ -50,6 +52,13 @@ Alignments of RNAseq reads were made against the published Genomes using tophat:
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
   for Assembly in $Pinf $Ppar $Pcap $Psoj; do
+    # Jobs=$(qstat | grep 'tophat_ali' | wc -l)
+    # while [ $Jobs -gt 0 ]; do
+    #   sleep 10
+    #   printf "."
+    #   Jobs=$(qstat | grep 'tophat_ali' | wc -l)
+    # done
+    printf "\n"
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     OutDir=gene_pred/braker/$Organism/$Strain
