@@ -26,7 +26,7 @@ but this is irrelivent for processing usin fast-mcf.
 ```
 
 ## 2) Align reads vs. Fus2 genome
-Alignments of RNAseq reads were made against the Fus2 Genome using tophat:
+Alignments of RNAseq reads were made against the 10300 Genome using tophat:
 
 ## 2.1) Alignment
 
@@ -53,9 +53,9 @@ set variables
 ```
 
 move to working directory
-```
-mkdir -p $WorkDir
-cd $WorkDir
+```bash
+  mkdir -p $WorkDir
+  cd $WorkDir
 ```
 
 
