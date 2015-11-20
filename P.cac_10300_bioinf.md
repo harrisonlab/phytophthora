@@ -1330,6 +1330,13 @@ be shared with collaborators for further analysis.
 	mkdir -p $ORFDir
 	cp $ORF_aa_Pinf $ORFDir/.
 	cp $ORF_Gff_Pinf $ORFDir/.
+	# P. infestans - Braker genes
+	Genes_Braker_aa_Pinf=gene_pred/braker/P.infestans/T30-4/P.infestans_T30-4_braker/augustus.aa
+	Genes_Braker_gff_Pinf=gene_pred/braker/P.infestans/T30-4/P.infestans_T30-4_braker/augustus_extracted.gff
+	GenesDir=$ProjDir/collaboration/P.infestans/T30-4/gene_pred/braker
+	mkdir -p $GenesDir
+	cp $Genes_Braker_aa_Pinf $GenesDir/.
+	cp $Genes_Braker_gff_Pinf $GenesDir/.
 	# P.infestans - Secreted proteins
 	SigP_fa_Pub_Pinf=gene_pred/published_sigP/P.infestans/T30-4/T30-4_pub_sp.aa
 	SigP_fa_ORF_Pinf=gene_pred/ORF_sigP/P.infestans/T30-4/T30-4_ORF_sp.aa
@@ -1390,6 +1397,13 @@ be shared with collaborators for further analysis.
 	mkdir -p $ORFDir
 	cp $ORF_aa_Ppar $ORFDir/.
 	cp $ORF_Gff_Ppar $ORFDir/.
+	# P. parasitica - Braker genes
+	Genes_Braker_aa_Ppar=gene_pred/braker/P.parisitica/310/P.parisitica_310_braker/augustus.aa
+	Genes_Braker_gff_Ppar=gene_pred/braker/P.parisitica/310/P.parisitica_310_braker/augustus_extracted.gff
+	GenesDir=$ProjDir/collaboration/P.parisitica/310/gene_pred/braker
+	mkdir -p $GenesDir
+	cp $Genes_Braker_aa_Ppar $GenesDir/.
+	cp $Genes_Braker_gff_Ppar $GenesDir/.
 	# P.parasitica - Secreted proteins
 	SigP_fa_Pub_Ppar=gene_pred/published_sigP/P.parisitica/310/310_pub_sp.aa
 	SigP_fa_ORF_Ppar=gene_pred/ORF_sigP/P.parisitica/310/310_ORF_sp.aa
@@ -1431,7 +1445,7 @@ be shared with collaborators for further analysis.
 	cp $RxLR_CRN_fa_ORF_Ppar $CrinklerDir/.
 	cp $RxLR_CRN_Gff_ORF_Ppar $CrinklerDir/.
 
-	# P. capsica
+	# P. capsici
 	# P. capsici - Assembly
 	Assembly_fa_Pcap=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
 	AssemblyDir=$ProjDir/collaboration/P.capsici/LT1534/assembly
@@ -1449,6 +1463,13 @@ be shared with collaborators for further analysis.
 	mkdir -p $ORFDir
 	cp $ORF_aa_Pcap $ORFDir/.
 	cp $ORF_Gff_Pcap $ORFDir/.
+	# P. capsici - Braker genes
+	Genes_Braker_aa_Pcap=gene_pred/braker/P.capsici/LT1534/P.capsici_LT1534_braker/augustus.aa
+	Genes_Braker_gff_Pcap=gene_pred/braker/P.capsici/LT1534/P.capsici_LT1534_braker/augustus_extracted.gff
+	GenesDir=$ProjDir/collaboration/P.capsici/LT1534/gene_pred/braker
+	mkdir -p $GenesDir
+	cp $Genes_Braker_aa_Pcap $GenesDir/.
+	cp $Genes_Braker_gff_Pcap $GenesDir/.
 	# P.capsici - Secreted proteins
 	SigP_fa_Pub_Pcap=gene_pred/published_sigP/P.capsici/LT1534/LT1534_pub_sp.aa
 	SigP_fa_ORF_Pcap=gene_pred/ORF_sigP/P.capsici/LT1534/LT1534_ORF_sp.aa
@@ -1508,6 +1529,13 @@ be shared with collaborators for further analysis.
 	mkdir -p $ORFDir
 	cp $ORF_aa_Psoj $ORFDir/.
 	cp $ORF_Gff_Psoj $ORFDir/.
+	# P. capsici - Braker genes
+	Genes_Braker_aa_Psoj=gene_pred/braker/P.sojae/67593/P.sojae_67593_braker/augustus.aa
+	Genes_Braker_gff_Psoj=gene_pred/braker/P.sojae/67593/P.sojae_67593_braker/augustus_extracted.gff
+	GenesDir=$ProjDir/collaboration/P.sojae/67593/gene_pred/braker
+	mkdir -p $GenesDir
+	cp $Genes_Braker_aa_Psoj $GenesDir/.
+	cp $Genes_Braker_gff_Psoj $GenesDir/.
 	# P. sojae - Secreted proteins
 	SigP_fa_Pub_Psoj=gene_pred/published_sigP/P.sojae/67593/67593_pub_sp.aa
 	SigP_fa_ORF_Psoj=gene_pred/ORF_sigP/P.sojae/67593/67593_ORF_sp.aa
