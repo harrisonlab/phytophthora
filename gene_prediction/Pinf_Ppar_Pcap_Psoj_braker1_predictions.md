@@ -67,3 +67,23 @@ Alignments of RNAseq reads were made against the published Genomes using tophat:
     qsub $ProgDir/sub_braker.sh $Assembly $OutDir $AcceptedHits $GeneModelName
   done
 ```
+
+# Extract gff and amino acid sequences
+
+```bash
+  for File in $(ls gene_pred/braker/P.*/*/*_braker/augustus.gff); do
+    getAnnoFasta.pl $File
+    OutDir=$(dirname $File)
+    echo "##gff-version 3" > $OutDir/augustus_extracted.gff
+    cat $File | grep -v '#' >> $OutDir/augustus_extracted.gff
+  done
+```
+
+* P.capsici/LT1534
+  25866
+* P.infestans/T30-4
+  86760
+* P.parisitica/310
+  20794
+* P.sojae/67593
+  34513
