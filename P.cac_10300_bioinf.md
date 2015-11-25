@@ -502,6 +502,29 @@ This was first performed on the 10300 unmasked assembly:
 
 Gene prediction was performed using Braker1.
  * The commands used to do this can be found in /gene_prediction/10300_braker1_prediction.md
+ * Gene prediction was also repeated upon the hardmasked genome. The commands used to submit this assembly are shown below
+
+```bash
+	Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.fa
+	Strain=$(echo $Assembly| rev | cut -d '/' -f2 | rev)
+	Organism=$(echo $Assembly | rev | cut -d '/' -f3 | rev)
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+	FileF=qc_rna/raw_rna/genbank/P.cactorum/F/SRR1206032_trim.fq.gz
+	FileR=qc_rna/raw_rna/genbank/P.cactorum/R/SRR1206033_trim.fq.gz
+	OutDir=alignment/$Organism/$Strain"_masked"
+	qsub $ProgDir/tophat_alignment.sh $Genome $FileF $FileR $OutDir
+	Jobs=$(qstat | grep 'tophat_ali' | wc -l)
+	while [ $Jobs -gt 0 ]; do
+	  sleep 10
+	  printf "."
+	  Jobs=$(qstat | grep 'tophat_ali' | wc -l)
+	done
+	OutDir=gene_pred/braker/$Organism/$Strain"_masked"
+	AcceptedHits=alignment/$Organism/$Strain"_masked"/accepted_hits.bam
+	GeneModelName="$Organism"_"$Strain"_masked_braker
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
+	qsub $ProgDir/sub_braker.sh $Assembly $OutDir $AcceptedHits $GeneModelName
+```
 
 ## Gene prediction 2 - atg.pl prediction of ORFs
 
