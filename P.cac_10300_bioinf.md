@@ -506,13 +506,13 @@ Gene prediction was performed using Braker1.
 
 ```bash
 	Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_hardmasked.fa
-	Strain=$(echo $Assembly| rev | cut -d '/' -f2 | rev)
-	Organism=$(echo $Assembly | rev | cut -d '/' -f3 | rev)
+	Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+	Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 	FileF=qc_rna/raw_rna/genbank/P.cactorum/F/SRR1206032_trim.fq.gz
 	FileR=qc_rna/raw_rna/genbank/P.cactorum/R/SRR1206033_trim.fq.gz
 	OutDir=alignment/$Organism/$Strain"_masked"
-	qsub $ProgDir/tophat_alignment.sh $Genome $FileF $FileR $OutDir
+	qsub $ProgDir/tophat_alignment.sh $Assembly $FileF $FileR $OutDir
 	Jobs=$(qstat | grep 'tophat_ali' | wc -l)
 	while [ $Jobs -gt 0 ]; do
 	  sleep 10
@@ -663,8 +663,8 @@ the following commands:
 		done
 		printf "\n"
 		echo $File
-		# qsub $ProgDir/pred_sigP.sh $File
-		qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+		qsub $ProgDir/pred_sigP.sh $File
+		# qsub $ProgDir/pred_sigP.sh $File signalp-4.1
 	done
 ```
 
