@@ -818,3 +818,61 @@ in ORF gene models. This was done with the following commands:
 P.cactorum 10300
 Initial search space (Z):             459307  [actual number of targets]
 Domain search space  (domZ):             225  [number of targets reported over threshold] -->
+
+
+
+
+
+## 4. 2 Ananlysis of RxLR effectors
+
+Due to RxLR effectors being predicted from a number of sources the number of
+unique RxLRs were identified from motif and Hmm searches within gene models.
+221 RxLR effectors were predicted in total from the P.cactorum genome. Of these,
+90 were shared between both datasets.
+
+```bash
+  for InDir in $(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*); do
+    Strain=$(echo "$InDir" | rev | cut -f1 -d '/' | rev)
+    Species=$(echo "$InDir" | rev | cut -f2 -d '/' | rev)
+    RxLR_motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Species/$Strain/"$Strain"*_RxLR_EER_regex.fa | grep -v 'ORF')
+    RxLR_hmm=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Species/$Strain/"$Strain"*_RxLR_hmmer.fa | grep -v 'ORF')
+    echo "$Species - $Strain"
+    echo "Total number of RxLRs in predicted genes:"
+    cat $RxLR_motif $RxLR_hmm | grep '>' | cut -f1 | sort | uniq | wc -l
+    echo "Total number of RxLRs shared between prediciton sources:"
+    cat $RxLR_motif $RxLR_hmm | grep '>' | cut -f1 | sort | uniq -d | wc -l
+    echo ""
+  done
+```
+
+```
+  P.cactorum - 10300
+  Total number of RxLRs in predicted genes:
+  291
+  Total number of RxLRs shared between prediciton sources:
+  90
+
+  P.capsici - LT1534
+  Total number of RxLRs in predicted genes:
+  245
+  Total number of RxLRs shared between prediciton sources:
+  0
+
+  P.infestans - T30-4
+  Total number of RxLRs in predicted genes:
+  870
+  Total number of RxLRs shared between prediciton sources:
+  70
+
+  P.parisitica - 310
+  Total number of RxLRs in predicted genes:
+  609
+  Total number of RxLRs shared between prediciton sources:
+  80
+
+  P.sojae - 67593
+  Total number of RxLRs in predicted genes:
+  531
+  Total number of RxLRs shared between prediciton sources:
+  173
+```
