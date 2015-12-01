@@ -158,6 +158,118 @@ Particular orthogroups were analysed for expansion in isolates.
 
 This section details the commands used and the results observed.
 
+
+### P. cactotum unique gene families
+
+The genes unique to P.cactorum were identified within the orthology analysis.
+
+First variables were set:
+```bash
+  WorkDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj
+  PcacUniqDir=$WorkDir/Pcac_unique
+  Orthogroups=$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
+  GoodProts=$WorkDir/goodProteins/goodProteins.fasta
+  Braker_genes=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  Uniq_Pcac_groups=$PcacUniqDir/Pcac_uniq_orthogroups.txt
+  mkdir -p $PcacUniqDir
+```
+
+Orthologroups only containing P.cactorum 10300 genes were extracted:
+
+```bash
+  cat $Orthogroups | grep -v 'Pinf' | grep -v 'Ppar' | grep -v 'Pcap' | grep -v 'Psoj' > $Uniq_Pcac_groups
+  echo "The number of orthogroups unique to P. cactorum are:"
+  cat $Uniq_Pcac_groups | wc -l
+  echo "The following number genes are contained in these orthogorups:"
+  cat $Uniq_Pcac_groups | grep -o 'Pcac|' | wc -l  
+```
+
+```
+  The number of orthogroups unique to P. cactorum are:
+  126
+  The following number genes are contained in these orthogorups:
+  347
+```
+
+### P. cactorum unique RxLR families
+
+P. cactorum strain 10300 RxLR genes were parsed to the same format as the gene
+names used in the analysis:
+
+```bash
+  RxLR_Names_10300=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Aug_RxLR_EER_motif_hmm_headers.txt
+  WorkDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj
+  RxLR_Dir=$WorkDir/Pcac_RxLR
+  Orthogroups=$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
+  RxLR_ID_10300=$RxLR_Dir/10300_aug_RxLR_EER_IDs.txt
+  mkdir -p $RxLR_Dir
+  cat $RxLR_Names_10300 | sed 's/g/Pcac|g/g' > $RxLR_ID_10300
+```
+
+Ortholog groups containing RxLR proteins were identified using the following
+commands:
+```bash
+  echo "The number of RxLRs searched for is:"
+  cat $RxLR_ID_10300 | wc -l
+  echo "Of these, the following number were found in orthogroups:"
+  RxLR_Orthogroup_hits_10300=$RxLR_Dir/Pcac_RxLR_Orthogroups_hits.txt
+  cat $Orthogroups | grep -o -w -f $RxLR_ID_10300 > $RxLR_Orthogroup_hits_10300
+  cat $RxLR_Orthogroup_hits_10300 | wc -l
+  echo "These were distributed through the following number of Orthogroups:"
+  RxLR_Orthogroup_10300=$RxLR_Dir/Pcac_RxLR_Orthogroups.txt
+  cat $Orthogroups | grep -w -f $RxLR_ID_10300 > $RxLR_Orthogroup_10300
+  cat $RxLR_Orthogroup_10300 | wc -l
+  echo "The following RxLRs were found in Pcac unique orthogroups:"
+  RxLR_Pcac_uniq_groups=$RxLR_Dir/Pcac_RxLR_Orthogroups_hits.txt
+  cat $RxLR_Orthogroup_10300 | grep -v 'Pinf' | grep -v 'Ppar' | grep -v 'Pcap' | grep -v 'Psoj' > $RxLR_Pcac_uniq_groups
+  cat $RxLR_Pcac_uniq_groups | wc -l
+  echo "The following RxLRs were found in Group1 unique orthogroups:"
+  RxLR_Group1_uniq_groups=$RxLR_Dir/Group1_RxLR_Orthogroups_hits.txt
+  cat $RxLR_Orthogroup_10300 | grep -v 'Pcap' | grep -v 'Psoj' > $RxLR_Group1_uniq_groups
+  cat $RxLR_Group1_uniq_groups | wc -l
+```
+
+```
+  The number of RxLRs searched for is:
+  145
+  Of these, the following number were found in orthogroups:
+  145
+  These were distributed through the following number of Orthogroups:
+  79
+  The following RxLRs were found in Pcac unique orthogroups:
+  2
+  The following RxLRs were found in Group1 unique orthogroups:
+  17
+```
+
+The P.cactorum RxLR genes that were not found in orthogroups were identified:
+
+```bash
+  RxLR_10300_uniq=$RxLR_Dir/Pcac_unique_RxLRs.txt
+  cat $RxLR_ID_10300 | grep -v -w -f $RxLR_Orthogroup_hits_10300 | tr -d 'Pcac|' > $RxLR_10300_uniq
+  echo "The number of P.cac 10300 unique RxLRs are:"
+  cat $RxLR_10300_uniq | wc -l
+  RxLR_Seq_10300=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Aug_RxLR_EER_motif_hmm.fa
+  Braker_genes=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  RxLR_10300_uniq_fa=$RxLR_Dir/Pcac_unique_RxLRs.fa
+  cat $Braker_genes | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -w -A1 -f $RxLR_10300_uniq | grep -E -v '^--' > $RxLR_10300_uniq_fa
+```
+
+```
+  The number of P.cac 10300 unique RxLRs are:
+  0
+```
+
+
+
+
+
+
+
+
+
+
+<!--
 ### P. cactorum unique RxLR families
 
 P. cactorum strain 10300 RxLR genes were parsed to the same format as the gene
@@ -225,4 +337,4 @@ identified. The 486 RxLR genes were present in 112 ortholog groups.
   559 Pinf
   420 Ppar
   172 Psoj
-```
+``` -->
