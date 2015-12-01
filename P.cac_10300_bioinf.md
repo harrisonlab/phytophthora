@@ -671,25 +671,25 @@ the following commands:
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
 ```bash
-SplitDir=gene_pred/braker_split/P.cactorum/10300
-Strain=$(echo $SplitDir | cut -d '/' -f4)
-Organism=$(echo $SplitDir | cut -d '/' -f3)
-InStringAA=''
-InStringNeg=''
-InStringTab=''
-InStringTxt=''
-SigpDir=braker_sigP
-# SigpDir=braker_signalp-4.1
-for GRP in $(ls -l $SplitDir/*_braker_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
-InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
-InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
-InStringTab="$InStringTab gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
-InStringTxt="$InStringTxt gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
-done
-cat $InStringAA > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa
-cat $InStringNeg > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
-tail -n +2 -q $InStringTab > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.tab
-cat $InStringTxt > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.txt
+	SplitDir=gene_pred/braker_split/P.cactorum/10300
+	Strain=$(echo $SplitDir | cut -d '/' -f4)
+	Organism=$(echo $SplitDir | cut -d '/' -f3)
+	InStringAA=''
+	InStringNeg=''
+	InStringTab=''
+	InStringTxt=''
+	SigpDir=braker_sigP
+	# SigpDir=braker_signalp-4.1
+	for GRP in $(ls -l $SplitDir/*_braker_preds_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
+		InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.aa";  
+		InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp_neg.aa";  
+		InStringTab="$InStringTab gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.tab";
+		InStringTxt="$InStringTxt gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_braker_preds_$GRP""_sp.txt";  
+	done
+	cat $InStringAA > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa
+	cat $InStringNeg > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
+	tail -n +2 -q $InStringTab > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.tab
+	cat $InStringTxt > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.txt
 	# Headers=gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp_headers.txt
 	# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 	# BrakerGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
@@ -704,9 +704,8 @@ The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identi
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
 
 ```bash
-ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
-SigpDir=braker_sigP
-# SigpDir=braker_signalp-4.1
+	SigpDir=braker_sigP
+	# SigpDir=braker_signalp-4.1
 	for Secretome in $(ls gene_pred/$SigpDir/P.cactorum/10300/10300_aug_sp.aa); do
 		Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
 		Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
@@ -716,14 +715,20 @@ SigpDir=braker_sigP
 		printf "the number of SigP gene is:\t";
 		cat $Secretome | grep '>' | wc -l;
 		printf "the number of SigP-RxLR genes are:\t";
-		$ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa;
-		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_Aug_RxLR_regex.txt
+		ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors
+		$ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_Aug_RxLR_regex.fa;
+		cat $OutDir/"$Strain"_Aug_RxLR_regex.fa | grep '>' | cut -f1 | tr -d '>' > $OutDir/"$Strain"_Aug_RxLR_regex.txt
 		cat $OutDir/"$Strain"_Aug_RxLR_regex.txt | wc -l
 		printf "the number of SigP-RxLR-EER genes are:\t";
-		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt
+		cat $OutDir/"$Strain"_Aug_RxLR_regex.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' > $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt
+		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+		$ProgDir/extract_from_fasta.py --fasta $OutDir/"$Strain"_Aug_RxLR_regex.fa --headers $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt > $OutDir/"$Strain"_Aug_RxLR_EER_regex.fa
 		cat $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt | wc -l
 		printf "\n"
-		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+		sed -i -r 's/\.t.*//' $OutDir/"$Strain"_Aug_RxLR_regex.txt
+		sed -i -r 's/\.t.*//' $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt
 		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_regex.txt > $OutDir/"$Strain"_Aug_RxLR_regex.gff3
 		cat $GeneModels | grep -w -f $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt > $OutDir/"$Strain"_Aug_RxLR_EER_regex.gff3
 	done
@@ -1155,6 +1160,9 @@ Due to RxLR effectors being predicted from a number of sources the number of
 unique RxLRs were identified from motif and Hmm searches within gene models.
 221 RxLR effectors were predicted in total from the P.cactorum genome. Of these,
 90 were shared between both datasets.
+
+Details on the commands run to identify this can be found within this repository
+in 10300_analysis/effector_charactisation.md
 
 ```bash
 	for InDir in $(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*); do
