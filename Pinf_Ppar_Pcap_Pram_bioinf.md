@@ -203,33 +203,33 @@ Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
 ```bash
-Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
-Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
-Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
-Psoj_pep=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
+  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  Psoj_pep=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
 
-for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
-echo "$Proteome"
-SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-SplitDir=gene_pred/published_split/$Organism/$Strain
-mkdir -p $SplitDir
-BaseName="$Organism""_$Strain"_published_preds
-$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
-for File in $(ls $SplitDir/*_published_preds_*); do
-Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-while [ $Jobs -ge 32 ]; do
-sleep 10
-printf "."
-Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-done
-printf "\n"
-echo $File
-qsub $ProgDir/pred_sigP.sh $File signalp-4.1
-done
-done
+  for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+    echo "$Proteome"
+    SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    SplitDir=gene_pred/published_split/$Organism/$Strain
+    mkdir -p $SplitDir
+    BaseName="$Organism""_$Strain"_published_preds
+    $SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+    for File in $(ls $SplitDir/*_published_preds_*); do
+      Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+      while [ $Jobs -ge 32 ]; do
+        sleep 10
+        printf "."
+        Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+      done
+      printf "\n"
+      echo $File
+      qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+    done
+  done
 ```
 
 The batch files of predicted secreted proteins needed to be combined into a
@@ -260,8 +260,9 @@ The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identi
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
 
 ```bash
-  ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+
   for Secretome in $(ls gene_pred/published_sigP/*/*/*pub_sp.aa); do
+    ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
     Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
     Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
     OutDir=analysis/RxLR_effectors/RxLR_EER_regex_finder/"$Organism"/"$Strain";
@@ -270,16 +271,18 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
     printf "the number of SigP gene is:\t";
     cat $Secretome | grep '>' | wc -l;
     printf "the number of SigP-RxLR genes are:\t";
-    $ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_pub_RxLR_EER_regex.fa;
-    cat $OutDir/"$Strain"_pub_RxLR_EER_regex.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_pub_RxLR_regex.txt
+    $ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_pub_RxLR_regex.fa;
+    cat $OutDir/"$Strain"_pub_RxLR_regex.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_pub_RxLR_regex.txt
     cat $OutDir/"$Strain"_pub_RxLR_regex.txt | wc -l
     printf "the number of SigP-RxLR-EER genes are:\t";
-    cat $OutDir/"$Strain"_pub_RxLR_EER_regex.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_pub_RxLR_EER_regex.txt
+    cat $OutDir/"$Strain"_pub_RxLR_regex.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/"$Strain"_pub_RxLR_EER_regex.txt
     cat $OutDir/"$Strain"_pub_RxLR_EER_regex.txt | wc -l
     printf "\n"
-  # GeneModels=$(ls assembly/external_group/P.*/$Strain/pep/*.gff*)
-  # cat $GeneModels | grep -w -f $OutDir/"$Strain"_pub_RxLR_regex.txt > $OutDir/"$Strain"_pub_RxLR_regex.gff3
-  # cat $GeneModels | grep -w -f $OutDir/"$Strain"_pub_RxLR_EER_regex.txt > $OutDir/"$Strain"_pub_RxLR_EER_regex.gff3
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    # $ProgDir/extract_from_fasta.py --fasta $OutDir/"$Strain"_pub_RxLR_regex.fa --headers $OutDir/"$Strain"_pub_RxLR_EER_regex.txt > $OutDir/"$Strain"_pub_RxLR_EER_regex.fa
+    # GeneModels=$(ls assembly/external_group/P.*/$Strain/pep/*.gff*)
+    # cat $GeneModels | grep -w -f $OutDir/"$Strain"_pub_RxLR_regex.txt > $OutDir/"$Strain"_pub_RxLR_regex.gff3
+    # cat $GeneModels | grep -w -f $OutDir/"$Strain"_pub_RxLR_EER_regex.txt > $OutDir/"$Strain"_pub_RxLR_EER_regex.gff3
   done
 ```
 ```
@@ -326,8 +329,8 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
     cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
     HmmFasta="$Strain"_pub_WY_hmmer.fa
     $ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-  # Headers="$Strain"_pub_WY_hmmer_headers.txt
-  # cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+    Headers="$Strain"_pub_WY_hmmer_headers.txt
+    cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
   # GeneModels=$(ls assembly/external_group/P.*/$Strain/pep/*.gff*)
   # cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_pub_WY_hmmer.gff3
   done
@@ -350,21 +353,21 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
 ### C) From Augustus gene models - Hmm evidence of RxLR effectors
 ```bash
   for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
-		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
-		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
-		mkdir -p $OutDir
-		HmmResults="$Strain"_pub_RxLR_hmmer.txt
-		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
-		echo "$Organism $Strain"
-		cat $OutDir/$HmmResults | grep 'Initial search space'
-		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
-		HmmFasta="$Strain"_pub_RxLR_hmmer.fa
-		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-		# Headers="$Strain"_pub_RxLR_hmmer_headers.txt
-		# cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+    mkdir -p $OutDir
+    HmmResults="$Strain"_pub_RxLR_hmmer.txt
+    hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+    echo "$Organism $Strain"
+    cat $OutDir/$HmmResults | grep 'Initial search space'
+    cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+    HmmFasta="$Strain"_pub_RxLR_hmmer.fa
+    $ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+    Headers="$Strain"_pub_RxLR_hmmer_headers.txt
+    cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' > $OutDir/$Headers
 		# # ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 		# Col2=cropped.hmm
 		# GeneModels=$(ls assembly/external_group/P.*/$Strain/pep/*.gff*)
