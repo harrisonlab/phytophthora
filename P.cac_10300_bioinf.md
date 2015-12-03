@@ -1146,7 +1146,19 @@ Headers="$Strain"_CRN_hmmer_unmerged_headers.txt
 # SigP_Merged_Gff=gene_pred/ORF_finder/$Organism/$Strain/10300_ORF_corrected.gff3
 # ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
-cat $OutDir/$HmmFasta | grep '>' | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' > $OutDir/$Headers
+cat $OutDir/$HmmFasta | grep '>' | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' | sed 's/hmm_score/HMM_score/g' > $OutDir/$Headers
+ORF_Gff=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_gff_for_sigP_hits.pl $OutDir/$Headers $ORF_Gff $HmmModel Name > $CRN_unmerged_Gff
+DbDir=analysis/databases/$Organism/$Strain
+ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+$ProgDir/make_gff_database.py --inp $CRN_unmerged_Gff --db $DbDir/CRN_ORF.db
+CRN_Merged_Gff=$OutDir/"$Strain"_CRN_merged_hmmer.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/merge_sigP_ORFs.py --inp $DbDir/CRN_ORF.db --id $HmmModel --out $DbDir/CRN_ORF_merged.db --gff > $CRN_Merged_Gff
+echo "Number of CRN ORFs after merging:"
+cat $CRN_Merged_Gff | grep 'gene' | wc -l
 done
 ```
 
