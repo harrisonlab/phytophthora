@@ -526,6 +526,15 @@ Gene prediction was performed using Braker1.
 	qsub $ProgDir/sub_braker.sh $Assembly $OutDir $AcceptedHits $GeneModelName
 ```
 
+```bash
+	for File in $(ls gene_pred/braker/P.cactorum/10300_masked/P.cactorum_10300_masked_braker/augustus.gff ); do
+		getAnnoFasta.pl $File
+		OutDir=$(dirname $File)
+		echo "##gff-version 3" > $OutDir/augustus_extracted.gff
+		cat $File | grep -v '#' >> $OutDir/augustus_extracted.gff
+	done
+```
+
 ## Gene prediction 2 - atg.pl prediction of ORFs
 
 Open reading frame predictions were made using the atg.pl script as part of the
@@ -818,6 +827,37 @@ Domain search space  (domZ):             171  [number of targets reported over t
 P.cactorum 10300
 Initial search space (Z):              20689  [actual number of targets]
 Domain search space  (domZ):             124  [number of targets reported over threshold]
+<!--
+RxLR hmm searches were also identified in gene predictions from repeatmasked gene models.
+```bash
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300_masked/P.cactorum_10300_masked_braker/augustus.aa); do
+		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_RxLR_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_Aug_RxLR_hmmer.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+		# Col2=cropped.hmm
+		GeneModels=gene_pred/braker/P.cactorum/10300_masked/P.cactorum_10300_masked_braker/augustus_extracted.gff
+		# $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $GeneModels $Col2 Name > $OutDir/"$Strain"_Aug_RxLR_hmmer.gff3
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_RxLR_hmmer.gff3
+	done
+```
+
+P.cactorum 10300_masked
+Initial search space (Z):              17031  [actual number of targets]
+Domain search space  (domZ):             118  [number of targets reported over threshold]
+ -->
 
 ### D) From Augustus gene models - Hmm evidence of CRN effectors
 
@@ -849,6 +889,34 @@ done
 P.cactorum 10300
 Initial search space (Z):              20689  [actual number of targets]
 Domain search space  (domZ):              92  [number of targets reported over threshold]
+<!--
+Crinklers were also identified from gene models predicted from the repeatmasked genome.
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300_masked/P.cactorum_10300_masked_braker/augustus.aa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_CRN_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_Aug_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		GeneModels=gene_pred/braker/P.cactorum/10300_masked/P.cactorum_10300_masked_braker/augustus_extracted.gff
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_CRN_hmmer.gff3
+	done
+```
+
+P.cactorum 10300_masked
+Initial search space (Z):              17031  [actual number of targets]
+Domain search space  (domZ):              17  [number of targets reported over threshold]
+-->
 
 
 ### E) From ORF gene models - Signal peptide & RxLR motif
