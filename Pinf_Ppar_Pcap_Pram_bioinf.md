@@ -444,7 +444,7 @@ Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
 ```bash
-  Pinf_ORF=analysis/rxlr_atg/P.infestans/T30-4/T30-4.aa_cat.fa
+  Pinf_ORF=gene_pred/ORF_finder/P.infestans/T30-4/T30-4.aa_cat.fa
   Ppar_ORF=gene_pred/ORF_finder/P.parisitica/310/310.aa_cat.fa
   Pcap_ORF=gene_pred/ORF_finder/P.capsici/LT1534/LT1534.aa_cat.fa
   Psoj_ORF=gene_pred/ORF_finder/P.sojae/67593/67593.aa_cat.fa
@@ -524,7 +524,7 @@ selected on the basis of its SignalP Hmm score. Biopython was used to identify
 overlapps and identify the ORF with the best signalP score.
 
 ```bash
-  for SigP_fasta in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp.aa ); do
+  for SigP_fasta in $(ls gene_pred/ORF_sigP/P.infestans/*/*_ORF_sp.aa ); do
     Strain=$(echo $SigP_fasta | rev | cut -d '/' -f2 | rev)
     Organism=$(echo $SigP_fasta | rev | cut -d '/' -f3 | rev)
     echo "$Strain"
@@ -617,9 +617,9 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 
 
   strain: T30-4	species: P.infestans
-  the number of SigP gene is:	26646
-  the number of SigP-RxLR genes are:	1664
-  the number of SigP-RxLR-EER genes are:	383
+  the number of SigP gene is:	37637
+  the number of SigP-RxLR genes are:	2825
+  the number of SigP-RxLR-EER genes are:	417
 
 
   strain: 310	species: P.parisitica
@@ -670,7 +670,7 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
   Initial search space (Z):              14865  [actual number of targets]
   Domain search space  (domZ):             117  [number of targets reported over threshold]
   P.infestans T30-4
-  Initial search space (Z):              26646  [actual number of targets]
+  Initial search space (Z):              37637  [actual number of targets]
   Domain search space  (domZ):             244  [number of targets reported over threshold]
   P.parisitica 310
   Initial search space (Z):              14526  [actual number of targets]
