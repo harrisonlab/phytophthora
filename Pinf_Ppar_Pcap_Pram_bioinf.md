@@ -713,8 +713,8 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
   Initial search space (Z):              14865  [actual number of targets]
   Domain search space  (domZ):             165  [number of targets reported over threshold]
   P.infestans T30-4
-  Initial search space (Z):              26646  [actual number of targets]
-  Domain search space  (domZ):             277  [number of targets reported over threshold]
+  Initial search space (Z):              37637  [actual number of targets]
+  Domain search space  (domZ):             284  [number of targets reported over threshold]
   P.parisitica 310
   Initial search space (Z):              14526  [actual number of targets]
   Domain search space  (domZ):             244  [number of targets reported over threshold]
