@@ -12,7 +12,7 @@ The following is a summary of the work presented in this Readme.
 The following processes were applied to the P. cactorum 10300 genome prior to analysis:
 <!-- Data qc -->
 <!-- Genome assembly -->
-<!-- Repeatmasking -->
+Repeatmasking
 Gene prediction
 Functional annotation
 
@@ -95,6 +95,25 @@ OutFile=$(echo $File | sed 's/.fa/.parsed.fa/g');
 echo $OutFile; cat $File | sed 's/ /_/g' | sed 's/|/_/g' > $OutFile;
 done
 ```
+
+# Repeat masking
+
+Repeat masking was performed on published genomes to allow comparison of
+repetative between species, including P. cactorum.
+
+```bash
+  Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
+  Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
+  Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+  for Genome in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+    qsub $ProgDir/rep_modeling.sh $Genome
+    qsub $ProgDir/transposonPSI.sh $Genome
+  done
+```
+
 
 # Gene Prediction
 
