@@ -474,6 +474,36 @@ The best assembly was used to perform repeatmasking
 	qsub $ProgDir/transposonPSI.sh $BestAss10300
 ```
 
+The number of bases masked by transposonPSI and Repeatmasker were summarised
+using the following commands:
+
+```bash
+	RepPcac=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask
+	RepPinf=repeat_masked/P.infestans/T30-4/dna_repmask
+	RepPpar=repeat_masked/P.parisitica/310/dna_repmask
+	RepPcap=repeat_masked/P.capsici/LT1534/dna_repmask    
+	RepPsoj=repeat_masked/P.sojae/67593/dna_repmask
+	# for RepDir in $(ls -d repeat_masked/*/*/*); do
+	for RepDir in $RepPcac $RepPinf $RepPpar $RepPcap $RepPsoj; do
+		Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
+		RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
+		TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+		printf "$Organism\t$Strain\n"
+		printf "The number of bases masked by RepeatMasker:\t"
+		bedtools merge -i $RepMaskGff | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		printf "The number of bases masked by TransposonPSI:\t"
+		sortBed -i $TransPSIGff > $RepDir/TPSI_sorted.bed
+		bedtools merge -i $RepDir/TPSI_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
+		sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
+		printf "The total number of masked bases are:\t"
+		bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		rm $RepDir/TPSI_sorted.bed
+		rm $RepDir/merged.gff
+		rm $RepDir/merged_sorted.bed
+	done
+```
 
 # Gene Prediction
 
