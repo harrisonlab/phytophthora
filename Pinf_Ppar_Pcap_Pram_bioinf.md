@@ -24,7 +24,14 @@ Ab initio prediction of putative RxLR, CRN and SSC effectors.
 
 #Making local repositories for data
 
-Data was downloaded for P. infestans isoalte T30-4 from ...
+Data was downloaded for P. infestans isoalte T30-4 from:
+http://protists.ensembl.org/Phytophthora_infestans/Info/Index
+ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_infestans/dna/
+ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_infestans
+This represented 4921 contigs and 17787 proteins
+The current release is available at:
+http://www.broadinstitute.org/annotation/genome/phytophthora_infestans/MultiDownloads.html
+The current release represents 4,921 contigs and 18140 proteins.
 This data was moved into the following directories:
 
 ```shell
@@ -39,7 +46,12 @@ This data was moved into the following directories:
   mkdir -p assembly/external_group/$Organism/$Strain/pep
 ```
 
-Data was downloaded for P. parasitica isolate 310 from ...
+Data was downloaded for P. parasitica isolate 310 from
+http://www.broadinstitute.org/annotation/genome/Phytophthora_parasitica/MultiDownloads.html
+This represented 708 contigs and 20822 proteins
+The current release is available at:
+http://www.ncbi.nlm.nih.gov/Traces/wgs/?val=AGFV02
+The current release is 82 Mb, represents 708 contigs and 27,942 genes (Unpublished)
 This data was moved into the following directories:
 
 ```shell
@@ -56,6 +68,9 @@ This data was moved into the following directories:
 
 Data was downloaded for P. capsici isolate LT1534 from:
 http://genome.jgi.doe.gov/Phyca11/Phyca11.download.ftp.html
+This represented 917 contigs and 19805 genes
+This was the current release.
+The current release is 56 Mb represents 917 contigs and 19805 genes.
 This data was moved into the following directories:
 
 ```shell
@@ -68,7 +83,14 @@ This data was moved into the following directories:
   mkdir -p assembly/external_group/$Organism/$Strain/annot
 ```
 
-Data was downloaded for P. sojae isolate  from ...
+Data was downloaded for P. sojae isolate  from:
+http://protists.ensembl.org/Phytophthora_sojae/Info/Index
+ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_sojae/dna/
+ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_sojae
+This represented 1810 contigs and 18969 genes
+The current version of the genome was downloaded from:
+http://genome.jgi.doe.gov/Physo3/Physo3.info.html
+The current release is 82Mb represents 83 contigs and 26584 genes.
 This data was moved into the following directories:
 
 ```shell
@@ -90,10 +112,10 @@ symbols had to be removed from the headers of assembly fasta files. This was
 performed using the following commands:
 
 ```bash
-for File in $(ls assembly/external_group/P.*/*/dna/*.genome.fa); do
-OutFile=$(echo $File | sed 's/.fa/.parsed.fa/g');
-echo $OutFile; cat $File | sed 's/ /_/g' | sed 's/|/_/g' > $OutFile;
-done
+  for File in $(ls assembly/external_group/P.*/*/dna/*.genome.fa); do
+    OutFile=$(echo $File | sed 's/.fa/.parsed.fa/g');
+    echo $OutFile; cat $File | sed 's/ /_/g' | sed 's/|/_/g' > $OutFile;
+  done
 ```
 
 # Repeat masking
@@ -102,18 +124,63 @@ Repeat masking was performed on published genomes to allow comparison of
 repetative between species, including P. cactorum.
 
 ```bash
-  Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+  # Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
   Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
-  Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+  # Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-  for Genome in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
+  # for Genome in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
+  for Genome in $Ppar_ass $Pcap_ass; do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
     qsub $ProgDir/rep_modeling.sh $Genome
     qsub $ProgDir/transposonPSI.sh $Genome
   done
 ```
 
+```bash
+  Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+  Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+  Pinf_ass_mod=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed_for_repmask.fa
+  Psoj_ass_mod=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed_for_repmask.fa
+  cat $Pinf_ass | cut -f1 -d ':' > $Pinf_ass_mod
+  cat $Psoj_ass | cut -f1 -d ':' > $Psoj_ass_mod
+  for Genome in $Pinf_ass_mod $Psoj_ass_mod; do
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+    qsub $ProgDir/rep_modeling.sh $Genome
+    qsub $ProgDir/transposonPSI.sh $Genome
+  done
+```
+
+The number of bases masked by transposonPSI and Repeatmasker were summarised
+using the following commands:
+
+```bash
+	RepPcac=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask
+	RepPinf=repeat_masked/P.infestans/T30-4/dna_repmask
+	RepPpar=repeat_masked/P.parisitica/310/dna_repmask
+	RepPcap=repeat_masked/P.capsici/LT1534/dna_repmask    
+	RepPsoj=repeat_masked/P.sojae/67593/dna_repmask
+	# for RepDir in $(ls -d repeat_masked/*/*/*); do
+	for RepDir in $RepPcac $RepPinf $RepPpar $RepPcap $RepPsoj; do
+		Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
+		RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
+		TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+		printf "$Organism\t$Strain\n"
+		printf "The number of bases masked by RepeatMasker:\t"
+		bedtools merge -i $RepMaskGff | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		printf "The number of bases masked by TransposonPSI:\t"
+		sortBed -i $TransPSIGff > $RepDir/TPSI_sorted.bed
+		bedtools merge -i $RepDir/TPSI_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
+		sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
+		printf "The total number of masked bases are:\t"
+		bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		rm $RepDir/TPSI_sorted.bed
+		rm $RepDir/merged.gff
+		rm $RepDir/merged_sorted.bed
+	done
+```
 
 # Gene Prediction
 
