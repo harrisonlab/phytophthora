@@ -53,8 +53,8 @@
 ### for P.soj 67593
 ```bash
   Taxon_code=Psoj
-  Fasta_file=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
-  Id_field=1
+  Fasta_file=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+  Id_field=3
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
   mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
 ```
@@ -85,11 +85,11 @@
 
   ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology  
   for File in $(find $WorkDir/splitfiles); do
-    Jobs=$(qstat | grep 'blast_500' | wc -l)
-    while [ $Jobs -gt 32 ]; do
+    Jobs=$(qstat | grep 'blast_500' | grep 'qw' | wc -l)
+    while [ $Jobs -gt 1 ]; do
       sleep 10
       printf "."
-      Jobs=$(qstat | grep 'blast_500' | wc -l)
+      Jobs=$(qstat | grep 'blast_500' | grep 'qw' | wc -l)
     done
     printf "\n"
     echo $File
