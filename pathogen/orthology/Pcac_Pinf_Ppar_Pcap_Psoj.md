@@ -134,22 +134,21 @@ number of unique singleton genes
 number of unique groups of inparalogs
 
 ```
-  [1] "Pcac (8494)"
-  [1] 586
-  [1] 126
-  [1] "Pcap (7393)"
-  [1] 348
-  [1] 59
-  [1] "Pinf (8079)"
-  [1] 601
-  [1] 107
-  [1] "Ppar (8687)"
-  [1] 732
-  [1] 95
-  [1] "Psoj (7592)"
-  [1] 642
-  [1] 153
-  NULL
+  [1] "Pcac (8814)"
+  [1] 567
+  [1] 118
+  [1] "Pcap (7646)"
+  [1] 333
+  [1] 52
+  [1] "Pinf (8335)"
+  [1] 562
+  [1] 100
+  [1] "Ppar (8987)"
+  [1] 695
+  [1] 79
+  [1] "Psoj (9156)"
+  [1] 883
+  [1] 388
 ```
 
 # Downstream analysis
