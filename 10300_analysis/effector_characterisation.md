@@ -6,7 +6,7 @@ unique RxLRs were identified from motif and Hmm searches within gene models.
 90 were shared between both datasets.
 
 ```bash
-  for InDir in $(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/P.infestans/*); do
+  for InDir in $(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*); do
     Strain=$(echo "$InDir" | rev | cut -f1 -d '/' | rev)
     Species=$(echo "$InDir" | rev | cut -f2 -d '/' | rev)
     Source="pub"
@@ -63,13 +63,13 @@ Total number of RxLRs shared between prediction sources:
 The number of combined RxLR containing proteins containing WY domains are:
 108
 
-P.sojae - 67593
+P.sojae - P6497
 Total number of RxLRs in predicted genes:
-151
+344
 Total number of RxLRs shared between prediction sources:
-96
+176
 The number of combined RxLR containing proteins containing WY domains are:
-73
+132
 ```
 
 A similar analysis was perfromed with ORF predicted RxLRs:
