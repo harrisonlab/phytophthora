@@ -29,9 +29,9 @@ http://protists.ensembl.org/Phytophthora_infestans/Info/Index
 ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_infestans/dna/
 ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_infestans
 This represented 4921 contigs and 17787 proteins
-The current release is available at:
+<!-- The previous release is available at:
 http://www.broadinstitute.org/annotation/genome/phytophthora_infestans/MultiDownloads.html
-The current release represents 4,921 contigs and 18140 proteins.
+The current release represents 4,921 contigs and 18140 proteins. -->
 This data was moved into the following directories:
 
 ```shell
@@ -49,9 +49,9 @@ This data was moved into the following directories:
 Data was downloaded for P. parasitica isolate 310 from
 http://www.broadinstitute.org/annotation/genome/Phytophthora_parasitica/MultiDownloads.html
 This represented 708 contigs and 20822 proteins
-The current release is available at:
+<!-- The current release is available at:
 http://www.ncbi.nlm.nih.gov/Traces/wgs/?val=AGFV02
-The current release is 82 Mb, represents 708 contigs and 27,942 genes (Unpublished)
+The current release is 82 Mb, represents 708 contigs and 27,942 genes (Unpublished) -->
 This data was moved into the following directories:
 
 ```shell
@@ -68,8 +68,8 @@ This data was moved into the following directories:
 
 Data was downloaded for P. capsici isolate LT1534 from:
 http://genome.jgi.doe.gov/Phyca11/Phyca11.download.ftp.html
-This represented 917 contigs and 19805 genes
-This was the current release.
+<!-- This represented 917 contigs and 19805 genes
+This was the current release. -->
 The current release is 56 Mb represents 917 contigs and 19805 genes.
 This data was moved into the following directories:
 
@@ -84,18 +84,18 @@ This data was moved into the following directories:
 ```
 
 Data was downloaded for P. sojae isolate  from:
-http://protists.ensembl.org/Phytophthora_sojae/Info/Index
+<!-- http://protists.ensembl.org/Phytophthora_sojae/Info/Index
 ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_sojae/dna/
 ftp://ftp.ensemblgenomes.org/pub/protists/release-29/fasta/phytophthora_sojae
 This represented 1810 contigs and 18969 genes
-The current version of the genome was downloaded from:
+The current version of the genome was downloaded from: -->
 http://genome.jgi.doe.gov/Physo3/Physo3.info.html
 The current release is 82Mb represents 83 contigs and 26584 genes.
 This data was moved into the following directories:
 
 ```shell
   Organism=P.sojae
-	Strain=67593
+	Strain=P6497
 	ProjDir=/home/groups/harrisonlab/project_files/idris
 	cd $ProjDir
   mkdir -p assembly/external_group/$Organism/$Strain/cdna
@@ -127,10 +127,10 @@ repetative between species, including P. cactorum.
   # Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
   Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
-  # Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+  Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
   # for Genome in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
-  for Genome in $Ppar_ass $Pcap_ass; do
+  for Genome in $Ppar_ass $Pcap_ass $Psoj_ass; do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
     qsub $ProgDir/rep_modeling.sh $Genome
     qsub $ProgDir/transposonPSI.sh $Genome
@@ -139,12 +139,9 @@ repetative between species, including P. cactorum.
 
 ```bash
   Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
-  Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
   Pinf_ass_mod=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed_for_repmask.fa
-  Psoj_ass_mod=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed_for_repmask.fa
-  cat $Pinf_ass | cut -f1 -d ':' > $Pinf_ass_mod
-  cat $Psoj_ass | cut -f1 -d ':' > $Psoj_ass_mod
-  for Genome in $Pinf_ass_mod $Psoj_ass_mod; do
+  cat $Pinf_ass | cut -f1 -d ':' | sed 's/\./_/g'> $Pinf_ass_mod
+  for Genome in $Pinf_ass_mod; do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
     qsub $ProgDir/rep_modeling.sh $Genome
     qsub $ProgDir/transposonPSI.sh $Genome
@@ -204,7 +201,7 @@ This was first performed on the 10300 unmasked assembly:
   Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
   Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
-  Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+  Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
   for Genome in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
   	qsub $ProgDir/sub_cegma.sh $Genome dna
@@ -226,7 +223,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
   Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
   Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
-  Psoj_ass=assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.parsed.fa
+  Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
 
   for Genome in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
@@ -236,6 +233,8 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
+
+<-Psoj progress
 
 ```bash
   for ORF_Gff in $(ls gene_pred/ORF_finder/P.*/*/*_ORF.gff | grep -v '_atg_'); do
@@ -289,10 +288,10 @@ Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
 ```bash
-  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
-  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
-  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
-  Psoj_pep=assembly/external_group/P.sojae/67593/pep/Phytophthora_sojae.ASM14975v1.26.pep.all.fa
+Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
 
   for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
     echo "$Proteome"
@@ -305,11 +304,11 @@ the following commands:
     BaseName="$Organism""_$Strain"_published_preds
     $SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
     for File in $(ls $SplitDir/*_published_preds_*); do
-      Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-      while [ $Jobs -ge 32 ]; do
+      Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
+      while [ $Jobs -gt 1 ]; do
         sleep 10
         printf "."
-        Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+        Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
       done
       printf "\n"
       echo $File
@@ -348,7 +347,7 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 
 ```bash
 
-  for Secretome in $(ls gene_pred/published_sigP/*/*/*pub_sp.aa); do
+  for Secretome in $(ls gene_pred/published_sigP/*/P6497/*pub_sp.aa); do
     ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
     Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
     Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
@@ -391,10 +390,10 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
   the number of SigP-RxLR-EER genes are:	206
 
 
-  strain: 67593	species: P.sojae
-  the number of SigP gene is:	2515
-  the number of SigP-RxLR genes are:	231
-  the number of SigP-RxLR-EER genes are:	120
+  strain: P6497	species: P.sojae
+  the number of SigP gene is:	2816
+  the number of SigP-RxLR genes are:	416
+  the number of SigP-RxLR-EER genes are:	240
 ```
 
 
@@ -432,9 +431,9 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
   P.capsici LT1534
   Initial search space (Z):              19805  [actual number of targets]
   Domain search space  (domZ):             106  [number of targets reported over threshold]
-  P.sojae 67593
-  Initial search space (Z):              18969  [actual number of targets]
-  Domain search space  (domZ):             147  [number of targets reported over threshold]
+  P.sojae P6497
+  Initial search space (Z):              26584  [actual number of targets]
+  Domain search space  (domZ):             285  [number of targets reported over threshold]
 ```
 
 ### C) From Augustus gene models - Hmm evidence of RxLR effectors
@@ -472,9 +471,9 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
   P.capsici LT1534
   Initial search space (Z):              19805  [actual number of targets]
   Domain search space  (domZ):              84  [number of targets reported over threshold]
-  P.sojae 67593
-  Initial search space (Z):              18969  [actual number of targets]
-  Domain search space  (domZ):             127  [number of targets reported over threshold]
+  P.sojae P6497
+  Initial search space (Z):              26584  [actual number of targets]
+  Domain search space  (domZ):             280  [number of targets reported over threshold]
 ```
 
 ### D) From Augustus gene models - Hmm evidence of CRN effectors
@@ -513,9 +512,9 @@ in Augustus gene models. This was done with the following commands:
   P.capsici LT1534
   Initial search space (Z):              19805  [actual number of targets]
   Domain search space  (domZ):             106  [number of targets reported over threshold]
-  P.sojae 67593
-  Initial search space (Z):              18969  [actual number of targets]
-  Domain search space  (domZ):              81  [number of targets reported over threshold]
+  P.sojae P6497
+  Initial search space (Z):              26584  [actual number of targets]
+  Domain search space  (domZ):             152  [number of targets reported over threshold]
 ```
 
 
