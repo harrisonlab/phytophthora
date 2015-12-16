@@ -895,25 +895,25 @@ A hmm model relating to crinkler domains was used to identify putative crinklers
 in Augustus gene models. This was done with the following commands:
 
 ```bash
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
-for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
-Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
-mkdir -p $OutDir
-HmmResults="$Strain"_Aug_CRN_hmmer.txt
-hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
-echo "$Organism $Strain"
-cat $OutDir/$HmmResults | grep 'Initial search space'
-cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
-HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
-$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
-cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
-GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_CRN_hmmer.gff3
-done
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+	HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+	for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa); do
+		Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+		Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+		OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+		mkdir -p $OutDir
+		HmmResults="$Strain"_Aug_CRN_hmmer.txt
+		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+		echo "$Organism $Strain"
+		cat $OutDir/$HmmResults | grep 'Initial search space'
+		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+		HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
+		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
+		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_CRN_hmmer.gff3
+	done
 ```
 
 P.cactorum 10300
