@@ -125,7 +125,7 @@ repetative between species, including P. cactorum.
 
 ```bash
   # Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
-  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
+  # Ppar_ass=phytophthora_parasitica_inra-310_2_supercontigs_parsed.fasta
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
   Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
@@ -140,8 +140,11 @@ repetative between species, including P. cactorum.
 ```bash
   Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
   Pinf_ass_mod=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed_for_repmask.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta
+  Ppar_ass_mod=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs_parsed.fasta
   cat $Pinf_ass | cut -f1 -d ':' | sed 's/\./_/g'> $Pinf_ass_mod
-  for Genome in $Pinf_ass_mod; do
+  cat $Ppar_ass | cut -f1 -d ' ' > $Ppar_ass_mod
+  for Genome in $Pinf_ass_mod $Ppar_ass_mod; do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
     qsub $ProgDir/rep_modeling.sh $Genome
     qsub $ProgDir/transposonPSI.sh $Genome
@@ -197,9 +200,9 @@ Quality of genome assemblies was assessed by looking for the gene space in the a
 
 This was first performed on the 10300 unmasked assembly:
 
-```shell
+```bash
   Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
-  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs_parsed.fasta
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
   Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
@@ -221,7 +224,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 
 ```bash
   Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
-  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra_310.i2.scaffolds.genome.parsed.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs_parsed.fasta
   Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
   Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
 
@@ -234,7 +237,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
 
-<-Psoj progress
+<-Psoj Ppar progress
 
 ```bash
   for ORF_Gff in $(ls gene_pred/ORF_finder/P.*/*/*_ORF.gff | grep -v '_atg_'); do
