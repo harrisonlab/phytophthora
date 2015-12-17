@@ -185,9 +185,9 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
 
 ```
   The number of orthogroups unique to P. cactorum are:
-  126
+  118
   The following number genes are contained in these orthogorups:
-  347
+  328
 ```
 
 ### P. cactorum unique RxLR families
@@ -232,13 +232,13 @@ commands:
   The number of RxLRs searched for is:
   145
   Of these, the following number were found in orthogroups:
-  145
+  144
   These were distributed through the following number of Orthogroups:
-  79
+  76
   The following RxLRs were found in Pcac unique orthogroups:
   2
   The following RxLRs were found in Group1 unique orthogroups:
-  17
+  15
 ```
 
 The P.cactorum RxLR genes that were not found in orthogroups were identified:
@@ -256,20 +256,311 @@ The P.cactorum RxLR genes that were not found in orthogroups were identified:
 
 ```
   The number of P.cac 10300 unique RxLRs are:
-  0
+  1
 ```
+
+#### Extracting fasta files for orthogroups containing P. cactorum putative RxLRs
 
 ```bash
-  mkdir -p analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/orthogroups_fasta_Pcac_RxLR
-  ~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL/orthoMCLgroups2fasta.py --orthogroups analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/Pcac_RxLR_Orthogroups.txt --fasta analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta --out_dir analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/orthogroups_fasta_Pcac_RxLR
-  mkdir -p analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/orthogroups_fasta_clade1_RxLR
-  ~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL/orthoMCLgroups2fasta.py --orthogroups analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/Group1_RxLR_Orthogroups_hits.txt --fasta analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta --out_dir analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/orthogroups_fasta_clade1_RxLR
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/Pcac_RxLR_Orthogroups.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/orthogroups_fasta_Pcac_RxLR
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
+```
+<!--
+```
+orthogroup8
+Extracting fasta sequences from orthogroup: 8
+	number of accessions in this group:	526
+orthogroup50
+Extracting fasta sequences from orthogroup: 50
+	number of accessions in this group:	183
+orthogroup161
+Extracting fasta sequences from orthogroup: 161
+	number of accessions in this group:	80
+orthogroup184
+Extracting fasta sequences from orthogroup: 184
+	number of accessions in this group:	71
+orthogroup313
+Extracting fasta sequences from orthogroup: 313
+	number of accessions in this group:	43
+orthogroup334
+Extracting fasta sequences from orthogroup: 334
+	number of accessions in this group:	41
+orthogroup360
+Extracting fasta sequences from orthogroup: 360
+	number of accessions in this group:	38
+orthogroup382
+Extracting fasta sequences from orthogroup: 382
+	number of accessions in this group:	37
+orthogroup503
+Extracting fasta sequences from orthogroup: 503
+	number of accessions in this group:	29
+orthogroup599
+Extracting fasta sequences from orthogroup: 599
+	number of accessions in this group:	24
+orthogroup670
+Extracting fasta sequences from orthogroup: 670
+	number of accessions in this group:	22
+orthogroup681
+Extracting fasta sequences from orthogroup: 681
+	number of accessions in this group:	22
+orthogroup752
+Extracting fasta sequences from orthogroup: 752
+	number of accessions in this group:	20
+orthogroup846
+Extracting fasta sequences from orthogroup: 846
+	number of accessions in this group:	18
+orthogroup885
+Extracting fasta sequences from orthogroup: 885
+	number of accessions in this group:	17
+orthogroup944
+Extracting fasta sequences from orthogroup: 944
+	number of accessions in this group:	16
+orthogroup951
+Extracting fasta sequences from orthogroup: 951
+	number of accessions in this group:	16
+orthogroup953
+Extracting fasta sequences from orthogroup: 953
+	number of accessions in this group:	16
+orthogroup1024
+Extracting fasta sequences from orthogroup: 1024
+	number of accessions in this group:	15
+orthogroup1055
+Extracting fasta sequences from orthogroup: 1055
+	number of accessions in this group:	14
+orthogroup1063
+Extracting fasta sequences from orthogroup: 1063
+	number of accessions in this group:	14
+orthogroup1065
+Extracting fasta sequences from orthogroup: 1065
+	number of accessions in this group:	14
+orthogroup1114
+Extracting fasta sequences from orthogroup: 1114
+	number of accessions in this group:	14
+orthogroup1122
+Extracting fasta sequences from orthogroup: 1122
+	number of accessions in this group:	14
+orthogroup1161
+Extracting fasta sequences from orthogroup: 1161
+	number of accessions in this group:	13
+orthogroup1175
+Extracting fasta sequences from orthogroup: 1175
+	number of accessions in this group:	13
+orthogroup1325
+Extracting fasta sequences from orthogroup: 1325
+	number of accessions in this group:	11
+orthogroup1362
+Extracting fasta sequences from orthogroup: 1362
+	number of accessions in this group:	11
+orthogroup1486
+Extracting fasta sequences from orthogroup: 1486
+	number of accessions in this group:	10
+orthogroup1499
+Extracting fasta sequences from orthogroup: 1499
+	number of accessions in this group:	10
+orthogroup1505
+Extracting fasta sequences from orthogroup: 1505
+	number of accessions in this group:	10
+orthogroup1641
+Extracting fasta sequences from orthogroup: 1641
+	number of accessions in this group:	10
+orthogroup1670
+Extracting fasta sequences from orthogroup: 1670
+	number of accessions in this group:	10
+orthogroup1704
+Extracting fasta sequences from orthogroup: 1704
+	number of accessions in this group:	10
+orthogroup1733
+Extracting fasta sequences from orthogroup: 1733
+	number of accessions in this group:	10
+orthogroup1736
+Extracting fasta sequences from orthogroup: 1736
+	number of accessions in this group:	10
+orthogroup1939
+Extracting fasta sequences from orthogroup: 1939
+	number of accessions in this group:	9
+orthogroup1940
+Extracting fasta sequences from orthogroup: 1940
+	number of accessions in this group:	9
+orthogroup1963
+Extracting fasta sequences from orthogroup: 1963
+	number of accessions in this group:	9
+orthogroup1966
+Extracting fasta sequences from orthogroup: 1966
+	number of accessions in this group:	9
+orthogroup2099
+Extracting fasta sequences from orthogroup: 2099
+	number of accessions in this group:	8
+orthogroup2171
+Extracting fasta sequences from orthogroup: 2171
+	number of accessions in this group:	8
+orthogroup2303
+Extracting fasta sequences from orthogroup: 2303
+	number of accessions in this group:	7
+orthogroup2540
+Extracting fasta sequences from orthogroup: 2540
+	number of accessions in this group:	7
+orthogroup2606
+Extracting fasta sequences from orthogroup: 2606
+	number of accessions in this group:	7
+orthogroup2685
+Extracting fasta sequences from orthogroup: 2685
+	number of accessions in this group:	6
+orthogroup2775
+Extracting fasta sequences from orthogroup: 2775
+	number of accessions in this group:	6
+orthogroup2945
+Extracting fasta sequences from orthogroup: 2945
+	number of accessions in this group:	6
+orthogroup2976
+Extracting fasta sequences from orthogroup: 2976
+	number of accessions in this group:	6
+orthogroup3059
+Extracting fasta sequences from orthogroup: 3059
+	number of accessions in this group:	6
+orthogroup3096
+Extracting fasta sequences from orthogroup: 3096
+	number of accessions in this group:	6
+orthogroup3127
+Extracting fasta sequences from orthogroup: 3127
+	number of accessions in this group:	6
+orthogroup3254
+Extracting fasta sequences from orthogroup: 3254
+	number of accessions in this group:	6
+orthogroup3324
+Extracting fasta sequences from orthogroup: 3324
+	number of accessions in this group:	6
+orthogroup3374
+Extracting fasta sequences from orthogroup: 3374
+	number of accessions in this group:	6
+orthogroup3662
+Extracting fasta sequences from orthogroup: 3662
+	number of accessions in this group:	5
+orthogroup4465
+Extracting fasta sequences from orthogroup: 4465
+	number of accessions in this group:	5
+orthogroup5652
+Extracting fasta sequences from orthogroup: 5652
+	number of accessions in this group:	5
+orthogroup5696
+Extracting fasta sequences from orthogroup: 5696
+	number of accessions in this group:	5
+orthogroup6699
+Extracting fasta sequences from orthogroup: 6699
+	number of accessions in this group:	5
+orthogroup6960
+Extracting fasta sequences from orthogroup: 6960
+	number of accessions in this group:	5
+orthogroup7302
+Extracting fasta sequences from orthogroup: 7302
+	number of accessions in this group:	4
+orthogroup7482
+Extracting fasta sequences from orthogroup: 7482
+	number of accessions in this group:	4
+orthogroup7496
+Extracting fasta sequences from orthogroup: 7496
+	number of accessions in this group:	4
+orthogroup7659
+Extracting fasta sequences from orthogroup: 7659
+	number of accessions in this group:	4
+orthogroup7719
+Extracting fasta sequences from orthogroup: 7719
+	number of accessions in this group:	4
+orthogroup7814
+Extracting fasta sequences from orthogroup: 7814
+	number of accessions in this group:	4
+orthogroup7823
+Extracting fasta sequences from orthogroup: 7823
+	number of accessions in this group:	4
+orthogroup7825
+Extracting fasta sequences from orthogroup: 7825
+	number of accessions in this group:	4
+orthogroup7921
+Extracting fasta sequences from orthogroup: 7921
+	number of accessions in this group:	4
+orthogroup8367
+Extracting fasta sequences from orthogroup: 8367
+	number of accessions in this group:	3
+orthogroup8428
+Extracting fasta sequences from orthogroup: 8428
+	number of accessions in this group:	3
+orthogroup8833
+Extracting fasta sequences from orthogroup: 8833
+	number of accessions in this group:	2
+orthogroup8871
+Extracting fasta sequences from orthogroup: 8871
+	number of accessions in this group:	2
+orthogroup8913
+Extracting fasta sequences from orthogroup: 8913
+	number of accessions in this group:	2
+orthogroup8917
+Extracting fasta sequences from orthogroup: 8917
+	number of accessions in this group:	2
+```
+-->
+
+#### Extracting fasta files for Clade 1 orthogroups containing P. cactorum putative RxLRs
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/Group1_RxLR_Orthogroups_hits.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/orthogroups_fasta_clade1_RxLR
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
 ```
 
-
-
-
-
+<!--
+```
+orthogroup951
+Extracting fasta sequences from orthogroup: 951
+	number of accessions in this group:	16
+orthogroup1161
+Extracting fasta sequences from orthogroup: 1161
+	number of accessions in this group:	13
+orthogroup1325
+Extracting fasta sequences from orthogroup: 1325
+	number of accessions in this group:	11
+orthogroup1505
+Extracting fasta sequences from orthogroup: 1505
+	number of accessions in this group:	10
+orthogroup2775
+Extracting fasta sequences from orthogroup: 2775
+	number of accessions in this group:	6
+orthogroup3059
+Extracting fasta sequences from orthogroup: 3059
+	number of accessions in this group:	6
+orthogroup3662
+Extracting fasta sequences from orthogroup: 3662
+	number of accessions in this group:	5
+orthogroup6699
+Extracting fasta sequences from orthogroup: 6699
+	number of accessions in this group:	5
+orthogroup7302
+Extracting fasta sequences from orthogroup: 7302
+	number of accessions in this group:	4
+orthogroup7496
+Extracting fasta sequences from orthogroup: 7496
+	number of accessions in this group:	4
+orthogroup7659
+Extracting fasta sequences from orthogroup: 7659
+	number of accessions in this group:	4
+orthogroup7814
+Extracting fasta sequences from orthogroup: 7814
+	number of accessions in this group:	4
+orthogroup8833
+Extracting fasta sequences from orthogroup: 8833
+	number of accessions in this group:	2
+orthogroup8913
+Extracting fasta sequences from orthogroup: 8913
+	number of accessions in this group:	2
+orthogroup8917
+Extracting fasta sequences from orthogroup: 8917
+	number of accessions in this group:	2
+```
+-->
 
 <!--
 ### P. cactorum unique RxLR families
