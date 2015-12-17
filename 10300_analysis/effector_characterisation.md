@@ -375,16 +375,57 @@ Again, this step was complicated by the inconsistency in downloaded gff files fo
 models.
 
 
+Extract crinklers from published gene models
 
 ```bash
-for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/P.*/10300 | grep -v '67593'); do
+  PcacAugGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+  PparPubGff=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_transcripts.gtf
+  PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gff3
+  PcapPubGff=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_genes.gff
+  PsojPubGff=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_genes_20110401.gff
+  # For P. capsici & P. sojae
+  for GeneGff in $PcapPubGff $PsojPubGff; do
+    echo "$GeneGff"
+    Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
+    CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
+    Source="pub"
+    CRN_hmm_fa=$(ls analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer_out.fa)
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.gff
+    echo "$Species - $Strain"
+    cat $CRN_hmm_fa | grep '>' | cut -f1 | tr -d '>' | cut -f4 -d '|' > $CRN_hmm_txt
+    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+  done
+  # For P. infestans & P. parisitica
+  for GeneGff in $PinfPubGff $PparPubGff; do
+    echo "$GeneGff"
+    Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
+    CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
+    Source="pub"
+    CRN_hmm_fa=$(ls analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer_out.fa)
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.gff
+    echo "$Species - $Strain"
+    cat $CRN_hmm_fa | grep '>' | cut -f1 | tr -d '>' | cut -f4 -d '|' > $CRN_hmm_txt
+    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+  done
+```
+
+```bash
+for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/P.infestans/* | grep -v -e '67593' -e 'masked'); do
 Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
 Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-AugGff=$MergeDir/"$Strain"_Aug_CRN_hmmer.gff3
+AugGff=$MergeDir/"$Strain"_pub_CRN_hmmer.gff
+if [ $Species == "P.cactorum" ]; then
+  AugGff=$MergeDir/"$Strain"_Aug_CRN_hmmer.gff3
+fi
 ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
-# if [ $Species == P.infestans ]; then
-#   ORFGff=$MergeDir/"$Strain"_ORF_RxLR_EER_motif_hmm_mod.gff
-# fi
+if [ $Species == P.infestans ]; then
+  cat $ORFGff | sed 's/^supercont/Supercontig_/' | sed -e 's/_dna.*\tCRN_HMM/\tCRN_HMM/' > $MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
+  ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
+fi
 ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
 AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
 ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
@@ -445,5 +486,26 @@ echo "The number of CRNs unique to Augustus models:"
 cat $AugUniq | grep -w 'gene' | wc -l
 fi
 done
+```
 
+
+```
+P.cactorum - 10300
+The number of ORF CRNs overlapping Augustus CRNs:
+85
+The number of Augustus CRNs overlapping ORF CRNs:
+85
+The number of CRNs unique to ORF models:
+30
+The number of CRNs unique to Augustus models:
+7
+P.capsici - LT1534
+The number of ORF CRNs overlapping Augustus CRNs:
+101
+The number of Augustus CRNs overlapping ORF CRNs:
+98
+The number of CRNs unique to ORF models:
+80
+The number of CRNs unique to Augustus models:
+8
 ```
