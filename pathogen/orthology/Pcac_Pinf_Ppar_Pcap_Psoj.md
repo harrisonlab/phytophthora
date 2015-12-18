@@ -12,7 +12,7 @@
   mkdir -p $WorkDir/badProteins  
 ```
 
-## Format fasta files
+## 1) Format fasta files
 
 ### for P.cac 10300
 ```bash
@@ -60,7 +60,7 @@
 ```
 
 
-## Filter proteins into good and poor sets.
+## 2) Filter proteins into good and poor sets.
 
 ```bash
   Input_dir=$WorkDir/formatted
@@ -71,7 +71,7 @@
   orthomclFilterFasta $Input_dir $Min_length $Max_percent_stops $Good_proteins_file $Poor_proteins_file
 ```
 
-## Perform an all-vs-all blast of the proteins
+## 3.1) Perform an all-vs-all blast of the proteins
 
 ```bash
   BlastDB=$WorkDir/blastall/$IsolateAbrv.db
@@ -98,7 +98,7 @@
   done
 ```
 
-## Merge the all-vs-all blast results  
+## 3.2) Merge the all-vs-all blast results  
 ```bash  
   MergeHits="$IsolateAbrv"_blast.tab
   printf "" > $MergeHits
@@ -108,7 +108,7 @@
   done > $MergeHits
 ```
 
-## Perform ortholog identification
+## 4) Perform ortholog identification
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
@@ -117,7 +117,7 @@
   qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts
 ```
 
-## Plot venn diagrams:
+## 5) Plot venn diagrams:
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
@@ -151,14 +151,14 @@ number of unique groups of inparalogs
   [1] 388
 ```
 
-# Downstream analysis
+# 6) Downstream analysis
 
 Particular orthogroups were analysed for expansion in isolates.
 
 This section details the commands used and the results observed.
 
 
-### P. cactotum unique gene families
+### 6.1 ) P. cactotum unique gene families
 
 The genes unique to P.cactorum were identified within the orthology analysis.
 
@@ -190,7 +190,7 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
   328
 ```
 
-### P. cactorum unique RxLR families
+### 6.2.a) P. cactorum unique RxLR families
 
 P. cactorum strain 10300 RxLR genes were parsed to the same format as the gene
 names used in the analysis:
@@ -219,7 +219,7 @@ commands:
   cat $Orthogroups | grep -w -f $RxLR_ID_10300 > $RxLR_Orthogroup_10300
   cat $RxLR_Orthogroup_10300 | wc -l
   echo "The following RxLRs were found in Pcac unique orthogroups:"
-  RxLR_Pcac_uniq_groups=$RxLR_Dir/Pcac_RxLR_Orthogroups_hits.txt
+  RxLR_Pcac_uniq_groups=$RxLR_Dir/Pcac_uniq_RxLR_Orthogroups_hits.txt
   cat $RxLR_Orthogroup_10300 | grep -v 'Pinf' | grep -v 'Ppar' | grep -v 'Pcap' | grep -v 'Psoj' > $RxLR_Pcac_uniq_groups
   cat $RxLR_Pcac_uniq_groups | wc -l
   echo "The following RxLRs were found in Group1 unique orthogroups:"
@@ -259,7 +259,7 @@ The P.cactorum RxLR genes that were not found in orthogroups were identified:
   1
 ```
 
-#### Extracting fasta files for orthogroups containing P. cactorum putative RxLRs
+#### 6.2.b) Extracting fasta files for orthogroups containing P. cactorum putative RxLRs
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
@@ -502,7 +502,7 @@ Extracting fasta sequences from orthogroup: 8917
 ```
 -->
 
-#### Extracting fasta files for Clade 1 orthogroups containing P. cactorum putative RxLRs
+#### 6.2.c) Extracting fasta files for Clade 1 orthogroups containing P. cactorum putative RxLRs
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/Group1_RxLR_Orthogroups_hits.txt
@@ -561,6 +561,194 @@ Extracting fasta sequences from orthogroup: 8917
 	number of accessions in this group:	2
 ```
 -->
+
+
+### 6.3.a) P. cactorum unique Crinkler families
+
+P. cactorum strain 10300 crinkler genes were parsed to the same format as the gene
+names used in the analysis:
+
+```bash
+  CRN_Names_10300=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Aug_CRN_hmmer_headers.txt
+  WorkDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj
+  CRN_Dir=$WorkDir/Pcac_CRN
+  Orthogroups=$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
+  CRN_ID_10300=$CRN_Dir/10300_CRN_hmmer_IDs.txt
+  mkdir -p $CRN_Dir
+  cat $CRN_Names_10300 | sed 's/g/Pcac|g/g' > $CRN_ID_10300
+```
+
+Ortholog groups containing CRN proteins were identified using the following
+commands:
+```bash
+  echo "The number of CRNs searched for is:"
+  cat $CRN_ID_10300 | wc -l
+  echo "Of these, the following number were found in orthogroups:"
+  CRN_Orthogroup_hits_10300=$CRN_Dir/Pcac_CRN_Orthogroups_hits.txt
+  cat $Orthogroups | grep -o -w -f $CRN_ID_10300 > $CRN_Orthogroup_hits_10300
+  cat $CRN_Orthogroup_hits_10300 | wc -l
+  echo "These were distributed through the following number of Orthogroups:"
+  CRN_Orthogroup_10300=$CRN_Dir/Pcac_CRN_Orthogroups.txt
+  cat $Orthogroups | grep -w -f $CRN_ID_10300 > $CRN_Orthogroup_10300
+  cat $CRN_Orthogroup_10300 | wc -l
+  echo "The following CRNs were found in Pcac unique orthogroups:"
+  CRN_Pcac_uniq_groups=$CRN_Dir/Pcac_uniq_CRN_Orthogroups_hits.txt
+  cat $CRN_Orthogroup_10300 | grep -v 'Pinf' | grep -v 'Ppar' | grep -v 'Pcap' | grep -v 'Psoj' > $CRN_Pcac_uniq_groups
+  cat $CRN_Pcac_uniq_groups | wc -l
+  echo "The following CRNs were found in Group1 unique orthogroups:"
+  CRN_Group1_uniq_groups=$CRN_Dir/Group1_CRN_Orthogroups_hits.txt
+  cat $CRN_Orthogroup_10300 | grep -v 'Pcap' | grep -v 'Psoj' > $CRN_Group1_uniq_groups
+  cat $CRN_Group1_uniq_groups | wc -l
+```
+
+```
+  The number of CRNs searched for is:
+  92
+  Of these, the following number were found in orthogroups:
+  91
+  These were distributed through the following number of Orthogroups:
+  27
+  The following CRNs were found in Pcac unique orthogroups:
+  0
+  The following CRNs were found in Group1 unique orthogroups:
+  2
+```
+
+The P.cactorum CRN genes that were not found in orthogroups were identified:
+
+```bash
+  CRN_10300_uniq=$CRN_Dir/Pcac_unique_CRNs.txt
+  cat $CRN_ID_10300 | grep -v -w -f $CRN_Orthogroup_hits_10300 | tr -d 'Pcac|' > $CRN_10300_uniq
+  echo "The number of P.cac 10300 unique CRNs are:"
+  cat $CRN_10300_uniq | wc -l
+  CRN_Seq_10300=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_aug_CRN_hmmer_out.fa
+  Braker_genes=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  CRN_10300_uniq_fa=$CRN_Dir/Pcac_unique_CRNs.fa
+  cat $Braker_genes | sed -e 's/\(^>.*$\)/#\1#/' | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d' | grep -w -A1 -f $CRN_10300_uniq | grep -E -v '^--' > $CRN_10300_uniq_fa
+```
+
+```
+  The number of P.cac 10300 unique CRNs are:
+  1
+```
+
+
+#### 6.3.b) Extracting fasta files for orthogroups containing P. cactorum putative CRNs
+
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_CRN/Pcac_CRN_Orthogroups.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_CRN/orthogroups_fasta_Pcac_CRN
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
+```
+<!--
+```
+orthogroup31
+Extracting fasta sequences from orthogroup: 31
+	number of accessions in this group:	240
+orthogroup34
+Extracting fasta sequences from orthogroup: 34
+	number of accessions in this group:	225
+orthogroup241
+Extracting fasta sequences from orthogroup: 241
+	number of accessions in this group:	55
+orthogroup257
+Extracting fasta sequences from orthogroup: 257
+	number of accessions in this group:	52
+orthogroup276
+Extracting fasta sequences from orthogroup: 276
+	number of accessions in this group:	49
+orthogroup277
+Extracting fasta sequences from orthogroup: 277
+	number of accessions in this group:	49
+orthogroup311
+Extracting fasta sequences from orthogroup: 311
+	number of accessions in this group:	43
+orthogroup376
+Extracting fasta sequences from orthogroup: 376
+	number of accessions in this group:	37
+orthogroup473
+Extracting fasta sequences from orthogroup: 473
+	number of accessions in this group:	30
+orthogroup520
+Extracting fasta sequences from orthogroup: 520
+	number of accessions in this group:	27
+orthogroup521
+Extracting fasta sequences from orthogroup: 521
+	number of accessions in this group:	27
+orthogroup522
+Extracting fasta sequences from orthogroup: 522
+	number of accessions in this group:	27
+orthogroup685
+Extracting fasta sequences from orthogroup: 685
+	number of accessions in this group:	21
+orthogroup721
+Extracting fasta sequences from orthogroup: 721
+	number of accessions in this group:	20
+orthogroup984
+Extracting fasta sequences from orthogroup: 984
+	number of accessions in this group:	15
+orthogroup988
+Extracting fasta sequences from orthogroup: 988
+	number of accessions in this group:	15
+orthogroup1154
+Extracting fasta sequences from orthogroup: 1154
+	number of accessions in this group:	13
+orthogroup1213
+Extracting fasta sequences from orthogroup: 1213
+	number of accessions in this group:	12
+orthogroup1604
+Extracting fasta sequences from orthogroup: 1604
+	number of accessions in this group:	10
+orthogroup1881
+Extracting fasta sequences from orthogroup: 1881
+	number of accessions in this group:	9
+orthogroup2261
+Extracting fasta sequences from orthogroup: 2261
+	number of accessions in this group:	7
+orthogroup2262
+Extracting fasta sequences from orthogroup: 2262
+	number of accessions in this group:	7
+orthogroup4887
+Extracting fasta sequences from orthogroup: 4887
+	number of accessions in this group:	5
+orthogroup7745
+Extracting fasta sequences from orthogroup: 7745
+	number of accessions in this group:	4
+orthogroup7753
+Extracting fasta sequences from orthogroup: 7753
+	number of accessions in this group:	4
+orthogroup8423
+Extracting fasta sequences from orthogroup: 8423
+	number of accessions in this group:	3
+orthogroup8708
+Extracting fasta sequences from orthogroup: 8708
+	number of accessions in this group:	2
+``` -->
+
+
+
+#### 6.2.c) Extracting fasta files for Clade 1 orthogroups containing P. cactorum putative CRNs
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_CRN/Group1_CRN_Orthogroups_hits.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/goodProteins/goodProteins.fasta
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_CRN/orthogroups_fasta_clade1_CRN
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
+```
+<!--
+```
+orthogroup8423
+Extracting fasta sequences from orthogroup: 8423
+	number of accessions in this group:	3
+orthogroup8708
+Extracting fasta sequences from orthogroup: 8708
+	number of accessions in this group:	2
+```
+ -->
 
 <!--
 ### P. cactorum unique RxLR families
