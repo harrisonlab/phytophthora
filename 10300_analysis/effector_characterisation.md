@@ -241,115 +241,174 @@ models.
 
 
 ```bash
-  for MergeDir in $(ls -d analysis/RxLR_effectors/combined_evidence/P.*/* | grep -v '67593'); do
-  Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
-  Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-  AugGff=$MergeDir/"$Strain"_Aug_RxLR_EER_motif_hmm.gff
-  ORFGff=$MergeDir/"$Strain"_ORF_RxLR_EER_motif_hmm.gff
-  if [ $Species == P.infestans ]; then
-    ORFGff=$MergeDir/"$Strain"_ORF_RxLR_EER_motif_hmm_mod.gff
-  fi
-  ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_RxLR_EER_motif_hmm.gff
-  AugInORFs=$MergeDir/"$Strain"_AugInORFs_RxLR_EER_motif_hmm.gff
-  ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_RxLR_EER_motif_hmm.gff
-  AugUniq=$MergeDir/"$Strain"_Aug_Uniq_RxLR_EER_motif_hmm.gff
-  bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
-  # bedtools intersect -wb -u -a $ORFGff -b $AugGff > $AugInORFs
-  bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
-  bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
-  bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
-  echo "$Species - $Strain"
-  if [ $Strain == "10300" ]; then
-  echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
-  cat $ORFsInAug | grep -w 'gene' | wc -l
-  echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
-  cat $AugInORFs | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to ORF models:"
-  cat $ORFsUniq | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to Augustus models:"
-  cat $AugUniq | grep -w 'gene' | wc -l
-  elif [ $Strain == "T30-4" ]; then
-  echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
-  cat $ORFsInAug | grep -w 'gene' | wc -l
-  echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
-  cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | wc -l
-  echo "The number of RxLRs unique to ORF models:"
-  cat $ORFsUniq | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to Augustus models:"
-  cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq > Augtmp.txt
-  cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
-  elif [ $Strain == "310" ]; then
-  echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
-  cat $ORFsInAug | grep -w 'gene' | wc -l
-  echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
-  cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | wc -l
-  echo "The number of RxLRs unique to ORF models:"
-  cat $ORFsUniq | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to Augustus models:"
-  cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq > Augtmp.txt
-  cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | grep -v -f Augtmp.txt | wc -l
-  elif [ $Strain == "LT1534" ]; then
-  echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
-  cat $ORFsInAug | grep -w 'gene' | wc -l
-  echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
-  cat $AugInORFs | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | wc -l
-  echo "The number of RxLRs unique to ORF models:"
-  cat $ORFsUniq | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to Augustus models:"
-  cat $AugInORFs  | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | sed -e 's/^ //g' > Augtmp.txt
-  cat $AugUniq | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
-  echo ""
-  elif [ $Strain == "P6497" ]; then
-  echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
-  cat $ORFsInAug | grep -w 'gene' | wc -l
-  echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
-  cat $AugInORFs | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to ORF models:"
-  cat $ORFsUniq | grep -w 'gene' | wc -l
-  echo "The number of RxLRs unique to Augustus models:"
-  cat $AugUniq | grep -w 'gene' | wc -l
-  fi
+  for MergeDir in $(ls -d analysis/RxLR_effectors/combined_evidence/P.*/* | grep -v 'sojae'); do
+    Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
+    Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
+    AugGff=$MergeDir/"$Strain"_Aug_RxLR_EER_motif_hmm.gff
+    ORFGff=$MergeDir/"$Strain"_ORF_RxLR_EER_motif_hmm.gff
+    WY_Aug_hmm=$(ls analysis/RxLR_effectors/hmmer_WY/$Species/$Strain/"$Strain"_*_WY_hmmer_headers.txt | grep -v 'ORF')
+    WY_ORF_hmm=$(ls analysis/RxLR_effectors/hmmer_WY/$Species/$Strain/"$Strain"_ORF_WY_hmmer_headers.txt)
+    if [ $Species == P.infestans ]; then
+      ORFGff=$MergeDir/"$Strain"_ORF_RxLR_EER_motif_hmm_mod.gff
+    fi
+    ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_RxLR_EER_motif_hmm.gff
+    AugInORFs=$MergeDir/"$Strain"_AugInORFs_RxLR_EER_motif_hmm.gff
+    ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_RxLR_EER_motif_hmm.gff
+    AugUniq=$MergeDir/"$Strain"_Aug_Uniq_RxLR_EER_motif_hmm.gff
+    TotalRxLRsTxt=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_headers.txt
+    TotalRxLRsWYTxt=$MergeDir/"$Strain"_Total_RxLR_EER_WY_motif_hmm_headers.txt
+    bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
+    # bedtools intersect -wb -u -a $ORFGff -b $AugGff > $AugInORFs
+    bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
+    bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
+    bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
+    echo "$Species - $Strain"
+    if [ $Strain == "10300" ]; then
+      echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
+      cat $ORFsInAug | grep -w 'gene' | wc -l
+      echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
+      cat $AugInORFs | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to ORF models:"
+      cat $ORFsUniq | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to Augustus models:"
+      cat $AugUniq | grep -w 'gene' | wc -l
+      echo "The total number of putative RxLRs are:"
+      cat $AugInORFs | grep -w 'gene' | cut -f9 > $TotalRxLRsTxt
+      cat $AugUniq | grep -w 'gene' | cut -f9 >> $TotalRxLRsTxt
+      cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f4 -d '=' >> $TotalRxLRsTxt
+      cat $TotalRxLRsTxt | wc -l
+      echo "The number of these RxLRs containing WY domains are:"
+      cat $TotalRxLRsTxt $WY_Aug_hmm $WY_ORF_hmm | cut -f1 -d ' ' | rev | cut -f2 -d '|' | rev | sort | uniq -d > $TotalRxLRsWYTxt
+      cat $TotalRxLRsWYTxt | wc -l
+    elif [ $Strain == "T30-4" ]; then
+      echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
+      cat $ORFsInAug | grep -w 'gene' | wc -l
+      echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
+      cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | wc -l
+      echo "The number of RxLRs unique to ORF models:"
+      cat $ORFsUniq | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to Augustus models:"
+      cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq > Augtmp.txt
+      cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      echo "The total number of putative RxLRs are:"
+      cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq > $TotalRxLRsTxt
+      cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt >> $TotalRxLRsTxt
+      cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f4 -d '=' >> $TotalRxLRsTxt
+      cat $TotalRxLRsTxt | wc -l
+      echo "The number of these RxLRs containing WY domains are:"
+      cat $TotalRxLRsTxt $WY_Aug_hmm $WY_ORF_hmm | cut -f1 -d ' ' | rev | cut -f2 -d '|' | rev | sort | uniq -d > $TotalRxLRsWYTxt
+      cat $TotalRxLRsWYTxt | wc -l
+    elif [ $Strain == "310" ]; then
+      echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
+      cat $ORFsInAug | grep -w 'gene' | wc -l
+      echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | wc -l
+      echo "The number of RxLRs unique to ORF models:"
+      cat $ORFsUniq | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to Augustus models:"
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | cut -f2 -d '"'> Augtmp.txt
+      cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      echo "The total number of putative RxLRs are:"
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq|  cut -f2 -d '"' > $TotalRxLRsTxt
+      cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | cut -f2 -d '"' | grep -v -f Augtmp.txt >> $TotalRxLRsTxt
+      cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f4 -d '=' >> $TotalRxLRsTxt
+      cat $TotalRxLRsTxt | wc -l
+      echo "The number of these RxLRs containing WY domains are:"
+      cat $TotalRxLRsTxt $WY_Aug_hmm $WY_ORF_hmm | cut -f1 -d ' ' | rev | cut -f2 -d '|' | rev | sort | uniq -d > $TotalRxLRsWYTxt
+      cat $TotalRxLRsWYTxt | wc -l
+    elif [ $Strain == "LT1534" ]; then
+      echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
+      cat $ORFsInAug | grep -w 'gene' | wc -l
+      echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq | wc -l
+      echo "The number of RxLRs unique to ORF models:"
+      cat $ORFsUniq | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to Augustus models:"
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq > Augtmp.txt
+      cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      echo "The total number of putative RxLRs are:"
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq > $TotalRxLRsTxt
+      cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq | grep -v -f Augtmp.txt >> $TotalRxLRsTxt
+      cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f4 -d '=' >> $TotalRxLRsTxt
+      cat $TotalRxLRsTxt | wc -l
+      echo "The number of these RxLRs containing WY domains are:"
+      cat $TotalRxLRsTxt $WY_Aug_hmm $WY_ORF_hmm | cut -f1 -d ' ' | sed -e 's/|$//g'| rev | cut -f1 -d '|' | rev | sort | uniq -d > $TotalRxLRsWYTxt
+      cat $TotalRxLRsWYTxt | wc -l
+    elif [ $Strain == "P6497" ]; then
+      echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
+      cat $ORFsInAug | grep -w 'gene' | wc -l
+      echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
+      cat $AugInORFs | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to ORF models:"
+      cat $ORFsUniq | grep -w 'gene' | wc -l
+      echo "The number of RxLRs unique to Augustus models:"
+      cat $AugUniq | grep -w 'gene' | wc -l
+      echo "The total number of putative RxLRs are:"
+      cat $AugInORFs | grep -w 'gene' | cut -f9 > $TotalRxLRsTxt
+      cat $AugUniq | grep -w 'gene' | cut -f9 >> $TotalRxLRsTxt
+      cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f4 -d '=' >> $TotalRxLRsTxt
+      cat $TotalRxLRsTxt | wc -l
+      echo "The number of these RxLRs containing WY domains are:"
+      cat $TotalRxLRsTxt $WY_Aug_hmm $WY_ORF_hmm | cut -f1 -d ' ' | rev | cut -f2 -d '|' | rev | sort | uniq -d > $TotalRxLRsWYTxt
+      cat $TotalRxLRsWYTxt | wc -l
+    fi
   done
 ```
 
 
 ```
-P.cactorum - 10300
-The number of ORF RxLRs overlapping Augustus RxLRs:
-128
-The number of Augustus RxLRs overlapping ORF RxLRs:
-128
-The number of RxLRs unique to ORF models:
-66
-The number of RxLRs unique to Augustus models:
-17
-P.infestans - T30-4
-The number of ORF RxLRs overlapping Augustus RxLRs:
-380
-The number of Augustus RxLRs overlapping ORF RxLRs:
-380
-The number of RxLRs unique to ORF models:
-67
-The number of RxLRs unique to Augustus models:
-18
-P.parisitica - 310
-The number of ORF RxLRs overlapping Augustus RxLRs:
-240
-The number of Augustus RxLRs overlapping ORF RxLRs:
-240
-The number of RxLRs unique to ORF models:
-102
-The number of RxLRs unique to Augustus models:
-27
-P.capsici - LT1534
-The number of ORF RxLRs overlapping Augustus RxLRs:
-114
-The number of Augustus RxLRs overlapping ORF RxLRs:
-114
-The number of RxLRs unique to ORF models:
-146
-The number of RxLRs unique to Augustus models:
-11
+  P.cactorum - 10300
+  The number of ORF RxLRs overlapping Augustus RxLRs:
+  128
+  The number of Augustus RxLRs overlapping ORF RxLRs:
+  128
+  The number of RxLRs unique to ORF models:
+  66
+  The number of RxLRs unique to Augustus models:
+  17
+  The total number of putative RxLRs are:
+  211
+  The number of these RxLRs containing WY domains are:
+  79
+  P.capsici - LT1534
+  The number of ORF RxLRs overlapping Augustus RxLRs:
+  114
+  The number of Augustus RxLRs overlapping ORF RxLRs:
+  114
+  The number of RxLRs unique to ORF models:
+  146
+  The number of RxLRs unique to Augustus models:
+  11
+  The total number of putative RxLRs are:
+  271
+  The number of these RxLRs containing WY domains are:
+  87
+  P.infestans - T30-4
+  The number of ORF RxLRs overlapping Augustus RxLRs:
+  380
+  The number of Augustus RxLRs overlapping ORF RxLRs:
+  380
+  The number of RxLRs unique to ORF models:
+  67
+  The number of RxLRs unique to Augustus models:
+  18
+  The total number of putative RxLRs are:
+  465
+  The number of these RxLRs containing WY domains are:
+  157
+  P.parisitica - 310
+  The number of ORF RxLRs overlapping Augustus RxLRs:
+  240
+  The number of Augustus RxLRs overlapping ORF RxLRs:
+  240
+  The number of RxLRs unique to ORF models:
+  102
+  The number of RxLRs unique to Augustus models:
+  27
+  The total number of putative RxLRs are:
+  369
+  The number of these RxLRs containing WY domains are:
+  128
 ```
 
 This analysis didn't work for published genomes whose gff files did not match up
