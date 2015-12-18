@@ -909,7 +909,7 @@ in Augustus gene models. This was done with the following commands:
 		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
 		HmmFasta="$Strain"_aug_CRN_hmmer_out.fa
 		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-		Headers="$Strain"_Aug_RxLR_hmmer_headers.txt
+		Headers="$Strain"_Aug_CRN_hmmer_headers.txt
 		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' > $OutDir/$Headers
 		GeneModels=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
 		cat $GeneModels | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_CRN_hmmer.gff3
