@@ -159,26 +159,21 @@ using the following commands:
   RepPinf=repeat_masked/P.infestans/T30-4/dna_repmask
   RepPpar=repeat_masked/P.parisitica/310/dna_repmask
   RepPcap=repeat_masked/P.capsici/LT1534/dna_repmask    
-  RepPsoj=repeat_masked/P.sojae/67593/dna_repmask
-  # for RepDir in $(ls -d repeat_masked/*/*/*); do
+  RepPsoj=repeat_masked/P.sojae/P6497/dna_repmask
   for RepDir in $RepPcac $RepPinf $RepPpar $RepPcap $RepPsoj; do
+  # for RepDir in $RepPsoj; do
     Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
     RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
     TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
     printf "$Organism\t$Strain\n"
     printf "The number of bases masked by RepeatMasker:\t"
-    sortBed -i $RepMaskGff | bedtools merge -i stdin | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+    sortBed -i $RepMaskGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
     printf "The number of bases masked by TransposonPSI:\t"
-    sortBed -i $TransPSIGff > $RepDir/TPSI_sorted.bed
-    bedtools merge -i $RepDir/TPSI_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-    cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
-    sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
+    sortBed -i $TransPSIGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
     printf "The total number of masked bases are:\t"
-    bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-    rm $RepDir/TPSI_sorted.bed
-    rm $RepDir/merged.gff
-    rm $RepDir/merged_sorted.bed
+    cat $RepMaskGff $TransPSIGff | sortBed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+    echo
   done
 ```
 
@@ -237,16 +232,14 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
 
-<-Psoj progress
-
 ```bash
-  for ORF_Gff in $(ls gene_pred/ORF_finder/P.*/*/*_ORF.gff | grep -v '_atg_'); do
-    Strain=$(echo $ORF_Gff | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $ORF_Gff | rev | cut -f3 -d '/' | rev)
-    ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
-    ORF_Gff_mod=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
-    $ProgDir/gff_corrector.pl $ORF_Gff > $ORF_Gff_mod
-  done
+for ORF_Gff in $(ls gene_pred/ORF_finder/P.*/*/*_ORF.gff | grep -v '_atg_'); do
+Strain=$(echo $ORF_Gff | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $ORF_Gff | rev | cut -f3 -d '/' | rev)
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ORF_Gff_mod=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
+$ProgDir/gff_corrector.pl $ORF_Gff > $ORF_Gff_mod
+done
 ```
 
 <!-- ```bash
@@ -535,8 +528,9 @@ the following commands:
   Pinf_ORF=gene_pred/ORF_finder/P.infestans/T30-4/T30-4.aa_cat.fa
   Ppar_ORF=gene_pred/ORF_finder/P.parisitica/310/310.aa_cat.fa
   Pcap_ORF=gene_pred/ORF_finder/P.capsici/LT1534/LT1534.aa_cat.fa
-  Psoj_ORF=gene_pred/ORF_finder/P.sojae/67593/67593.aa_cat.fa
-  for Proteome in $Pinf_ORF $Ppar_ORF $Pcap_ORF $Psoj_ORF; do
+  Psoj_ORF=gene_pred/ORF_finder/P.sojae/P6497/P6497.aa_cat.fa
+  # for Proteome in $Pinf_ORF $Ppar_ORF $Pcap_ORF $Psoj_ORF; do
+  for Proteome in $Psoj_ORF; do
     echo "$Proteome"
     SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
@@ -560,11 +554,12 @@ the following commands:
     done
   done
 ```
-
+<-- P. soj
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
 ```bash
-  for SplitDir in $(ls -d gene_pred/ORF_split/P.*/310); do
+  # for SplitDir in $(ls -d gene_pred/ORF_split/P.*/*); do
+    for SplitDir in $(ls -d gene_pred/ORF_split/P.*/P6497); do
   	Strain=$(echo $SplitDir | rev | cut -d '/' -f1 | rev)
   	Organism=$(echo $SplitDir | rev | cut -d '/' -f2 | rev)
   	InStringAA=''
