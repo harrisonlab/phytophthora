@@ -63,36 +63,36 @@ annotations:
 Genes overlapped by BLAST hits were identified:
 
 ```bash
-HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
-Proteins=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
-OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_analysis
-mkdir -p $OutDir
-BrakerIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerIntersect.gff
-BrakerNoIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerNoIntersect.gff
-ORFIntersect=$OutDir/10300_chen_et_al_2014_RxLR_ORFIntersect.gff
+  HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
+  Proteins=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
+  ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+  OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_analysis
+  mkdir -p $OutDir
+  BrakerIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerIntersect.gff
+  BrakerNoIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerNoIntersect.gff
+  ORFIntersect=$OutDir/10300_chen_et_al_2014_RxLR_ORFIntersect.gff
 
-RxLRs=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.txt
-AugGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Aug_RxLR_EER_motif_hmm.gff
-ORFGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORF_RxLR_EER_motif_hmm.gff
-ChenMissingRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_MissingRxLRs.gff
-ChenSupportedRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_SupportedRxLRs.gff
+  RxLRs=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.txt
+  AugGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Aug_RxLR_EER_motif_hmm.gff
+  ORFGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORF_RxLR_EER_motif_hmm.gff
+  ChenMissingRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_MissingRxLRs.gff
+  ChenSupportedRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_SupportedRxLRs.gff
 
-echo "The following number of blast hits intersected Braker gene models:"
-bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
-cat $BrakerIntersect | wc -l
-echo "The following Blast hits did not intersect Braker gene models:"
-bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
-cat $BrakerNoIntersect | wc -l
-echo "The following number of blast hits intersected ORF gene models:"
-bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
-cat $ORFIntersect | wc -l
-echo "The following Chen et al 2014 RxLRs were not found in this study:"
-bedtools intersect -v -a $HitsGff -b $AugGff $ORFGff > $ChenMissingRxLRs
-cat $ChenMissingRxLRs | wc -l
-echo "The following Chen et al 2014 RxLRs were also found in this study:"
-bedtools intersect -wa -u -a $HitsGff -b $AugGff $ORFGff > $ChenSupportedRxLRs
-cat $ChenSupportedRxLRs | wc -l
+  echo "The following number of blast hits intersected Braker gene models:"
+  bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
+  cat $BrakerIntersect | wc -l
+  echo "The following Blast hits did not intersect Braker gene models:"
+  bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
+  cat $BrakerNoIntersect | wc -l
+  echo "The following number of blast hits intersected ORF gene models:"
+  bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
+  cat $ORFIntersect | wc -l
+  echo "The following Chen et al 2014 RxLRs were not found in this study:"
+  bedtools intersect -v -a $HitsGff -b $AugGff $ORFGff > $ChenMissingRxLRs
+  cat $ChenMissingRxLRs | wc -l
+  echo "The following Chen et al 2014 RxLRs were also found in this study:"
+  bedtools intersect -wa -u -a $HitsGff -b $AugGff $ORFGff > $ChenSupportedRxLRs
+  cat $ChenSupportedRxLRs | wc -l
 ```
 Of the 94 queries all 77 showed overlap to genes predicted in Braker1 gene
 models and the remaining 17 overlapped predicted ORFs. 47 of these 94 genes were
