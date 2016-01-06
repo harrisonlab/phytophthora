@@ -1318,13 +1318,15 @@ Total number of RxLRs shared between prediciton sources:
 nucleotide sequence of previously characterised RxLR genes were used to perform
 BLAST searches against assemlies.
 
+### 5.1.a Blasting for Chen et al P. cactorum RxLRs:
+
+This section has been moved to 10300_analysis/ID_of_published_effectors
+<!--
 A query file was built from the RxLRs identified from transcriptome sequencing
 in Chen et al 2014.
 ```bash
 	cat analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.csv | grep -v 'Additional' | grep -v 'Index' | grep -v -e '^,' | cut -f 2,5 -d ',' | sed -r 's/^/>/g' | sed 's/,/\n/g' > analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa
 ```
-
-### 5.1.a Blasting for Chen et al P. cactorum RxLRs:
 
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
@@ -1350,9 +1352,9 @@ annotations:
 	Column2=Chen_RxLR
 	NumHits=1
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
-```
+``` -->
 
-### 5.1.a Blasting for Hmmer predicted RxLRs from publihsed genomes.
+### 5.1.b Blasting for Hmmer predicted RxLRs from publihsed genomes.
 
 These RxLRs were predicted from RxLR Hmm motifs.
 
