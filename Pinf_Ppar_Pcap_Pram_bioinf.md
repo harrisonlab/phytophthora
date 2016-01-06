@@ -554,12 +554,12 @@ the following commands:
     done
   done
 ```
-<-- P. soj
+
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
 ```bash
-  # for SplitDir in $(ls -d gene_pred/ORF_split/P.*/*); do
-    for SplitDir in $(ls -d gene_pred/ORF_split/P.*/P6497); do
+  for SplitDir in $(ls -d gene_pred/ORF_split/P.*/*); do
+    # for SplitDir in $(ls -d gene_pred/ORF_split/P.*/P6497); do
   	Strain=$(echo $SplitDir | rev | cut -d '/' -f1 | rev)
   	Organism=$(echo $SplitDir | rev | cut -d '/' -f2 | rev)
   	InStringAA=''
@@ -592,7 +592,7 @@ included information on the position and hmm score of RxLRs.
   done
 ```
 ```bash
-  for FastaFile in $(ls gene_pred/ORF_sigP/*/*/*_ORF_sp.aa | grep -e 'sojae' -e 'infestans' -e 'parisitica'); do
+  for FastaFile in $(ls gene_pred/ORF_sigP/*/*/*_ORF_sp.aa | grep -e 'infestans' -e 'parisitica'); do
     Strain=$(echo $FastaFile | rev | cut -d '/' -f2 | rev)
     Organism=$(echo $FastaFile | rev | cut -d '/' -f3 | rev)
     echo "$Strain"
@@ -607,31 +607,32 @@ selected on the basis of its SignalP Hmm score. Biopython was used to identify
 overlapps and identify the ORF with the best signalP score.
 
 ```bash
-for SigP_fasta in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp.aa | grep -v -e 'sojae' -e 'infestans' -e 'parisitica'); do
-Strain=$(echo $SigP_fasta | rev | cut -d '/' -f2 | rev)
-Organism=$(echo $SigP_fasta | rev | cut -d '/' -f3 | rev)
-echo "$Strain"
-ORF_Gff=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
-SigP_fasta=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
-SigP_headers=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_names.txt
-SigP_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_unmerged.gff
-SigP_Merged_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.gff
-SigP_Merged_txt=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.txt
-SigP_Merged_AA=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.aa
+  for SigP_fasta in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp.aa | grep -v -e 'infestans' -e 'parisitica'); do
+    # for SigP_fasta in $(ls gene_pred/ORF_sigP/P.*/P6497/*_ORF_sp.aa); do
+    Strain=$(echo $SigP_fasta | rev | cut -d '/' -f2 | rev)
+    Organism=$(echo $SigP_fasta | rev | cut -d '/' -f3 | rev)
+    echo "$Strain"
+    ORF_Gff=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
+    SigP_fasta=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
+    SigP_headers=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_names.txt
+    SigP_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_unmerged.gff
+    SigP_Merged_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.gff
+    SigP_Merged_txt=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.txt
+    SigP_Merged_AA=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.aa
 
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/extract_gff_for_sigP_hits.pl $SigP_headers $ORF_Gff SigP Name > $SigP_Gff
-ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
-$ProgDir/make_gff_database.py --inp $SigP_Gff --db sigP_ORF.db
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/merge_sigP_ORFs.py --inp sigP_ORF.db --id sigP_ORF --out sigP_ORF_merged.db --gff > $SigP_Merged_Gff
-cat $SigP_Merged_Gff | grep 'transcript' | rev | cut -f1 -d'=' | rev > $SigP_Merged_txt
-$ProgDir/extract_from_fasta.py --fasta $SigP_fasta --headers $SigP_Merged_txt > $SigP_Merged_AA
-done
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_gff_for_sigP_hits.pl $SigP_headers $ORF_Gff SigP Name > $SigP_Gff
+    ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+    $ProgDir/make_gff_database.py --inp $SigP_Gff --db sigP_ORF.db
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/merge_sigP_ORFs.py --inp sigP_ORF.db --id sigP_ORF --out sigP_ORF_merged.db --gff > $SigP_Merged_Gff
+    cat $SigP_Merged_Gff | grep 'transcript' | rev | cut -f1 -d'=' | rev > $SigP_Merged_txt
+    $ProgDir/extract_from_fasta.py --fasta $SigP_fasta --headers $SigP_Merged_txt > $SigP_Merged_AA
+  done
 ```
 
 ```bash
-  for SigP_fasta in $(ls gene_pred/ORF_sigP/P.*/310/*_ORF_sp.aa | grep -e 'sojae' -e 'infestans' -e 'parisitica'); do
+  for SigP_fasta in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp.aa | grep -e 'infestans' -e 'parisitica'); do
     Strain=$(echo $SigP_fasta | rev | cut -d '/' -f2 | rev)
     Organism=$(echo $SigP_fasta | rev | cut -d '/' -f3 | rev)
     echo "$Strain"
@@ -711,10 +712,10 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
   the number of SigP-RxLR-EER genes are:	309
 
 
-  strain: 67593	species: P.sojae
-  the number of SigP gene is:	24222
-  the number of SigP-RxLR genes are:	1727
-  the number of SigP-RxLR-EER genes are:	282
+  strain: P6497	species: P.sojae
+  the number of SigP gene is:	24576
+  the number of SigP-RxLR genes are:	1744
+  the number of SigP-RxLR-EER genes are:	278
 ```
 
 
@@ -723,7 +724,7 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
 
 
 ```bash
-  for Secretome in $(ls gene_pred/ORF_sigP/P.*/310/*_ORF_sp_merged.aa); do
+  for Secretome in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp_merged.aa); do
     ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
     HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
     Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
@@ -758,16 +759,16 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
   P.parisitica 310
   Initial search space (Z):              14526  [actual number of targets]
   Domain search space  (domZ):             175  [number of targets reported over threshold]
-  P.sojae 67593
-  Initial search space (Z):              24222  [actual number of targets]
-  Domain search space  (domZ):             159  [number of targets reported over threshold]
+  P.sojae P6497
+  Initial search space (Z):              24576  [actual number of targets]
+  Domain search space  (domZ):             158  [number of targets reported over threshold]
 ```
 
 
 ### G) From ORF gene models - Hmm evidence of RxLR effectors
 
 ```bash
-  for Secretome in $(ls gene_pred/ORF_sigP/P.*/310/*_ORF_sp_merged.aa); do
+  for Secretome in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp_merged.aa); do
 		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
 		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
 		Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
@@ -801,8 +802,8 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
   P.parisitica 310
   Initial search space (Z):              14526  [actual number of targets]
   Domain search space  (domZ):             244  [number of targets reported over threshold]
-  P.sojae 67593
-  Initial search space (Z):              24222  [actual number of targets]
+  P.sojae P6497
+  Initial search space (Z):              24576  [actual number of targets]
   Domain search space  (domZ):             228  [number of targets reported over threshold]
 ```
 
@@ -941,11 +942,11 @@ in ORF gene models. This was done with the following commands:
   Domain search space  (domZ):             151  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
   59
-  P.sojae 67593
-  Initial search space (Z):             689510  [actual number of targets]
-  Domain search space  (domZ):             384  [number of targets reported over threshold]
+  P.sojae P6497
+  Initial search space (Z):             701191  [actual number of targets]
+  Domain search space  (domZ):             398  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
-  203
+  212
 ```
 
 
