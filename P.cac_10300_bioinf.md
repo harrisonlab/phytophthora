@@ -609,7 +609,10 @@ corrected using the following commands:
 ``` -->
 
 
-#Functional annotation
+# Functional annotation
+
+
+## A) Interproscan
 
 Interproscan was used to give gene models functional annotations.
 Annotation was run using the commands below:
@@ -657,6 +660,33 @@ commands:
 	cat $OutDir/interpro_features.gff $PredGenes >> $OutDir/"$Strain"_interpro.gff3
 	rm $OutDir/interpro_features.gff
 ```
+
+
+## B) SwissProt
+
+```bash
+  screen -a
+  qlogin
+  ProjDir=/home/groups/harrisonlab/project_files/idris
+  cd $ProjDir
+  for Proteome in $(ls gene_pred/braker/P.cactorum/10300/*/augustus.aa); do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    OutDir=$ProjDir/gene_pred/augustus/$Species/$Strain/swissplot
+    mkdir -p $OutDir
+    blastp \
+    -db /home/groups/harrisonlab/uniprot/swissprot/uniprot_sprot \
+    -query $ProjDir/$Proteome \
+    -out $OutDir/swissprot_v2015_10_hits.tbl \
+    -evalue 1e-100 \
+    -outfmt 6 \
+    -num_threads 16 \
+    -num_alignments 10
+  done
+```
+
+
+
 #Genomic analysis
 
 ## RxLR genes
