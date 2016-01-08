@@ -672,7 +672,7 @@ commands:
   for Proteome in $(ls gene_pred/braker/P.cactorum/10300/*/augustus.aa); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-    OutDir=$ProjDir/gene_pred/augustus/$Species/$Strain/swissplot
+    OutDir=$ProjDir/gene_pred/swissprot/$Species/$Strain/
     mkdir -p $OutDir
     blastp \
     -db /home/groups/harrisonlab/uniprot/swissprot/uniprot_sprot \
