@@ -40,6 +40,11 @@ in Chen et al 2014.
 
 ### 1.2 Performing BLAST searches
 
+#### 1.2.a)
+
+The chen et al 2014 RxLRs were BLASTed against the 10300 genome to identify
+locations of RxLR genes that may not have been detected in this study.
+
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
 	Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
@@ -58,6 +63,82 @@ annotations:
 	NumHits=1
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
 ```
+
+#### 1.2.b)
+
+Furthermore, 10300 predicted proteins and RxLRs were BLASTed against P. infestans
+predicted proteins to identify homology to P.infestans RxLRs.
+
+```bash
+PinfProts=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+OutDir=analysis/blast_homology/oomycete_avr_genes
+PinfRxLRheaders=$OutDir/P.infestans_published_RxLR_headers.txt
+PinfRxLRs=$OutDir/P.infestans_published_RxLR.fa
+mkdir -p $OutDir
+cat $PinfProts | grep -i 'RxLR'  | cut -f1 -d ' ' | tr -d '>' > $PinfRxLRheaders
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_from_fasta.py --fasta $PinfProts --headers $PinfRxLRheaders > $PinfRxLRs
+```
+
+```bash
+PredProts=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+PredRxLRs=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.fa
+PinfProts=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+DatabaseDir=analysis/databases/P.infestans/T30-4
+OutDir=analysis/blast_homology/P.cactorum/10300
+
+cat $Proteins | grep -i 'RxLR' | cut -f1 -d ' ' | tr -d '>' > $Pinf_RxLRs
+makeblastdb -in $PinfProts -input_type fasta -dbtype prot -out $DatabaseDir/PinfProt.db
+makeblastdb -in $PinfRxLRs -input_type fasta -dbtype prot -out $DatabaseDir/PinfRxLR.db
+
+mkdir -p $OutDir
+blastp \
+-db $DatabaseDir/PinfProt.db \
+-query $PredProts \
+-out $OutDir/10300_prots_vs_Pinf_prots.tbl \
+-evalue 1e-5 \
+-outfmt 6 \
+-num_threads 16 \
+-num_alignments 1
+
+# blastx \
+# -db $OutDir/PinfRxLR.db \
+# -query $PredProts \
+# -out $OutDir/10300_prots_vs_Pinf_RxLRs.tbl \
+# -evalue 1e-5 \
+# -outfmt 6 \
+# -num_threads 16 \
+# -num_alignments 1
+
+cat $OutDir/10300_prots_vs_Pinf_prots.tbl | grep -w -f $Pinf_RxLR_headers > $OutDir/10300_prots_vs_Pinf_prots_homologs.tbl
+cat $OutDir/10300_prots_vs_Pinf_prots_homologs.tbl | wc -l
+```
+
+These results reported by Chen et al could not be replicated. Either when
+performing blast searches against the proteome (67 chen et al RxLRs have hits)
+or when performing searches against 486 proteins with RxLR putative functions
+according to the published proteome (81 chen et al RxLRs have hits). The
+Gene models may be different from those described in chen et al. The genes not
+were investigated using the following commands:
+
+```bash
+cat $OutDir/10300_chen_et_al_2014_RxLR.fa_RxLR_homologs.tbl analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa | cut -f1 | grep -E -o 'PcRXLR\w+' | sort | uniq -u
+cat $Proteins | grep 'PITG_23092'
+```
+It was noted that PcRXLR86 was absent, the corresponding gene identified as its
+homolog in chen et al 2014 was identified within the P.infestans proteins and
+was noted not have an RxLR function:
+```
+>PITG_23092T0 pep:known supercontig:ASM14294v1:supercont1.51:943348:943863:1 gene:PITG_23092 transcript:PITG_23092T0 description:"fucker"
+```
+
+#### 1.2.c)
+
+To compare our results to Chen et al 2014. The RxLRs predicted in their
+study were BLASTed against the P.infestans genome and Proteome as well. In their
+study they report 89 of 94 of their RxLRs have BLAST homology to P. infestans
+RxLRs. That was based on P. infestans gene models containing a total of 480
+RxLRs.
 
 
 This was also performed against the P.infestans genome:
@@ -279,23 +360,34 @@ that did not conform to the [ED]+[ED][KR] motif used in this study. -->
 
 ## 4.2 Performing BLAST searches
 
+BLast searches were performed against each genome:
+
 ```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
-  Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
-  Query=analysis/blast_homology/oomycete_avr_genes/appended_oomycete_avr_cds.fasta
-  qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+  Pcac_ass=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+  Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta
+  Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
+  Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
+  for Assembly in $Pcac_ass $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    Query=analysis/blast_homology/oomycete_avr_genes/appended_oomycete_avr_cds.fasta
+    qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+  done
 ```
 
 Once blast searches had completed, the BLAST hits were converted to GFF
 annotations:
 
 ```bash
-	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
-  BlastHits=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.csv
-  HitsGff=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.gff
-  Column2=Avr_homolog
-  NumHits=1
-  $ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+  for BlastHits in $(ls analysis/blast_homology/*/T30-4/*_appended_oomycete_avr_cds.fasta_homologs.csv); do
+    Organism=$(echo $BlastHits | rev | cut -f3 -d '/' | rev)  
+    Strain=$(echo $BlastHits | rev | cut -f2 -d '/' | rev)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    HitsGff=analysis/blast_homology/$Organism/$Strain/"$Strain"_appended_oomycete_avr_cds.fasta_homologs.gff
+    Column2=Avr_homolog
+    NumHits=1
+    $ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+  done
 ```
 
 
@@ -305,45 +397,115 @@ annotations:
 Genes overlapped by BLAST hits were identified:
 
 ```bash
-for num in 1; do
-HitsGff=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_homologs.gff
-Proteins=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
-OutDir=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_analysis
-mkdir -p $OutDir
-BrakerIntersect=$OutDir/10300_appended_oomycete_avr_BrakerIntersect.gff
-BrakerNoIntersect=$OutDir/10300_appended_oomycete_avr_BrakerNoIntersect.gff
-ORFIntersect=$OutDir/10300_appended_oomycete_avr_ORFIntersect.gff
-AvrProteins=$OutDir/10300_appended_oomycete_avr_BrakerIntersect.txt
-AvrORFs=$OutDir/10300_appended_oomycete_avr_ORFIntersect.txt
+  PcacAugGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+  PparPubGff=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_transcripts.gtf
+  PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gtf
+  PinfPubGffParsed=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts_parsed.gtf
+  cat $PinfPubGff | sed 's/Supercontig_/supercont/g' > $PinfPubGffParsed
+  PcapPubGff=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_genes.gff
+  PsojPubGff=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_genes_20110401.gff
 
-# AugGff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Aug_CRN_hmmer.gff3
-# ORFGff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_hmmer.gff3
-# ChenMissingCRNs=$OutDir/10300_chen_et_al_2014_CRN_MissingCRNs.gff
-# ChenSupportedCRNs=$OutDir/10300_chen_et_al_2014_CRN_SupportedCRNs.gff
+  for Proteins in $PcacAugGff $PinfPubGffParsed $PparPubGff $PcapPubGff $PsojPubGff; do
+    Species=$(echo "$Proteins" | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo "$Proteins" | rev | cut -f3 -d '/' | rev)
+    HitsGff=$(ls analysis/blast_homology/$Species/$Strain/"$Strain"_appended_oomycete_avr_cds.fasta_homologs.gff)
+    ORFs=$(ls gene_pred/ORF_finder/$Species/$Strain/"$Strain"_ORF_corrected.gff3)
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_appended_oomycete_avr_analysis
+    mkdir -p $OutDir
+    BrakerIntersect=$OutDir/"$Strain"_appended_oomycete_avr_BrakerIntersect.gff
+    BrakerNoIntersect=$OutDir/"$Strain"_appended_oomycete_avr_BrakerNoIntersect.gff
+    ORFIntersect=$OutDir/"$Strain"_appended_oomycete_avr_ORFIntersect.gff
+    AvrProteins=$OutDir/"$Strain"_appended_oomycete_avr_BrakerIntersect.txt
+    AvrORFs=$OutDir/"$Strain"_appended_oomycete_avr_ORFIntersect.txt
 
-echo "The following number of Avr genes had blast hits:"
-cat $HitsGff | wc -l
-echo "The following number of blast hits intersected Braker gene models:"
-bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
-cat $BrakerIntersect | wc -l
-echo "The following Blast hits did not intersect Braker gene models:"
-bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
-cat $BrakerNoIntersect | wc -l
-echo "The following number of blast hits intersected ORF gene models:"
-bedtools intersect -wao -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
-cat $ORFIntersect | wc -l
-bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'gene' | cut -f9,18 | tr -d '"' | tr -d ';' > $AvrProteins
-bedtools intersect -wao -a $BrakerNoIntersect -b $ORFs | grep -w 'gene' | cut -f9,18 | tr -d '"' | tr -d ';' | sed 's/ID=//g' > $AvrORFs
-done
+    echo "The following number of Avr genes had blast hits:"
+    cat $HitsGff | wc -l
+    echo "The following number of blast hits intersected Braker gene models:"
+    bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
+    cat $BrakerIntersect | wc -l
+    echo "The following Blast hits did not intersect Braker gene models:"
+    bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
+    cat $BrakerNoIntersect | wc -l
+    echo "The following number of blast hits intersected ORF gene models:"
+    bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
+    cat $ORFIntersect | wc -l
+    if [ $Species == 'P.infestans' ] || [ $Species == 'P.parisitica' ]; then
+    bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'exon' | cut -f9,18 | cut -f1,3 -d ";" | tr -d '"' | tr -d ';' | sed 's/ID=//g' | sed 's/transcript_id //g' | sed 's/transcriptId //g' |sed 's/ /\t/g' > $AvrProteins
+    elif [ $Species == 'P.capsici' ] || [ $Species == 'P.sojae' ]; then
+    bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'exon' | cut -f9,18 | cut -f1,2 -d ";" | tr -d '"' | tr -d ';' | sed 's/ID=//g' | sed 's/name //g' | sed 's/ /\t/g' > $AvrProteins
+    else
+      bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'transcript' | cut -f9,18 | tr -d '"' | tr -d ';' | sed 's/ID=//g' > $AvrProteins
+    fi
+    bedtools intersect -wao -a $BrakerNoIntersect -b $ORFs | grep -w 'transcript' | cut -f9,18 | cut -d ';' -f1,4 | tr -d '"' | sed 's/;/\t/g' | sed 's/ID=//g' | sed 's/Name=//g' > $AvrORFs
+  done
 ```
 
 Of the 57 oomycete avr genes searched for, 36 had blast hits within the
 P. cactorum genome. 34 of these intersected Braker gene models and the remaining
-2 intersected ORF gene models.  
+2 intersected ORF gene models.
+
+The genes relating to each Avr BLast hit were extracted.
+
+```bash
+  Pcac_pep=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+  for Proteins in $Pcac_pep $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+    Species=$(echo "$Proteins" | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo "$Proteins" | rev | cut -f3 -d '/' | rev)
+    echo "$Species - $Strain"
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_appended_oomycete_avr_analysis
+    AvrProteins=$(ls $OutDir/"$Strain"_appended_oomycete_avr_BrakerIntersect.txt)
+    while read Line; do
+      AvrName=$(echo $Line | cut -f1 -d ' ' )
+      HitName=$(echo $Line | cut -f2 -d ' ')
+      echo "$AvrName - $HitName"
+      if [ $Species == 'P.cactorum' ] || [ $Species == 'P.infestans' ] || [ $Species == 'P.parisitica' ]; then
+        echo "$HitName" > tmp.txt
+      else
+        cat $Proteins | grep -w "$HitName" | tr -d '>' > tmp.txt
+      fi
+      OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_appended_oomycete_avr_analysis/fasta
+      mkdir -p $OutDir
+      OutFasta=$(echo ""$Species"_"$Strain"_""$AvrName""_homolog.fa" | sed 's/_BlastHit_1//g')
+      ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+      $ProgDir/extract_from_fasta.py --fasta $Proteins --headers tmp.txt > $OutDir/$OutFasta
+    done < $AvrProteins
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_appended_oomycete_avr_analysis
+    echo ""
+    ORFs=$(ls gene_pred/ORF_finder/$Species/$Strain/"$Strain".aa_cat.fa)
+    AvrORFs=$(ls $OutDir/"$Strain"_appended_oomycete_avr_ORFIntersect.txt)
+    for AvrName in $(cat $AvrORFs | cut -f1 | sort | uniq); do
+      cat $AvrORFs | grep "$AvrName" | cut -f2 > tmp.txt
+      echo "$AvrName - ORF hits"
+      OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_appended_oomycete_avr_analysis/fasta
+      mkdir -p $OutDir
+      OutFasta=$(echo ""$Species"_"$Strain"_""$AvrName""_homolog.fa" | sed 's/_BlastHit_1//g')
+      ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+      $ProgDir/extract_from_fasta.py --fasta $ORFs --headers tmp.txt > $OutDir/$OutFasta
+      sed -E "s/^>/>$Species|/g" -i $OutDir/$OutFasta
+    done
+    echo ""
+  done
+```
+
+Individual fasta accessions for Strains were concatentated into a single file:
+
+```bash
+  for AvrGene in $(ls analysis/blast_homology/P.*/*/*_appended_oomycete_avr_analysis/fasta/*_homolog.fa | rev | cut -d '/' -f1 | rev | cut -f3- -d '_' | sort | uniq); do
+    echo $AvrGene
+    OutDir=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_analysis/concatenated_results
+    mkdir -p $OutDir
+    ConcatList=$(ls analysis/blast_homology/P.*/*/*_appended_oomycete_avr_analysis/fasta/*$AvrGene)
+    cat $ConcatList > $OutDir/$AvrGene
+  done
+```
+
 
 #PcF
-PcF was not identified in the Braker gene models although 4 ORF models
+PcF was not identified in the Braker gene models although 3 ORF models
 overlapped the location of the top BLAST hit. To further investigate
 interproscan annotations were searched for putative PcF-like proteins:
 
