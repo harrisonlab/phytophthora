@@ -214,37 +214,73 @@ was noted not have an RxLR function:
 Genes overlapped by BLAST hits were identified:
 
 ```bash
-  HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
-  Proteins=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-  ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
-  OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_analysis
-  mkdir -p $OutDir
-  BrakerIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerIntersect.gff
-  BrakerNoIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerNoIntersect.gff
-  ORFIntersect=$OutDir/10300_chen_et_al_2014_RxLR_ORFIntersect.gff
+  PcacAugGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+  # PparPubGff=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_transcripts.gtf
+  # PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gtf
+  # PinfPubGffParsed=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts_parsed.gtf
+  # cat $PinfPubGff | sed 's/Supercontig_/supercont/g' > $PinfPubGffParsed
+  # PcapPubGff=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_genes.gff
+  # PsojPubGff=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_genes_20110401.gff
 
-  RxLRs=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.txt
-  AugGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Aug_RxLR_EER_motif_hmm.gff
-  ORFGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORF_RxLR_EER_motif_hmm.gff
-  ChenMissingRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_MissingRxLRs.gff
-  ChenSupportedRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_SupportedRxLRs.gff
+  # for Proteins in $PcacAugGff $PinfPubGffParsed $PparPubGff $PcapPubGff $PsojPubGff; do
+  for Proteins in $PcacAugGff; do
+    Species=$(echo "$Proteins" | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo "$Proteins" | rev | cut -f3 -d '/' | rev)
+    HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
+    ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+    OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_analysis
+    mkdir -p $OutDir
+    BrakerIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerIntersect.gff
+    BrakerNoIntersect=$OutDir/10300_chen_et_al_2014_RxLR_BrakerNoIntersect.gff
+    ORFIntersect=$OutDir/10300_chen_et_al_2014_RxLR_ORFIntersect.gff
+    RxlrProteins=$OutDir/"$Strain"_chen_et_al_2014_RxLR_BrakerIntersect.txt
+    RxlrORFs=$OutDir/"$Strain"_chen_et_al_2014_RxLR_ORFIntersect.txt
 
-  echo "The following number of blast hits intersected Braker gene models:"
-  bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
-  cat $BrakerIntersect | wc -l
-  echo "The following Blast hits did not intersect Braker gene models:"
-  bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
-  cat $BrakerNoIntersect | wc -l
-  echo "The following number of blast hits intersected ORF gene models:"
-  bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
-  cat $ORFIntersect | wc -l
-  echo "The following Chen et al 2014 RxLRs were not found in this study:"
-  bedtools intersect -v -a $HitsGff -b $AugGff $ORFGff > $ChenMissingRxLRs
-  cat $ChenMissingRxLRs | wc -l
-  echo "The following Chen et al 2014 RxLRs were also found in this study:"
-  bedtools intersect -wa -u -a $HitsGff -b $AugGff $ORFGff > $ChenSupportedRxLRs
-  cat $ChenSupportedRxLRs | wc -l
+    RxLRs=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.txt
+    AugGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Aug_RxLR_EER_motif_hmm.gff
+    ORFGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORF_RxLR_EER_motif_hmm.gff
+    ChenMissingRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_MissingRxLRs.gff
+    ChenSupportedRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_SupportedRxLRs.gff
+
+    echo "The following number of blast hits intersected Braker gene models:"
+    bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
+    cat $BrakerIntersect | wc -l
+    echo "The following Blast hits did not intersect Braker gene models:"
+    bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
+    cat $BrakerNoIntersect | wc -l
+    echo "The following number of blast hits intersected ORF gene models:"
+    bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
+    cat $ORFIntersect | wc -l
+    echo "The following Chen et al 2014 RxLRs were not found in this study:"
+    bedtools intersect -v -a $HitsGff -b $AugGff $ORFGff > $ChenMissingRxLRs
+    cat $ChenMissingRxLRs | wc -l
+    echo "The following Chen et al 2014 RxLRs were also found in this study:"
+    bedtools intersect -wa -u -a $HitsGff -b $AugGff $ORFGff > $ChenSupportedRxLRs
+    cat $ChenSupportedRxLRs | wc -l
+    if [ $Species == 'P.infestans' ] || [ $Species == 'P.parisitica' ]; then
+    bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'exon' | cut -f9,18 | cut -f1,3 -d ";" | tr -d '"' | tr -d ';' | sed 's/ID=//g' | sed 's/transcript_id //g' | sed 's/transcriptId //g' |sed 's/ /\t/g' > $RxlrProteins
+    elif [ $Species == 'P.capsici' ] || [ $Species == 'P.sojae' ]; then
+    bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'exon' | cut -f9,18 | cut -f1,2 -d ";" | tr -d '"' | tr -d ';' | sed 's/ID=//g' | sed 's/name //g' | sed 's/ /\t/g' > $RxlrProteins
+    else
+      bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'transcript' | cut -f9,18 | tr -d '"' | tr -d ';' | sed 's/ID=//g' > $RxlrProteins
+    fi
+    bedtools intersect -wao -a $BrakerNoIntersect -b $ORFs | grep -w 'transcript' | cut -f9,18 | cut -d ';' -f1,4 | tr -d '"' | sed 's/;/\t/g' | sed 's/ID=//g' | sed 's/Name=//g' > $RxlrORFs
+  done
 ```
+
+```
+  The following number of blast hits intersected Braker gene models:
+  77
+  The following Blast hits did not intersect Braker gene models:
+  17
+  The following number of blast hits intersected ORF gene models:
+  17
+  The following Chen et al 2014 RxLRs were not found in this study:
+  47
+  The following Chen et al 2014 RxLRs were also found in this study:
+  47
+```
+
 Of the 94 queries all 77 showed overlap to genes predicted in Braker1 gene
 models and the remaining 17 overlapped predicted ORFs. 47 of these 94 genes were
 predicted as RxLRs in this study. The remaining 47 query genes that did not
@@ -255,6 +291,59 @@ transcripts. Of the missing Chen et al RxLRs, 3 lacked the RxLR motif completely
 had non-typical RxLR sequences. This was also true for the EER motif, with 4 of
 the missing RxLRs lacking the EER motif completely and 8 possessing an EER motif
 that did not conform to the [ED]+[ED][KR] motif used in this study.
+
+
+
+The genes relating to each RxLR Blast hit were extracted.
+
+```bash
+  Pcac_pep=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  # Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  # Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  # Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  # Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+  # for Proteins in $Pcac_pep $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+  for Proteins in $Pcac_pep; do
+    Species=$(echo "$Proteins" | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo "$Proteins" | rev | cut -f3 -d '/' | rev)
+    echo "$Species - $Strain"
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_analysis
+    RxlrProteins=$(ls $OutDir/"$Strain"_chen_et_al_2014_RxLR_BrakerIntersect.txt)
+    while read Line; do
+      RxlrName=$(echo $Line | cut -f1 -d ' ' )
+      HitName=$(echo $Line | cut -f2 -d ' ')
+      echo "$RxlrName - $HitName"
+      if [ $Species == 'P.cactorum' ] || [ $Species == 'P.infestans' ] || [ $Species == 'P.parisitica' ]; then
+        echo "$HitName" > tmp.txt
+      else
+        cat $Proteins | grep -w "$HitName" | tr -d '>' > tmp.txt
+      fi
+      OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_RxLR/fasta
+      mkdir -p $OutDir
+      OutFasta=$(echo ""$Species"_"$Strain"_""$RxlrName""_homolog.fa" | sed 's/_BlastHit_1//g')
+      ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+      $ProgDir/extract_from_fasta.py --fasta $Proteins --headers tmp.txt > $OutDir/$OutFasta
+    done < $RxlrProteins
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_analysis
+    echo ""
+    ORFs=$(ls gene_pred/ORF_finder/$Species/$Strain/"$Strain".aa_cat.fa)
+    RxlrORFs=$(ls $OutDir/"$Strain"_chen_et_al_2014_RxLR_ORFIntersect.txt )
+    for RxlrName in $(cat $RxlrORFs | cut -f1 | sort | uniq); do
+      cat $RxlrORFs | grep "$RxlrName" | cut -f2 > tmp.txt
+      echo "$RxlrName - ORF hits"
+      OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_RxLR_analysis/fasta
+      mkdir -p $OutDir
+      OutFasta=$(echo ""$Species"_"$Strain"_""$RxlrName""_homolog.fa" | sed 's/_BlastHit_1//g')
+      ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+      $ProgDir/extract_from_fasta.py --fasta $ORFs --headers tmp.txt > $OutDir/$OutFasta
+      sed -E "s/^>/>$Species|/g" -i $OutDir/$OutFasta
+    done
+    echo ""
+  done
+```
+
+
+
 
 ## 2 CRN effectors from the 10300 transcriptome - Chen et al 2014
 
@@ -310,51 +399,125 @@ annotations:
 Genes overlapped by BLAST hits were identified:
 
 ```bash
-for num in 1; do
-  HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_CRN.fa_homologs.gff
-  Proteins=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.gff
-  ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
-  OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_analysis
-  mkdir -p $OutDir
-  BrakerIntersect=$OutDir/10300_chen_et_al_2014_CRN_BrakerIntersect.gff
-  BrakerNoIntersect=$OutDir/10300_chen_et_al_2014_CRN_BrakerNoIntersect.gff
-  ORFIntersect=$OutDir/10300_chen_et_al_2014_CRN_ORFIntersect.gff
+  PcacAugGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+  # PparPubGff=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_transcripts.gtf
+  # PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gtf
+  # PinfPubGffParsed=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts_parsed.gtf
+  # cat $PinfPubGff | sed 's/Supercontig_/supercont/g' > $PinfPubGffParsed
+  # PcapPubGff=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_genes.gff
+  # PsojPubGff=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_genes_20110401.gff
 
-  AugGff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Aug_CRN_hmmer.gff3
-  ORFGff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_hmmer.gff3
-  ChenMissingCRNs=$OutDir/10300_chen_et_al_2014_CRN_MissingCRNs.gff
-  ChenSupportedCRNs=$OutDir/10300_chen_et_al_2014_CRN_SupportedCRNs.gff
+  # for Proteins in $PcacAugGff $PinfPubGffParsed $PparPubGff $PcapPubGff $PsojPubGff; do
+  for Proteins in $PcacAugGff; do
+    Species=$(echo "$Proteins" | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo "$Proteins" | rev | cut -f3 -d '/' | rev)
+    HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_CRN.fa_homologs.gff
+    ORFs=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+    OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_analysis
+    mkdir -p $OutDir
+    BrakerIntersect=$OutDir/10300_chen_et_al_2014_CRN_BrakerIntersect.gff
+    BrakerNoIntersect=$OutDir/10300_chen_et_al_2014_CRN_BrakerNoIntersect.gff
+    ORFIntersect=$OutDir/10300_chen_et_al_2014_CRN_ORFIntersect.gff    
+    CrnProteins=$OutDir/"$Strain"_chen_et_al_2014_CRN_BrakerIntersect.txt
+    CrnORFs=$OutDir/"$Strain"_chen_et_al_2014_CRN_ORFIntersect.txt
 
-  echo "The following number of blast hits intersected Braker gene models:"
-  bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
-  cat $BrakerIntersect | wc -l
-  echo "The following Blast hits did not intersect Braker gene models:"
-  bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
-  cat $BrakerNoIntersect | wc -l
-  echo "The following number of blast hits intersected ORF gene models:"
-  bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
-  cat $ORFIntersect | wc -l
-  echo "The following Chen et al 2014 CRNs were not found in this study:"
-  bedtools intersect -v -a $HitsGff -b $AugGff $ORFGff > $ChenMissingCRNs
-  cat $ChenMissingCRNs | wc -l
-  echo "The following Chen et al 2014 CRNs were also found in this study:"
-  bedtools intersect -wa -u -a $HitsGff -b $AugGff $ORFGff > $ChenSupportedCRNs
-  cat $ChenSupportedCRNs | wc -l
-done
+    AugGff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Aug_CRN_hmmer.gff3
+    ORFGff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_hmmer.gff3
+    ChenMissingCRNs=$OutDir/10300_chen_et_al_2014_CRN_MissingCRNs.gff
+    ChenSupportedCRNs=$OutDir/10300_chen_et_al_2014_CRN_SupportedCRNs.gff
+
+    echo "The following number of blast hits intersected Braker gene models:"
+    bedtools intersect -wa -u -a $HitsGff -b $Proteins > $BrakerIntersect
+    cat $BrakerIntersect | wc -l
+    echo "The following Blast hits did not intersect Braker gene models:"
+    bedtools intersect -v -a $HitsGff -b $Proteins > $BrakerNoIntersect
+    cat $BrakerNoIntersect | wc -l
+    echo "The following number of blast hits intersected ORF gene models:"
+    bedtools intersect -wa -u -a $BrakerNoIntersect -b $ORFs > $ORFIntersect
+    cat $ORFIntersect | wc -l
+    echo "The following Chen et al 2014 CRNs were not found in this study:"
+    bedtools intersect -v -a $HitsGff -b $AugGff $ORFGff > $ChenMissingCRNs
+    cat $ChenMissingCRNs | wc -l
+    echo "The following Chen et al 2014 CRNs were also found in this study:"
+    bedtools intersect -wa -u -a $HitsGff -b $AugGff $ORFGff > $ChenSupportedCRNs
+    cat $ChenSupportedCRNs | wc -l
+    if [ $Species == 'P.infestans' ] || [ $Species == 'P.parisitica' ]; then
+      bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'exon' | cut -f9,18 | cut -f1,3 -d ";" | tr -d '"' | tr -d ';' | sed 's/ID=//g' | sed 's/transcript_id //g' | sed 's/transcriptId //g' |sed 's/ /\t/g' > $CrnProteins
+    elif [ $Species == 'P.capsici' ] || [ $Species == 'P.sojae' ]; then
+      bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'exon' | cut -f9,18 | cut -f1,2 -d ";" | tr -d '"' | tr -d ';' | sed 's/ID=//g' | sed 's/name //g' | sed 's/ /\t/g' > $CrnProteins
+    else
+      bedtools intersect -wao -a $HitsGff -b $Proteins | grep -w 'transcript' | cut -f9,18 | tr -d '"' | tr -d ';' | sed 's/ID=//g' > $CrnProteins
+    fi
+    bedtools intersect -wao -a $BrakerNoIntersect -b $ORFs | grep -w 'transcript' | cut -f9,18 | cut -d ';' -f1,4 | tr -d '"' | sed 's/;/\t/g' | sed 's/ID=//g' | sed 's/Name=//g' > $CrnORFs
+  done
+```
+
+```
+  The following number of blast hits intersected Braker gene models:
+  43
+  The following Blast hits did not intersect Braker gene models:
+  21
+  The following number of blast hits intersected ORF gene models:
+  21
+  The following Chen et al 2014 CRNs were not found in this study:
+  30
+  The following Chen et al 2014 CRNs were also found in this study:
+  34
 ```
 
 Of the 64 queries 43 showed overlap to genes predicted in Braker1 gene
 models and the remaining 21 overlapped predicted ORFs. 34 of these 64 genes were
 predicted as CRNs in this study. The remaining 30 query genes that did not
 overlap genes identified as CRNs in this study were manually inspected.
-<!--
-It was
-noted that of 22 of the missing genes were identified in Chen et al as lower
-confidence RxLRs as they lacked RxLR and EER motifs and were not complete
-transcripts. Of the missing Chen et al RxLRs, 3 lacked the RxLR motif completely and 10
-had non-typical RxLR sequences. This was also true for the EER motif, with 4 of
-the missing RxLRs lacking the EER motif completely and 8 possessing an EER motif
-that did not conform to the [ED]+[ED][KR] motif used in this study. -->
+
+
+The genes relating to each CRN BLast hit were extracted.
+
+```bash
+  Pcac_pep=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  # Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  # Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  # Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  # Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+  # for Proteins in $Pcac_pep $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+  for Proteins in $Pcac_pep; do
+    Species=$(echo "$Proteins" | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo "$Proteins" | rev | cut -f3 -d '/' | rev)
+    echo "$Species - $Strain"
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_analysis
+    CrnProteins=$(ls $OutDir/"$Strain"_chen_et_al_2014_CRN_BrakerIntersect.txt)
+    while read Line; do
+      CrnName=$(echo $Line | cut -f1 -d ' ' )
+      HitName=$(echo $Line | cut -f2 -d ' ')
+      echo "$CrnName - $HitName"
+      if [ $Species == 'P.cactorum' ] || [ $Species == 'P.infestans' ] || [ $Species == 'P.parisitica' ]; then
+        echo "$HitName" > tmp.txt
+      else
+        cat $Proteins | grep -w "$HitName" | tr -d '>' > tmp.txt
+      fi
+      OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_CRN/fasta
+      mkdir -p $OutDir
+      OutFasta=$(echo ""$Species"_"$Strain"_""$CrnName""_homolog.fa" | sed 's/_BlastHit_1//g')
+      ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+      $ProgDir/extract_from_fasta.py --fasta $Proteins --headers tmp.txt > $OutDir/$OutFasta
+    done < $CrnProteins
+    OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_analysis
+    echo ""
+    ORFs=$(ls gene_pred/ORF_finder/$Species/$Strain/"$Strain".aa_cat.fa)
+    CrnORFs=$(ls $OutDir/"$Strain"_chen_et_al_2014_CRN_ORFIntersect.txt)
+    for CrnName in $(cat $CrnORFs | cut -f1 | sort | uniq); do
+      cat $CrnORFs | grep "$CrnName" | cut -f2 > tmp.txt
+      echo "$CrnName - ORF hits"
+      OutDir=analysis/blast_homology/$Species/$Strain/"$Strain"_chen_et_al_2014_CRN_analysis/fasta
+      mkdir -p $OutDir
+      OutFasta=$(echo ""$Species"_"$Strain"_""$CrnName""_homolog.fa" | sed 's/_BlastHit_1//g')
+      ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+      $ProgDir/extract_from_fasta.py --fasta $ORFs --headers tmp.txt > $OutDir/$OutFasta
+      sed -E "s/^>/>$Species|/g" -i $OutDir/$OutFasta
+    done
+    echo ""
+  done
+```
 
 ## 4 Previously characterised AVR genes
 
