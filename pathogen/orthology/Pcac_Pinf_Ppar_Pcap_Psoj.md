@@ -119,9 +119,15 @@
 
 ## 5) Plot venn diagrams:
 
-```bash
+<!-- ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
   $ProgDir/ven_diag_5_way.R --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+``` -->
+
+```bash
+  ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r -inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+
 ```
 
 Output was a pdf file of the venn diagram.
@@ -222,10 +228,14 @@ commands:
   RxLR_Pcac_uniq_groups=$RxLR_Dir/Pcac_uniq_RxLR_Orthogroups_hits.txt
   cat $RxLR_Orthogroup_10300 | grep -v 'Pinf' | grep -v 'Ppar' | grep -v 'Pcap' | grep -v 'Psoj' > $RxLR_Pcac_uniq_groups
   cat $RxLR_Pcac_uniq_groups | wc -l
+  echo "These orthogroups contain the folloing number of RxLRs:"
+  cat $RxLR_Pcac_uniq_groups | grep -w -o -f $RxLR_ID_10300 | wc -l
   echo "The following RxLRs were found in Group1 unique orthogroups:"
   RxLR_Group1_uniq_groups=$RxLR_Dir/Group1_RxLR_Orthogroups_hits.txt
   cat $RxLR_Orthogroup_10300 | grep -v 'Pcap' | grep -v 'Psoj' > $RxLR_Group1_uniq_groups
   cat $RxLR_Group1_uniq_groups | wc -l
+  echo "These orthogroups contain the folloing number of RxLRs:"
+  cat $RxLR_Group1_uniq_groups | grep -w -o -f $RxLR_ID_10300 | wc -l
 ```
 
 ```
@@ -237,8 +247,13 @@ commands:
   76
   The following RxLRs were found in Pcac unique orthogroups:
   2
+  These orthogroups contain the folloing number of RxLRs:
+  3
   The following RxLRs were found in Group1 unique orthogroups:
   15
+  These orthogroups contain the folloing number of RxLRs:
+  20
+
 ```
 
 The P.cactorum RxLR genes that were not found in orthogroups were identified:
@@ -596,9 +611,13 @@ commands:
   cat $CRN_Orthogroup_10300 | grep -v 'Pinf' | grep -v 'Ppar' | grep -v 'Pcap' | grep -v 'Psoj' > $CRN_Pcac_uniq_groups
   cat $CRN_Pcac_uniq_groups | wc -l
   echo "The following CRNs were found in Group1 unique orthogroups:"
+  cat $CRN_Pcac_uniq_groups | grep -w -o -f $CRN_ID_10300 | wc -l
+  echo "The following CRNs were found in 10300 unique orthogroups:"
   CRN_Group1_uniq_groups=$CRN_Dir/Group1_CRN_Orthogroups_hits.txt
   cat $CRN_Orthogroup_10300 | grep -v 'Pcap' | grep -v 'Psoj' > $CRN_Group1_uniq_groups
   cat $CRN_Group1_uniq_groups | wc -l
+  echo "The following CRNs were found in Group1 unique orthogroups:"
+  cat $CRN_Group1_uniq_groups | grep -w -o -f $CRN_ID_10300 | wc -l
 ```
 
 ```
