@@ -356,8 +356,8 @@ models.
       cat $TotalRxLRsTxt $WY_Aug_hmm $WY_ORF_hmm | cut -f1 -d ' ' | sed -e 's/|$//g'| rev | cut -f1 -d '|' | rev | sort | uniq -d > $TotalRxLRsWYTxt
       cat $TotalRxLRsWYTxt | wc -l
     fi
-    cat $AugInORFs $ORFsUniq $ORFsUniq | grep -w -f $TotalRxLRsTxt > $TotalRxLRsGff
-    cat $AugInORFs $ORFsUniq $ORFsUniq | grep -w -f $TotalRxLRsWYTxt > $TotalRxLRsWYGff
+    cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalRxLRsTxt > $TotalRxLRsGff
+    cat $AugInORFs $AugsUniq $ORFsUniq | grep -w -f $TotalRxLRsWYTxt > $TotalRxLRsWYGff
   done
 ```
 
@@ -429,7 +429,7 @@ models.
   The number of these RxLRs containing WY domains are:
   133
 ```
-
+<!--
 This analysis didn't work for published genomes whose gff files did not match up
 with fasta genome files - different names for contigs.
 ```
@@ -446,10 +446,94 @@ P. sojae
 Gff - scaffold_1
 Fa - >scaffold_1
 
+``` -->
+
+
+## 4.2.d Expression of P.cactorum 10300 RxLR genes
+
+Expression data of 10300 was used to provide expression support for P. cactorum
+RxLR genes.
+
+This was done by intersecting the location of RxLR with the RNAseq data aligned
+to the 10300 genome.
+
+```bash
+MergeDir=$(ls -d analysis/RxLR_effectors/combined_evidence/P.*/10300)
+Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
+TotalRxLRsGff=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_headers.gff
+
+cufflinks -o tmp -p 16 -G gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff alignment/P.cactorum/10300/accepted_hits.bam
+bedtools intersect -s -u -a tmp/transcripts.gtf -b $TotalRxLRsGff  > analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf
+echo "The top 20 expressed RxLRs are:"
+cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f2,14 -d '"' --output-delimite " - " |  head -n 20
+echo "The total number of RxLRs was:"
+cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | wc -l
+echo "The number of RxLRs with 1x coverage or greater was:"
+cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f14 -d '"' | grep -v -E '0\.' | wc -l
+echo "The number of RxLRs with 0x coverage was:"
+cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f14 -d '"' | grep -E '0\.00' | wc -l
+```
+
+```
+The top 20 expressed RxLRs are:
+g11594 - 29.889056 - Pcac unique - orthogroup8833
+g11370 - 29.864802 - Pcac unique - orthogroup8833
+g12117 - 5.227685
+g18158 - 5.131975
+g8566 - 4.951625
+g17215 - 4.929356
+g14216 - 4.866843
+g14208 - 4.818298
+g1876 - 4.194974
+g8314 - 2.084139
+g5978 - 2.010123
+g11506 - 1.970131
+g19634 - 1.808004
+g5288 - 1.629739 - clade 1 orthogroup
+g7929 - 1.503567
+g8468 - 1.450752
+g3902 - 1.238576
+g15964 - 0.988131
+g12572 - 0.933141
+g3433 - 0.900869
+The total number of RxLRs was:
+160
+The number of RxLRs with 1x coverage or greater was:
+17
+The number of RxLRs with 0x coverage was:
+81
 ```
 
 
+The expression of the P. cactorum unique RxLR g1610 was investigated. It was
+found to have no evidence of expression.
 
+The P. cactorum uniuq ortholog group of 2 RxLRs g11370 and g11594 were both
+expressed at 30x coverage.
+
+
+```bash
+  cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'g1610' | less
+  cat analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_RxLR/Group1_RxLR_Orthogroups_hits.txt
+  cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'g11370' | less
+```
+
+## 4.2.f Functional annotation of 10300 RxLRs
+
+Interproscan annotations and swissprot similarities were identified for 10300
+RxLRs. Non of the RxLRs carried an interproscan annotation or BLAST
+homology >1e-100 to a swissprot protein.
+
+```bash
+  MergeDir=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300
+  Strain=10300
+  for Gene in $(cat $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f4,14 -d '"' --output-delimite " - " | cut -f1 -d '.'); do     
+    echo $Gene;
+    cat gene_pred/interproscan/P.cactorum/10300/10300_interproscan.tsv | grep '$Gene';
+    cat gene_pred/swissprot/P.cactorum/10300/swissprot_v2015_10_hits.tbl  | grep '$Gene';
+    echo "";
+  done
+```
 
 ## 4.3.a Analysis of Crinkler effectors - merger of Augustus / published genes with ORFs
 
@@ -504,7 +588,7 @@ Extract crinklers from published gene models
 ```
 
 ```bash
-  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/P6497 | grep -v -e '67593' -e 'masked'); do
+  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -v -e '67593' -e 'masked'); do
     Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
     Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
     AugGff=$MergeDir/"$Strain"_pub_CRN_hmmer.gff
@@ -520,6 +604,8 @@ Extract crinklers from published gene models
     AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
     ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
     AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
+    TotalCRNsTxt=$MergeDir/"$Strain"_Total_CRN_headers.txt
+    TotalCRNsGff=$MergeDir/"$Strain"_Total_CRN.gff
     bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
     bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
     bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
@@ -528,56 +614,78 @@ Extract crinklers from published gene models
     if [ $Strain == "10300" ]; then
       echo "The number of ORF CRNs overlapping Augustus CRNs:"
       cat $ORFsInAug | grep -w 'gene' | wc -l
+      cat $ORFsInAug | grep -w 'gene' > $TotalCRNsTxt
       echo "The number of Augustus CRNs overlapping ORF CRNs:"
       cat $AugInORFs | grep -w 'gene' | wc -l
+      cat $AugInORFs | grep -w 'gene' >> $TotalCRNsTxt
       echo "The number of CRNs unique to ORF models:"
       cat $ORFsUniq | grep -w 'gene' | wc -l
+      cat $ORFsUniq | grep -w 'gene' >> $TotalCRNsTxt
       echo "The number of CRNs unique to Augustus models:"
       cat $AugUniq | grep -w 'gene' | wc -l
+      cat $AugUniq | grep -w 'gene' >> $TotalCRNsTxt
     elif [ $Strain == "T30-4" ]; then
       echo "The number of ORF CRNs overlapping Augustus CRNs:"
       cat $ORFsInAug | grep -w 'gene' | wc -l
+      cat $ORFsInAug | grep -w 'gene' > $TotalCRNsTxt
       echo "The number of Augustus CRNs overlapping ORF CRNs:"
       cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | wc -l
+      cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq >> $TotalCRNsTxt
       echo "The number of CRNs unique to ORF models:"
       cat $ORFsUniq | grep -w 'gene' | wc -l
+      cat $ORFsUniq | grep -w 'gene' >> $TotalCRNsTxt
       echo "The number of CRNs unique to Augustus models:"
       cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq > Augtmp.txt
       cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt >> $TotalCRNsTxt
     elif [ $Strain == "310" ]; then
       echo "The number of ORF CRNs overlapping Augustus CRNs:"
       cat $ORFsInAug | grep -w 'gene' | wc -l
+      cat $ORFsInAug | grep -w 'gene' > $TotalCRNsTxt
       echo "The number of Augustus CRNs overlapping ORF CRNs:"
       cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | wc -l
+      cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq >> $TotalCRNsTxt
       echo "The number of CRNs unique to ORF models:"
       cat $ORFsUniq | grep -w 'gene' | wc -l
+      cat $ORFsUniq | grep -w 'gene' >> $TotalCRNsTxt
       echo "The number of CRNs unique to Augustus models:"
       cat $AugInORFs | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq > Augtmp.txt
       cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      cat $AugUniq | grep -w 'exon' | cut -f9 | cut -f2 -d ';' | sort | uniq | grep -v -f Augtmp.txt >> $TotalCRNsTxt
     elif [ $Strain == "LT1534" ]; then
       echo "The number of ORF CRNs overlapping Augustus CRNs:"
       cat $ORFsInAug | grep -w 'gene' | wc -l
+      cat $ORFsInAug | grep -w 'gene' > $TotalCRNsTxt
       echo "The number of Augustus CRNs overlapping ORF CRNs:"
       cat $AugInORFs | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | wc -l
+      cat $AugInORFs | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq >> $TotalCRNsTxt
       echo "The number of CRNs unique to ORF models:"
       cat $ORFsUniq | grep -w 'gene' | wc -l
+      cat $ORFsUniq | grep -w 'gene' >> $TotalCRNsTxt
       echo "The number of CRNs unique to Augustus models:"
       cat $AugInORFs  | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | sed -e 's/^ //g' > Augtmp.txt
       cat $AugUniq | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      cat $AugUniq | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | grep -v -f Augtmp.txt >> $TotalCRNsTxt
       echo ""
     elif [ $Strain == "P6497" ]; then
       echo "The number of ORF CRNs overlapping Augustus CRNs:"
       cat $ORFsInAug | grep -w 'gene' | wc -l
+      cat $ORFsInAug | grep -w 'gene' > $TotalCRNsTxt
       echo "The number of Augustus CRNs overlapping ORF CRNs:"
       cat $AugInORFs | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | wc -l
+      cat $AugInORFs | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq >> $TotalCRNsTxt
       echo "The number of CRNs unique to ORF models:"
       cat $ORFsUniq | grep -w 'gene' | wc -l
+      cat $ORFsUniq | grep -w 'gene' >> $TotalCRNsTxt
       echo "The number of CRNs unique to Augustus models:"
       cat $AugInORFs  | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | sed -e 's/^ //g' > Augtmp.txt
       cat $AugUniq | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
+      cat $AugUniq | grep -w 'exon' | grep 'transcriptId' | rev | cut -f1 -d ';' | rev | sort | uniq | grep -v -f Augtmp.txt >> $TotalCRNsTxt
       echo ""
     fi
-
+    cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+    echo "The total number of CRNs are:"
+    cat $TotalCRNsGff | grep -v -e 'mRNA' -e 'start_codon' -e 'stop_codon' -e 'exon' | cut -f2 -d ';' | sort | uniq | wc -l
   done
 ```
 
@@ -628,4 +736,94 @@ The number of CRNs unique to ORF models:
 70
 The number of CRNs unique to Augustus models:
 19
+```
+
+## 4.3.b Expression of P.cactorum 10300 Crinkler genes
+
+
+
+Expression data of 10300 was used to provide expression support for P. cactorum
+CRN genes.
+
+This was done by intersecting the location of CRN with the RNAseq data aligned
+to the 10300 genome.
+
+```bash
+  MergeDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/P.*/10300)
+  Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
+  TotalCRNsGff=$MergeDir/"$Strain"_Total_CRN.gff
+  cufflinks -o tmp -p 16 -G gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff alignment/P.cactorum/10300/accepted_hits.bam
+  bedtools intersect -s -u -a tmp/transcripts.gtf -b $TotalCRNsGff  > $MergeDir/"$Strain"_Total_CRN_expressed.gtf
+  echo "The top 20 expressed CRNs are:"
+  cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f4,14 -d '"' --output-delimite " - " |  head -n 20
+  echo "The total number of CRNs was:"
+  cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'transcript' | wc -l
+  echo "The number of CRNs with 1x coverage or greater was:"
+  cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f14 -d '"' | grep -v -E '0\.' | wc -l
+  echo "The number of CRNs with 0x coverage was:"
+  cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f14 -d '"' | grep -E '0\.00' | wc -l
+```
+
+```
+  The top 10 expressed CRNs are:
+  g10478.t1 - 1214.517975
+  g1786.t1 - 781.976786
+  g17786.t1 - 383.018279
+  g18873.t1 - 373.339419
+  g13219.t1 - 346.771781
+  g14548.t1 - 266.755802
+  g14980.t1 - 247.070946
+  g778.t1 - 243.816930
+  g15212.t1 - 142.053576
+  g15058.t1 - 141.025410
+  g8090.t1 - 96.736487
+  g15485.t1 - 87.810172
+  g15517.t1 - 62.029919
+  g15471.t1 - 60.885705
+  g14356.t1 - 56.727299
+  g11218.t1 - 54.741992
+  g11753.t1 - 47.221044
+  g18103.t1 - 44.617325
+  g17488.t1 - 44.495114
+  g17134.t1 - 28.375429
+  The total number of CRNs was:
+  95
+  The number of CRNs with 1x coverage or greater was:
+  sort -r -n -k 14 -t '"' | cut -f14 -d '"' | grep -v -E '0\.' | wc -l
+  53
+  The number of CRNs with 0x coverage was:
+  16
+```
+
+The ortholog groups that these genes belonged to were investigated:
+
+```bash
+  for Gene in $(cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f4,14 -d '"' --output-delimite " - " |  head -n 20 | cut -f1 -d '.'); do
+    echo $Gene;
+    cat analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt | grep -w "$Gene";
+    echo "";
+  done
+```
+
+Expression of Group 1 unique Crinklers was determined. These genes showed no evidence of expression:
+
+```bash
+  cat analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_CRN/Group1_CRN_Orthogroups_hits.txt
+  cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'g16875'
+  cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'g3179'
+```
+
+## 4.3.c Functional annotation of 10300 Crinklers
+
+Interproscan annotations and swissprot similarities were identified for 10300
+crinklers. Non of the crinklers carried an interproscan annotation or BLAST
+homology >1e-100 to a swissprot protein.
+
+```bash
+  for Gene in $(cat $MergeDir/"$Strain"_Total_CRN_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f4,14 -d '"' --output-delimite " - " | cut -f1 -d '.'); do     
+    echo $Gene;
+    cat gene_pred/interproscan/P.cactorum/10300/10300_interproscan.tsv | grep '$Gene';
+    cat gene_pred/swissprot/P.cactorum/10300/swissprot_v2015_10_hits.tbl  | grep '$Gene';
+    echo "";
+  done
 ```
