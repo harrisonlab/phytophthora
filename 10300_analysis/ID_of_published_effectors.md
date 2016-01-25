@@ -680,20 +680,20 @@ cat analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Pso
 ```
 
 ```
-orthogroup1045:
-Pcac|g19537.t1
-Pcac|g19539.t1
-Pinf|PITG_17290T0
-Pinf|PITG_22670T0
-Pinf|PITG_19001T0
-Pcap|124555
-Pcap|53545
-Pcap|102642
-Pcap|133596
-Pcap|124564
-Pcap|124560
-Pcap|63419
-Pcap|130489
-Pcap|124296
-Pcap|73399
+  orthogroup1045:
+  Pcac|g19537.t1
+  Pcac|g19539.t1
+  Pinf|PITG_17290T0
+  Pinf|PITG_22670T0
+  Pinf|PITG_19001T0
+  Pcap|124555
+  Pcap|53545
+  Pcap|102642
+  Pcap|133596
+  Pcap|124564
+  Pcap|124560
+  Pcap|63419
+  Pcap|130489
+  Pcap|124296
+  Pcap|73399
 ```
