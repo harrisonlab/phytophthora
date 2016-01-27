@@ -228,6 +228,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
     qsub $ProgDir/run_ORF_finder.sh $Genome
   done
 ```
+<-- New ORF predictions
 
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
