@@ -58,18 +58,18 @@ colname5 <- paste("Ppar")
 # label5 <- paste(colname5, ' (26584 genes in ', area5, ' ortholog groups)', sep="" )
 
 # Species abreviation labels
-#label1 <- paste(colname1, sep="" )
-#label2 <- paste(colname2, sep="" )
-#label3 <- paste(colname3, sep="" )
-#label4 <- paste(colname4, sep="" )
-#label5 <- paste(colname5, sep="" )
+label1 <- paste(colname1, sep="" )
+label2 <- paste(colname2, sep="" )
+label3 <- paste(colname3, sep="" )
+label4 <- paste(colname4, sep="" )
+label5 <- paste(colname5, sep="" )
 
 # No label
-label1 <- paste("", sep="" )
-label2 <- paste("", sep="" )
-label3 <- paste("", sep="" )
-label4 <- paste("", sep="" )
-label5 <- paste("", sep="" )
+#label1 <- paste("", sep="" )
+#label2 <- paste("", sep="" )
+#label3 <- paste("", sep="" )
+#label4 <- paste("", sep="" )
+#label5 <- paste("", sep="" )
 
 n12=nrow(subset(df1, df1[,"Pcac"] == 1 & df1[,"Pcap"] == 1))
 n13=nrow(subset(df1, df1[,"Pcac"] == 1 & df1[,"Psoj"] == 1))
