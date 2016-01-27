@@ -464,7 +464,7 @@ Fasta sequences for RxLRs were extracted for each isolate
   PsojFa=$(ls assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta)
 
   for AugFa in $PcacFa $PparFa $PinfFa $PcapFa $PsojFa; do
-  # for AugFa in $PcacFa; do
+  # for AugFa in $PinfFa; do
     Strain=$(echo "$AugFa" | rev | cut -f3 -d '/' | rev)
     Species=$(echo "$AugFa" | rev | cut -f4 -d '/' | rev)
     ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
@@ -798,7 +798,7 @@ Fasta sequences for CRNs were extracted for each isolate
   PsojFa=$(ls assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta)
 
   for AugFa in $PcacFa $PparFa $PinfFa $PcapFa $PsojFa; do
-    # for AugFa in $PinfFa; do
+  # for AugFa in $PinfFa; do
     Strain=$(echo "$AugFa" | rev | cut -f3 -d '/' | rev)
     Species=$(echo "$AugFa" | rev | cut -f4 -d '/' | rev)
     ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
