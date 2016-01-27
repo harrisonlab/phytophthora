@@ -578,6 +578,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 	# ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
 	# qsub $ProgDir/path_pipe.sh $Genome
 ```
+<-- New ORF predictions
 
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
