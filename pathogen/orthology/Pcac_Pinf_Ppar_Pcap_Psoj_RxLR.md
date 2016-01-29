@@ -108,7 +108,7 @@
 
 ## 3.2) Merge the all-vs-all blast results  
 ```bash  
-  MergeHits="$IsolateAbrv"_blast.tab
+  MergeHits=$WorkDir/"$IsolateAbrv"_blast.tab
   printf "" > $MergeHits
   for Num in $(ls $WorkDir/splitfiles/*.tab | rev | cut -f1 -d '_' | rev | sort -n); do
     File=$(ls $WorkDir/splitfiles/*_$Num)
@@ -122,7 +122,7 @@
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   MergeHits="$IsolateAbrv"_blast.tab
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
-  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts
+  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
 ## 5) Plot venn diagrams:
@@ -146,6 +146,7 @@ Isolate name (total number of orthogroups)
 number of unique singleton genes
 number of unique groups of inparalogs
 
+At an inflation value of 1:
 ```
 [1] "Pcac"
 [1] 26
@@ -162,6 +163,27 @@ number of unique groups of inparalogs
 [1] "Ppar"
 [1] 72
 [1] 19
+NULL
+```
+
+At an inflation value of 5:
+
+```
+[1] "Pcac"
+[1] 26
+[1] 5
+[1] "Pcap"
+[1] 20
+[1] 15
+[1] "Psoj"
+[1] 25
+[1] 35
+[1] "Pinf"
+[1] 34
+[1] 8
+[1] "Ppar"
+[1] 72
+[1] 33
 NULL
 ```
 
@@ -224,7 +246,7 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   OrthogroupTxt=$WorkDir/orthogroups_fasta/"$IsolateAbrv"_Orthogroups.txt
   GoodProt=$WorkDir/goodProteins/goodProteins.fasta
-  OutDir=$WorkDir/orthogroups_fasta
+  OutDir=$WorkDir/orthogroups_fasta_inflation_5
   mkdir -p $OutDir
   # cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | cut -f1 -d ' ' > $OrthogroupTxt
   $ProgDir/orthoMCLgroups2fasta.py --orthogroups $WorkDir/"$IsolateAbrv"_orthogroups.txt --fasta $GoodProt --out_dir $OutDir
