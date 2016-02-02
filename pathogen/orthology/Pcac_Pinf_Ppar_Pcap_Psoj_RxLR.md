@@ -251,3 +251,35 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
   # cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | cut -f1 -d ' ' > $OrthogroupTxt
   $ProgDir/orthoMCLgroups2fasta.py --orthogroups $WorkDir/"$IsolateAbrv"_orthogroups.txt --fasta $GoodProt --out_dir $OutDir
 ```
+
+# Run TribeMCL on orthoMCL data
+
+
+## Run TribeMCL
+
+```bash
+  mkdir -p $WorkDir/tribeMCL
+  cat $WorkDir/"$IsolateAbrv"_blast.tab | cut -f1,2,11 | clusterx --method mcl -p inflation=5 - > $WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/orthology/tribeMCl
+  $ProgDir/tribeMCLgroups2tab.py --orthogroups $WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL.txt --out_tab $WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL_orthogroups.tab --out_txt $WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL_orthogroups.txt
+  ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r --inp $WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL_orthogroups.tab --out $WorkDir/tribeMCL/tribeMCL_orthogroups.pdf
+```
+
+```
+  [1] "Pcac"
+  [1] 0
+  [1] 51
+  [1] "Pcap"
+  [1] 0
+  [1] 35
+  [1] "Psoj"
+  [1] 0
+  [1] 91
+  [1] "Pinf"
+  [1] 0
+  [1] 34
+  [1] "Ppar"
+  [1] 0
+  [1] 31
+```
