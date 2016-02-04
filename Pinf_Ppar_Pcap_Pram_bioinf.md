@@ -228,7 +228,6 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
     qsub $ProgDir/run_ORF_finder.sh $Genome
   done
 ```
-<-- New ORF predictions
 
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
@@ -530,8 +529,8 @@ the following commands:
   Ppar_ORF=gene_pred/ORF_finder/P.parisitica/310/310.aa_cat.fa
   Pcap_ORF=gene_pred/ORF_finder/P.capsici/LT1534/LT1534.aa_cat.fa
   Psoj_ORF=gene_pred/ORF_finder/P.sojae/P6497/P6497.aa_cat.fa
-  # for Proteome in $Pinf_ORF $Ppar_ORF $Pcap_ORF $Psoj_ORF; do
-  for Proteome in $Psoj_ORF; do
+  for Proteome in $Pinf_ORF $Ppar_ORF $Pcap_ORF $Psoj_ORF; do
+  # for Proteome in $Psoj_ORF; do
     echo "$Proteome"
     SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
@@ -544,7 +543,7 @@ the following commands:
     for File in $(ls $SplitDir/*_ORF_preds_*); do
       Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
       while [ $Jobs -gt 1 ]; do
-        sleep 10
+        sleep 5
         printf "."
         Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
       done
@@ -555,7 +554,7 @@ the following commands:
     done
   done
 ```
-
+<-- New ORF predictions
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
 ```bash
