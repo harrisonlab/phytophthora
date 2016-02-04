@@ -384,6 +384,80 @@ The P.cactorum CRN genes that were not found in orthogroups were identified:
   $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
 ```
 
+#### 6.3 Determining function of orthogroups
+
+Lists of genes from P.cactorum unique genes, clade1 orthogorups and the largest
+shared gene families were identified.
+
+
+```bash
+WorkDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj
+InterProFile=gene_pred/interproscan/P.cactorum/10300/10300_interproscan.tsv
+```
+
+#### 6.3.a) Function of the 10 largest orthogroups
+
+```bash
+  FuncDir=$WorkDir/Ortholog_function/10_largest
+  mkdir -p $FuncDir
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan/feature_extraction
+  for num in $(seq 1 10); do
+    cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | head -n$num | tail -n1 | sed -E 's/ /\n/g' | grep 'Pcac' | sed 's/Pcac|//g' > $FuncDir/orthogroup"$num"_gene_list.txt
+    $ProgDir/feature_extractor.py --inp_txt $FuncDir/orthogroup"$num"_gene_list.txt --inp_interpro $InterProFile > $FuncDir/orthogroup"$num"_functions.txt
+  done
+```
+#### 6.3.a) Function of core orthogroups
+
+```bash
+FuncDir=$WorkDir/Ortholog_function/common
+mkdir -p $FuncDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan/feature_extraction
+echo "The following number of Orthogroups were common to all species specific:"
+groups_txt=$FuncDir/common_orthogroups.txt
+cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | grep 'Pcac'| grep 'Pinf' | grep 'Ppar' | grep 'Pcap' | grep 'Psoj' > $groups_txt
+num_groups=$(cat $groups_txt | wc -l)
+echo $num_groups
+for num in $(seq 1 $num_groups); do
+  Orthogroup=$(cat $groups_txt | head -n$num | tail -n1 | cut -f1 -d ':')
+  echo "$Orthogroup" > $FuncDir/"$Orthogroup"_functions.txt
+  echo "Extracting functions for: $Orthogroup"
+  cat $Group1_uniq_groups| head -n$num | tail -n1 | sed -E 's/ /\n/g' | grep 'Pcac' | sed 's/Pcac|//g' > $FuncDir/"$Orthogroup"_gene_list.txt
+  $ProgDir/feature_extractor.py --inp_txt $FuncDir/"$Orthogroup"_gene_list.txt --inp_interpro $InterProFile >> $FuncDir/"$Orthogroup"_functions.txt
+done
+```
+
+
+#### 6.3.b) Function of the Clade1 unique orthogroups
+
+```bash
+  FuncDir=$WorkDir/Ortholog_function/clade1_unique
+  mkdir -p $FuncDir
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan/feature_extraction
+  echo "The following number of Orthogroups were Clade1 specific:"
+  Group1_uniq_groups=$FuncDir/Group1_Orthogroups.txt
+  cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | grep 'Pcac' | grep -v 'Pcap' | grep -v 'Psoj' > $Group1_uniq_groups
+  cat $Group1_uniq_groups | wc -l
+  for num in $(seq 1 404); do
+    Orthogroup=$(cat $Group1_uniq_groups | head -n$num | tail -n1 | cut -f1 -d ':')
+    echo "$Orthogroup" > $FuncDir/"$Orthogroup"_functions.txt
+    echo "Extracting functions for: $Orthogroup"
+    cat $Group1_uniq_groups| head -n$num | tail -n1 | sed -E 's/ /\n/g' | grep 'Pcac' | sed 's/Pcac|//g' > $FuncDir/"$Orthogroup"_gene_list.txt
+    $ProgDir/feature_extractor.py --inp_txt $FuncDir/"$Orthogroup"_gene_list.txt --inp_interpro $InterProFile >> $FuncDir/"$Orthogroup"_functions.txt
+  done
+```
+ The following commands were used to concatenate the individual results files
+ into a single sumarry csv file. This can be imported into Excel.
+
+ ```bash
+   InString=""
+  for num in $(ls $FuncDir/orthogroup*_functions.txt | sed "s&$FuncDir/orthogroup&&g" | sed 's/_functions.txt//g' | sort -n); do
+    ThisFile=$(ls $FuncDir/orthogroup"$num"_functions.txt);
+    InString="$InString $ThisFile";
+  done
+  paste -d ',' $InString > $FuncDir/Group1_functions.txt
+ ```
+
+
 
 # Run TribeMCL on orthoMCL data
 
