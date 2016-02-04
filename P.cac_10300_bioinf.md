@@ -578,7 +578,6 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 	# ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen
 	# qsub $ProgDir/path_pipe.sh $Genome
 ```
-<-- New ORF predictions
 
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
@@ -1001,17 +1000,19 @@ the following commands:
 	BaseName="$Organism""_$Strain"_ORF_preds
 	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
 	for File in $(ls $SplitDir/*_ORF_preds_*); do
-		Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-		while [ $Jobs -ge 32 ]; do
-			sleep 10
+		Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
+		while [ $Jobs -gt 1 ]; do
+			sleep 5
 			printf "."
-			Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-		done
+			Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
+		done		
 		printf "\n"
 		echo $File
-		qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+		qsub $ProgDir/pred_sigP.sh $File
+		# qsub $ProgDir/pred_sigP.sh $File signalp-4.1
 	done
 ```
+<-- New ORF predictions
 
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
