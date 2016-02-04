@@ -205,7 +205,7 @@ This identified that 32 of 1701 RxLRs in the analysis carried X's in their amino
 acid sequence
 
 
-### 6.2 ) P. cactotum unique gene families
+### 6.2.a ) P. cactotum unique gene families
 
 The genes unique to P.cactorum were identified within the orthology analysis.
 
@@ -238,7 +238,30 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
   6
 ```
 
-#### 6.2.b) Extracting fasta files for all orthogroups
+#### 6.2.b)
+
+```bash
+
+
+$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | sed -E 's/ /\n/g' | grep 'Pcac' | sed 's/Pcac|//g' | wc-l
+$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | grep -o -E 'P\w*\|' | sort | uniq -c
+RxLRDir=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300
+$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | grep -o -E 'Pcac\|\w*' | sed 's/Pcac|//g' | grep -f $RxLRDir/10300_Total_RxLR_EER_WY_motif_hmm_headers.txt | wc -l
+
+```
+
+The largest RxLR group contained 141 proteins, 19 of which were from P.cactorum.
+Of these 19, 15 contained WY domains.
+
+'''
+  19 Pcac|
+  16 Pcap|
+  29 Pinf|
+  38 Ppar|
+  39 Psoj|
+'''
+
+#### 6.3) Extracting fasta files for all orthogroups
 
 ```bash
   IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_RxLR
