@@ -554,7 +554,7 @@ the following commands:
     done
   done
 ```
-<-- New ORF predictions
+
 The batch files of predicted secreted proteins needed to be combined into a
 single file for each strain. This was done with the following commands:
 ```bash
@@ -688,34 +688,34 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 ```
 
 ```
-  strain: 10300	species: P.cactorum
-  the number of SigP gene is:	15271
-  the number of SigP-RxLR genes are:	935
-  the number of SigP-RxLR-EER genes are:	170
+strain: 10300	species: P.cactorum
+the number of SigP gene is:	14767
+the number of SigP-RxLR genes are:	916
+the number of SigP-RxLR-EER genes are:	169
 
 
-  strain: LT1534	species: P.capsici
-  the number of SigP gene is:	14865
-  the number of SigP-RxLR genes are:	1004
-  the number of SigP-RxLR-EER genes are:	254
+strain: LT1534	species: P.capsici
+the number of SigP gene is:	14007
+the number of SigP-RxLR genes are:	964
+the number of SigP-RxLR-EER genes are:	244
 
 
-  strain: T30-4	species: P.infestans
-  the number of SigP gene is:	37637
-  the number of SigP-RxLR genes are:	2825
-  the number of SigP-RxLR-EER genes are:	417
+strain: T30-4	species: P.infestans
+the number of SigP gene is:	36713
+the number of SigP-RxLR genes are:	2786
+the number of SigP-RxLR-EER genes are:	408
 
 
-  strain: 310	species: P.parisitica
-  the number of SigP gene is:	14526
-  the number of SigP-RxLR genes are:	949
-  the number of SigP-RxLR-EER genes are:	309
+strain: 310	species: P.parisitica
+the number of SigP gene is:	13652
+the number of SigP-RxLR genes are:	915
+the number of SigP-RxLR-EER genes are:	288
 
 
-  strain: P6497	species: P.sojae
-  the number of SigP gene is:	24576
-  the number of SigP-RxLR genes are:	1744
-  the number of SigP-RxLR-EER genes are:	278
+strain: P6497	species: P.sojae
+the number of SigP gene is:	24495
+the number of SigP-RxLR genes are:	1742
+the number of SigP-RxLR-EER genes are:	277
 ```
 
 
@@ -748,19 +748,19 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
 
 ```
   P.cactorum 10300
-  Initial search space (Z):              15271  [actual number of targets]
+  Initial search space (Z):              14767  [actual number of targets]
   Domain search space  (domZ):             113  [number of targets reported over threshold]
   P.capsici LT1534
-  Initial search space (Z):              14865  [actual number of targets]
-  Domain search space  (domZ):             117  [number of targets reported over threshold]
+  Initial search space (Z):              14007  [actual number of targets]
+  Domain search space  (domZ):             109  [number of targets reported over threshold]
   P.infestans T30-4
-  Initial search space (Z):              37637  [actual number of targets]
-  Domain search space  (domZ):             244  [number of targets reported over threshold]
+  Initial search space (Z):              36713  [actual number of targets]
+  Domain search space  (domZ):             239  [number of targets reported over threshold]
   P.parisitica 310
-  Initial search space (Z):              14526  [actual number of targets]
-  Domain search space  (domZ):             175  [number of targets reported over threshold]
+  Initial search space (Z):              13652  [actual number of targets]
+  Domain search space  (domZ):             163  [number of targets reported over threshold]
   P.sojae P6497
-  Initial search space (Z):              24576  [actual number of targets]
+  Initial search space (Z):              24495  [actual number of targets]
   Domain search space  (domZ):             158  [number of targets reported over threshold]
 ```
 
@@ -791,49 +791,21 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
 ```
 ```
   P.cactorum 10300
-  Initial search space (Z):              15271  [actual number of targets]
-  Domain search space  (domZ):             145  [number of targets reported over threshold]
+  Initial search space (Z):              14767  [actual number of targets]
+  Domain search space  (domZ):             144  [number of targets reported over threshold]
   P.capsici LT1534
-  Initial search space (Z):              14865  [actual number of targets]
-  Domain search space  (domZ):             165  [number of targets reported over threshold]
+  Initial search space (Z):              14007  [actual number of targets]
+  Domain search space  (domZ):             158  [number of targets reported over threshold]
   P.infestans T30-4
-  Initial search space (Z):              37637  [actual number of targets]
-  Domain search space  (domZ):             284  [number of targets reported over threshold]
+  Initial search space (Z):              36713  [actual number of targets]
+  Domain search space  (domZ):             280  [number of targets reported over threshold]
   P.parisitica 310
-  Initial search space (Z):              14526  [actual number of targets]
-  Domain search space  (domZ):             244  [number of targets reported over threshold]
+  Initial search space (Z):              13652  [actual number of targets]
+  Domain search space  (domZ):             233  [number of targets reported over threshold]
   P.sojae P6497
-  Initial search space (Z):              24576  [actual number of targets]
-  Domain search space  (domZ):             228  [number of targets reported over threshold]
+  Initial search space (Z):              24495  [actual number of targets]
+  Domain search space  (domZ):             227  [number of targets reported over threshold]
 ```
-
-<!--
-```bash
-	for Proteome in $(ls gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa); do
-		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-		HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
-		Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
-		Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-		OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
-		mkdir -p $OutDir
-		HmmResults="$Strain"_ORF_RxLR_hmmer.txt
-		hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
-		echo "$Organism $Strain"
-		cat $OutDir/$HmmResults | grep 'Initial search space'
-		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
-		HmmFasta="$Strain"_ORF_RxLR_hmmer.fa
-		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-		Headers="$Strain"_ORF_RxLR_hmmer_headers.txt
-		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
-		SigP_Merged_Gff=gene_pred/ORF_finder/$Organism/$Strain/10300_ORF_corrected.gff3
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-		$ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_RxLR_hmmer.gff3
-	done
-```
-
-P.cactorum 10300
-Initial search space (Z):             459307  [actual number of targets]
-Domain search space  (domZ):             365  [number of targets reported over threshold] -->
 
 
 ### H) From ORF gene models - Hmm evidence of CRN effectors
@@ -841,166 +813,70 @@ Domain search space  (domZ):             365  [number of targets reported over t
 A hmm model relating to crinkler domains was used to identify putative crinklers
 in ORF gene models. This was done with the following commands:
 
-<!-- ```bash
-  for Secretome in $(ls gene_pred/ORF_sigP/P.*/*/*_ORF_sp_merged.aa); do
-		ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-		HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
-		Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
-		Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
-		OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
-		mkdir -p $OutDir
-		HmmResults="$Strain"_ORF_CRN_hmmer.txt
-		hmmsearch -T 0 $HmmModel $Secretome > $OutDir/$HmmResults
-		echo "$Organism $Strain"
-		cat $OutDir/$HmmResults | grep 'Initial search space'
-		cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
-		HmmFasta="$Strain"_ORF_CRN_hmmer_out.fa
-		$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Secretome > $OutDir/$HmmFasta
-		Headers="$Strain"_CRN_hmmer_headers.txt
-		cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
-		SigP_Merged_Gff=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp_merged.gff
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-		$ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_CRN_hmmer.gff3
-	done
-```
-```
-  P.cactorum 10300
-  Initial search space (Z):              15271  [actual number of targets]
-  Domain search space  (domZ):              18  [number of targets reported over threshold]
-  P.capsici LT1534
-  Initial search space (Z):              14865  [actual number of targets]
-  Domain search space  (domZ):              44  [number of targets reported over threshold]
-  P.infestans T30-4
-  Initial search space (Z):              26646  [actual number of targets]
-  Domain search space  (domZ):               4  [number of targets reported over threshold]
-  P.parisitica 310
-  Initial search space (Z):              14526  [actual number of targets]
-  Domain search space  (domZ):              14  [number of targets reported over threshold]
-  P.sojae 67593
-  Initial search space (Z):              24222  [actual number of targets]
-  Domain search space  (domZ):              75  [number of targets reported over threshold]
-``` -->
-
 ```bash
-  for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa); do
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-    HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
-    Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-    OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
-    mkdir -p $OutDir
-    HmmResults="$Strain"_ORF_CRN_unmerged_hmmer.txt
-    hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
-    echo "$Organism $Strain"
-    cat $OutDir/$HmmResults | grep 'Initial search space'
-    cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
-    HmmFasta="$Strain"_ORF_CRN_hmmer_unmerged_out.fa
-    $ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-    Headers="$Strain"_CRN_hmmer_unmerged_headers.txt
-    cat $OutDir/$HmmFasta | grep '>' | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' | sed 's/hmm_score/HMM_score/g' > $OutDir/$Headers
-    cat $OutDir/$Headers | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.txt
-    ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF_corrected.gff3)
-    cat $ORF_Gff | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.gff
-    CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/extract_gff_for_sigP_hits.pl tmp.txt tmp.gff CRN_HMM Name > $CRN_unmerged_Gff
-    DbDir=analysis/databases/$Organism/$Strain
-    mkdir -p $DbDir
-    ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
-    $ProgDir/make_gff_database.py --inp $CRN_unmerged_Gff --db $DbDir/CRN_ORF.db
-    CRN_Merged_Gff=$OutDir/"$Strain"_CRN_merged_hmmer.gff3
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/merge_sigP_ORFs.py --inp $DbDir/CRN_ORF.db --id $HmmModel --out $DbDir/CRN_ORF_merged.db --gff > $CRN_Merged_Gff
-    sed -i 's/_a_/:/g' $CRN_Merged_Gff
-    sed -i 's/supercont1_b_/supercont1./g' $CRN_Merged_Gff
-    sed -i 's/Supercontig_c_/Supercontig_2./g' $CRN_Merged_Gff
-    echo "Number of CRN ORFs after merging:"
-    cat $CRN_Merged_Gff | grep 'gene' | wc -l
-    rm tmp.txt
-    rm tmp.gff
-  done
+for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa); do
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
+Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+mkdir -p $OutDir
+HmmResults="$Strain"_ORF_CRN_unmerged_hmmer.txt
+hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
+echo "$Organism $Strain"
+cat $OutDir/$HmmResults | grep 'Initial search space'
+cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+HmmFasta="$Strain"_ORF_CRN_hmmer_unmerged_out.fa
+$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
+Headers="$Strain"_CRN_hmmer_unmerged_headers.txt
+cat $OutDir/$HmmFasta | grep '>' | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' | sed 's/hmm_score/HMM_score/g' > $OutDir/$Headers
+cat $OutDir/$Headers | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.txt
+ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF_corrected.gff3)
+cat $ORF_Gff | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.gff
+CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_gff_for_sigP_hits.pl tmp.txt tmp.gff CRN_HMM Name > $CRN_unmerged_Gff
+DbDir=analysis/databases/$Organism/$Strain
+mkdir -p $DbDir
+ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+$ProgDir/make_gff_database.py --inp $CRN_unmerged_Gff --db $DbDir/CRN_ORF.db
+CRN_Merged_Gff=$OutDir/"$Strain"_CRN_merged_hmmer.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/merge_sigP_ORFs.py --inp $DbDir/CRN_ORF.db --id $HmmModel --out $DbDir/CRN_ORF_merged.db --gff > $CRN_Merged_Gff
+sed -i 's/_a_/:/g' $CRN_Merged_Gff
+sed -i 's/supercont1_b_/supercont1./g' $CRN_Merged_Gff
+sed -i 's/Supercontig_c_/Supercontig_2./g' $CRN_Merged_Gff
+echo "Number of CRN ORFs after merging:"
+cat $CRN_Merged_Gff | grep 'gene' | wc -l
+rm tmp.txt
+rm tmp.gff
+done
 ```
 
 ```
   P.cactorum 10300
-  Initial search space (Z):             459307  [actual number of targets]
-  Domain search space  (domZ):             225  [number of targets reported over threshold]
+  Initial search space (Z):             443642  [actual number of targets]
+  Domain search space  (domZ):             206  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
-  115
+  101
   P.capsici LT1534
-  Initial search space (Z):             478905  [actual number of targets]
-  Domain search space  (domZ):             356  [number of targets reported over threshold]
+  Initial search space (Z):             437865  [actual number of targets]
+  Domain search space  (domZ):             307  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
-  181
+  159
   P.infestans T30-4
-  Initial search space (Z):            1415148  [actual number of targets]
-  Domain search space  (domZ):             618  [number of targets reported over threshold]
+  Initial search space (Z):            1363381  [actual number of targets]
+  Domain search space  (domZ):             586  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
-  384
+  367
   P.parisitica 310
-  Initial search space (Z):             442892  [actual number of targets]
-  Domain search space  (domZ):             151  [number of targets reported over threshold]
+  Initial search space (Z):             410940  [actual number of targets]
+  Domain search space  (domZ):             139  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
-  59
+  53
   P.sojae P6497
-  Initial search space (Z):             701191  [actual number of targets]
+  Initial search space (Z):             696564  [actual number of targets]
   Domain search space  (domZ):             398  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
   212
 ```
-
-
-<!--
-## 4. 2 Ananlysis of RxLR effectors
-
-Due to RxLR effectors being predicted from a number of sources the number of
-unique RxLRs were identified from motif and Hmm searches within gene models.
-221 RxLR effectors were predicted in total from the P.cactorum genome. Of these,
-90 were shared between both datasets.
-
-```bash
-  for InDir in $(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/*/310); do
-    Strain=$(echo "$InDir" | rev | cut -f1 -d '/' | rev)
-    Species=$(echo "$InDir" | rev | cut -f2 -d '/' | rev)
-    RxLR_motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Species/$Strain/"$Strain"*_RxLR_EER_regex.fa | grep -v 'ORF')
-    RxLR_hmm=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Species/$Strain/"$Strain"*_RxLR_hmmer.fa | grep -v 'ORF')
-    echo "$Species - $Strain"
-    echo "Total number of RxLRs in predicted genes:"
-    cat $RxLR_motif $RxLR_hmm | grep '>' | cut -f1 | sort | uniq | wc -l
-    echo "Total number of RxLRs shared between prediciton sources:"
-    cat $RxLR_motif $RxLR_hmm | grep '>' | cut -f1 | sort | uniq -d | wc -l
-    echo ""
-  done
-```
-
-```
-  P.cactorum - 10300
-  Total number of RxLRs in predicted genes:
-  291
-  Total number of RxLRs shared between prediciton sources:
-  90
-
-  P.capsici - LT1534
-  Total number of RxLRs in predicted genes:
-  245
-  Total number of RxLRs shared between prediciton sources:
-  0
-
-  P.infestans - T30-4
-  Total number of RxLRs in predicted genes:
-  870
-  Total number of RxLRs shared between prediciton sources:
-  70
-
-  P.parisitica - 310
-  Total number of RxLRs in predicted genes:
-  609
-  Total number of RxLRs shared between prediciton sources:
-  80
-
-  P.sojae - 67593
-  Total number of RxLRs in predicted genes:
-  531
-  Total number of RxLRs shared between prediciton sources:
-  173
-``` -->
