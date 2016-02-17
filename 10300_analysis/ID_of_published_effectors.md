@@ -64,6 +64,65 @@ annotations:
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
 ```
 
+Bedtools was used to identify which of the Chen et al RxLRs intersected with
+RxLRs predicted in our study:
+
+```bash
+  HitsGff=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR.fa_homologs.gff
+  RxLRGff=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm.gff
+  OutDir=analysis/blast_homology/P.cactorum/10300/10300_chen_et_al_2014_RxLR
+  ChenMissingRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_MissingRxLRs_2.gff
+  echo "The following Chen et al 2014 RxLRs were not found in this study:"
+  bedtools intersect -v -s -a $HitsGff -b $RxLRGff > $ChenMissingRxLRs
+  cat $ChenMissingRxLRs | wc -l
+```
+
+The genes that missing RxLRs intersected were identified:
+
+```bash
+  AugGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+  AdditionalRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_additional_genes.gff
+  ChenNoAugRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_noAug.gff
+  echo "The following additional genes have been identified as RxLRs through BLAST homology to Chen et al 2014 RxLRs:"
+  bedtools intersect -s -a $AugGff -b $ChenMissingRxLRs > $AdditionalRxLRs
+  cat $AdditionalRxLRs | grep -w 'gene' | wc -l
+  echo "The following Chen et al 2014 RxLRs have still not been identified:"
+  bedtools intersect -v -s -a $ChenMissingRxLRs  -b $AugGff > $ChenNoAugRxLRs
+  cat $ChenNoAugRxLRs | wc -l
+```
+
+This identified an additional 17 genes, leaving 30 remaining.
+
+Finally, ORFs intersecting Chen et al RxLRs were identified:
+
+```bash
+  OrfSigPGff=gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_merged.gff
+  ChenNoAugRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_noAug.gff
+  AdditionalRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_additional_genes.gff
+  ChenNoSigPORFRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_noSigPORF.gff
+  echo "The following additional genes have been identified as RxLRs through BLAST homology to Chen et al 2014 RxLRs:"
+  bedtools intersect -s -wo -a $OrfSigPGff -b $ChenNoAugRxLRs >> $AdditionalRxLRs
+  cat $AdditionalRxLRs | grep -w 'gene' | wc -l
+  echo "The following Chen et al 2014 RxLRs have still not been identified:"
+  bedtools intersect -v -s -a $ChenNoAugRxLRs  -b $OrfSigPGff > $ChenNoSigPORFRxLRs
+  cat $ChenNoSigPORFRxLRs | wc -l
+```
+
+This identified an additional 4 genes, leaving 26 remaining.
+
+<!-- ```bash
+  OrfGff=gene_pred/ORF_finder/P.cactorum/10300/10300_ORF_corrected.gff3
+  ChenNoSigPORFRxLRs=$OutDir/10300_chen_et_al_2014_RxLR_noSigPORF.gff
+  AdditionalRxLRsORF=$OutDir/10300_chen_et_al_2014_RxLR_additional_ORFs.gff
+  echo "The following additional genes have been identified as RxLRs through BLAST homology to Chen et al 2014 RxLRs:"
+  bedtools intersect -s -a $OrfGff -b $ChenNoSigPORFRxLRs > $AdditionalRxLRsORF
+  cat $AdditionalRxLRsORF | grep -w 'gene' | wc -l
+  echo "The following Chen et al 2014 RxLRs have still not been identified:"
+  bedtools intersect -v -s -a $ChenNoAugRxLRs  -b $OrfSigPGff > $ChenNoSigPORFRxLRs
+  cat $ChenNoSigPORFRxLRs | wc -l
+``` -->
+
+
 #### 1.2.b)
 
 Furthermore, 10300 predicted proteins and RxLRs were BLASTed against P. infestans
