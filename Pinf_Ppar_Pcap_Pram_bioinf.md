@@ -118,6 +118,24 @@ performed using the following commands:
   done
 ```
 
+# Assessing published genome assemblies
+
+```bash
+  Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta
+  Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
+  Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+    OutDir=assembly/external_group/$Organism/$Strain/dna/quast
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
+```
+
+
+
 # Repeat masking
 
 Repeat masking was performed on published genomes to allow comparison of
