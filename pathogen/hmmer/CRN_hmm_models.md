@@ -204,4 +204,79 @@ annotations:
   done
 ```
 
-The number of ORFs
+### Intersecting Crinklers predicted from gene models and ORFs
+
+bedtools intersect was used to identify the number of ORF CRNs intersecting CRNs
+from published gene models.
+
+```bash
+  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4 ); do
+    Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
+    Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
+    AugGff=$MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
+    cat $ORFGff | sed 's/^supercont/Supercontig_/' | sed -e 's/_dna.*\tCRN_HMM/\tCRN_HMM/' > $MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
+    ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
+    ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
+    AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
+    ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
+    AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
+    TotalCRNsTxt=$MergeDir/"$Strain"_Total_CRN.txt
+    TotalCRNsGff=$MergeDir/"$Strain"_Total_CRN.gff
+    TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
+    bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
+    bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
+    bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
+    bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
+    echo "The number of ORF CRNs overlapping Augustus CRNs:"
+    cat $ORFsInAug | grep -w 'gene' | wc -l
+    cat $ORFsInAug | grep -w 'gene' > $TotalCRNsTxt
+    echo "The number of Augustus CRNs overlapping ORF CRNs:"
+    cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | wc -l
+    cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq >> $TotalCRNsTxt
+    echo "The number of CRNs unique to ORF models:"
+    cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f5 -d '=' | wc -l
+    cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f5 -d '=' >> $TotalCRNsTxt
+    echo "The number of CRNs unique to Augustus models:"
+    cat $AugInORFs | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq > Augtmp.txt
+    cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt | wc -l
+    cat $AugUniq | grep -w 'exon' | rev | cut -f2 -d ':' | rev | sort | uniq | grep -v -f Augtmp.txt >> $TotalCRNsTxt
+    cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+    echo "The total number of CRNs are:"
+    cat $TotalCRNsGff | grep -o -E -e 'Name=.*$' -e 'Parent=.*T.$' | sed -e 's/^Name=//g' | sed 's/Parent=//g' | sed 's/";$//g' | sort | uniq > $TotalCRNsHeaders
+    cat $TotalCRNsHeaders | wc -l
+  done
+```
+```
+  The number of ORF CRNs overlapping Augustus CRNs:
+  157
+  The number of Augustus CRNs overlapping ORF CRNs:
+  157
+  The number of CRNs unique to ORF models:
+  98
+  The number of CRNs unique to Augustus models:
+  10
+  The total number of CRNs are:
+  265
+```
+
+Fasta sequences for CRNs were extracted
+
+```bash
+  PinfFa=$(ls assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all_parsed.fa)
+  for AugFa in $PinfFa; do
+    Strain=$(echo "$AugFa" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$AugFa" | rev | cut -f4 -d '/' | rev)
+    ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
+    MergeDir=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain
+    TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
+    CRNsFa=$MergeDir/"$Strain"_Total_CRN.fa
+    ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
+    $ProgDir/unwrap_fasta.py --inp_fasta $AugFa | grep -A1 -w -f $TotalCRNsHeaders | grep -v -E '^--$' > $CRNsFa
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsHeaders >> $CRNsFa
+    echo "$Strain"
+    echo "The number of sequences extracted is"
+    cat $CRNsFa | grep '>' | wc -l
+  done
+```
