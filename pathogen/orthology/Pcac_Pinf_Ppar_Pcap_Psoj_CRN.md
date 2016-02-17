@@ -50,7 +50,7 @@
   Taxon_code=Pcap
   Unparsed_Fasta_file=analysis/CRN_effectors/hmmer_CRN/P.capsici/LT1534/LT1534_Total_CRN.fa
   Fasta_file=$WorkDir/LT1534_Total_CRN_parsed.fa
-  cat $Unparsed_Fasta_file | sed 's/^>jgi|Phyca11|//g' > $Fasta_file
+  cat $Unparsed_Fasta_file | sed 's/^>jgi|Phyca11|/>/g' > $Fasta_file
   Id_field=1
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
   mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
@@ -120,9 +120,9 @@
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
-  MergeHits="$IsolateAbrv"_blast.tab
+  MergeHits=$WorkDir/"$IsolateAbrv"_blast.tab
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
-  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts
+  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
 ## 5) Plot venn diagrams:
@@ -148,24 +148,21 @@ number of unique singleton genes
 number of unique groups of inparalogs
 
 ```
-null device
-          1
-[1] "Pcac"
-[1] 8
-[1] 0
-[1] "Pcap"
-[1] 6
-[1] 2
-[1] "Psoj"
-[1] 5
-[1] 6
-[1] "Pinf"
-[1] 10
-[1] 1
-[1] "Ppar"
-[1] 12
-[1] 3
-NULL
+  [1] "Pcac"
+  [1] 7
+  [1] 0
+  [1] "Pcap"
+  [1] 6
+  [1] 6
+  [1] "Psoj"
+  [1] 4
+  [1] 11
+  [1] "Pinf"
+  [1] 6
+  [1] 1
+  [1] "Ppar"
+  [1] 12
+  [1] 6
 ```
 
 
@@ -182,8 +179,12 @@ following commands:
   cat $GoodProts | grep '>' |  wc -l
 ```
 
-This identified that 37 of 873 CRNs in the analysis carried X's in their amino
-acid sequence
+This identified that 7 of 843 CRNs in the analysis carried X's in their amino
+acid sequence. These genes were: Pcac|g12904.t1 Pcac|g13271.t1 Pcac|g15212.t1
+Pcac|g15627.t1 Pcac|g17041.t1 Pcac|g17676.t1 504842|fgenesh2_kg.PHYCAscaffold_10_#_2_#_4097787:1
+
+
+
 
 
 ### 6.2 ) P. cactotum unique gene families
