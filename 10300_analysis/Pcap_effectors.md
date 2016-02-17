@@ -58,6 +58,7 @@ predicted Crinklers from the LT1534 genome:
   bedtools intersect -s -wo -a $PcapPredCRN -b $PcapCRNGff > $PcapIntersectCRN
   cat $PcapIntersectCRN | cut -f 18 | cut -f2 -d '"' | cut -f2 -d '=' | sort -V | uniq | wc -l
   cat $PcapIntersectCRN | cut -f 9 | rev | cut -f1 -d ';' | rev | sed 's/Name=//g' | sed -E 's/^ //g' | sort -V | uniq | wc -l
+  bedtools intersect -s -v -a $PcapCRNGff -b $PcapPredCRN | cut -f9 | cut -f2 -d '"' | cut -f2 -d '=' | sort -V | less
 ```
 
 Of the 237 Stam et al Crinklers, 142 of them intersect with the 175 crinklers
