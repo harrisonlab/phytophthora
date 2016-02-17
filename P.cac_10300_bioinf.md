@@ -60,7 +60,7 @@ programs:
   kmc
 
 Data quality was visualised using fastqc:
-```shell
+```bash
 	for RawData in $(ls raw_dna/paired/P.cactorum/10300/*/*.fastq*); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		echo $RawData;
@@ -77,7 +77,7 @@ Data quality was visualised using fastqc:
 Trimming was performed on data to trim adapters from
 sequences and remove poor quality data. This was done with fastq-mcf
 
-```shell
+```bash
 	for ReadsF in $(ls raw_dna/paired/P.cactorum/10300/F/*.fastq); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 		IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
@@ -98,7 +98,7 @@ sequences and remove poor quality data. This was done with fastq-mcf
 ```
 
 Data quality was visualised once again following trimming:
-```shell
+```bash
 	for RawData in $(ls qc_dna/*/P.cactorum/10300/*/*.fq.gz); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		echo $RawData;
@@ -116,7 +116,7 @@ There are two problems with this install, firstly it is outdated and secondly
 it is not installed on the /home/ directory so is not copied onto worked nodes
 when using the SGE. The 2014 release 0.0.14 was installed locally using the
 following commands:
-```shell
+```bash
 	cd ~/prog
 	wget https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2
 	tar -jxvf  fastx_toolkit-0.0.14.tar.bz2
@@ -128,7 +128,7 @@ following commands:
 
 The following commands were used to reverse complement the mate-pair reads,
 and then submit the reversed reads to fastqc for visualisation:
-```shell
+```bash
 	qlogin
 	cd /home/groups/harrisonlab/project_files/idris
 	cat qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim.fq.gz | gunzip -cf | fastx_reverse_complement -z -Q33 -o qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim_rev.fq.gz
@@ -145,7 +145,7 @@ and then submit the reversed reads to fastqc for visualisation:
 kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
-```shell
+```bash
 	for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 		TrimF=$(ls $TrimPath/F/*.fq.gz)
