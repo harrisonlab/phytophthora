@@ -120,17 +120,13 @@
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
-  MergeHits="$IsolateAbrv"_blast.tab
+  MergeHits=$WorkDir/"$IsolateAbrv"_blast.tab
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
   qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
 ## 5) Plot venn diagrams:
 
-<!-- ```bash
-  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
-  $ProgDir/ven_diag_5_way.R --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
-``` -->
 
 ```bash
   ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
@@ -146,7 +142,7 @@ Isolate name (total number of orthogroups)
 number of unique singleton genes
 number of unique groups of inparalogs
 
-At an inflation value of 1:
+<!-- At an inflation value of 1:
 ```
 [1] "Pcac"
 [1] 26
@@ -164,26 +160,30 @@ At an inflation value of 1:
 [1] 72
 [1] 19
 NULL
-```
+``` -->
 
 At an inflation value of 5:
+
+Isolate name (total number of orthogroups)
+number of unique singleton genes
+number of unique groups of inparalogs
 
 ```
 [1] "Pcac"
 [1] 26
-[1] 5
+[1] 6
 [1] "Pcap"
-[1] 20
-[1] 15
+[1] 22
+[1] 16
 [1] "Psoj"
-[1] 25
-[1] 35
+[1] 28
+[1] 33
 [1] "Pinf"
-[1] 34
+[1] 31
 [1] 8
 [1] "Ppar"
-[1] 72
-[1] 33
+[1] 95
+[1] 6
 NULL
 ```
 
@@ -201,8 +201,8 @@ following commands:
   cat $GoodProts | grep '>' |  wc -l
 ```
 
-This identified that 32 of 1701 RxLRs in the analysis carried X's in their amino
-acid sequence
+This identified that 2 of 1417 RxLRs in the analysis carried X's in their amino
+acid sequence. These were: Pcac|g10538.t1 and Pcap|502865
 
 
 ### 6.2.a ) P. cactotum unique gene families
@@ -233,32 +233,29 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
 
 ```
   The number of orthogroups unique to P. cactorum are:
-  3
-  The following number of genes are contained in these orthogorups:
   6
+  The following number of genes are contained in these orthogorups:
+  14
 ```
 
 #### 6.2.b)
 
 ```bash
-
-
-$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | sed -E 's/ /\n/g' | grep 'Pcac' | sed 's/Pcac|//g' | wc-l
-$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | grep -o -E 'P\w*\|' | sort | uniq -c
-RxLRDir=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300
-$WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | grep -o -E 'Pcac\|\w*' | sed 's/Pcac|//g' | grep -f $RxLRDir/10300_Total_RxLR_EER_WY_motif_hmm_headers.txt | wc -l
-
+  cat $WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | sed -E 's/ /\n/g' | grep -o '|' | wc -l
+  cat $WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | grep -o -E 'P\w*\|' | sort | uniq -c
+  RxLRDir=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300
+  cat $WorkDir/Pcac_Pinf_Ppar_Pcap_Psoj_RxLR_orthogroups.txt | head -n1 | grep -o -E 'Pcac\|\w*' | sed 's/Pcac|//g' | grep -f $RxLRDir/10300_Total_RxLR_EER_WY_motif_hmm_headers.txt | wc -l
 ```
 
-The largest RxLR group contained 141 proteins, 19 of which were from P.cactorum.
-Of these 19, 15 contained WY domains.
+The largest RxLR group contained 103 proteins, 19 of which were from P.cactorum.
+Of these 19, 15 contained WY domains. Psoj RxLRs were not present in this
+orthogroup
 
 '''
   19 Pcac|
   16 Pcap|
-  29 Pinf|
+  30 Pinf|
   38 Ppar|
-  39 Psoj|
 '''
 
 #### 6.3) Extracting fasta files for all orthogroups
@@ -275,10 +272,10 @@ Of these 19, 15 contained WY domains.
   $ProgDir/orthoMCLgroups2fasta.py --orthogroups $WorkDir/"$IsolateAbrv"_orthogroups.txt --fasta $GoodProt --out_dir $OutDir
 ```
 
-# Run TribeMCL on orthoMCL data
+# 7) Run TribeMCL on orthoMCL data
 
 
-## Run TribeMCL
+### 7.1) Run TribeMCL
 
 ```bash
   mkdir -p $WorkDir/tribeMCL
@@ -292,17 +289,85 @@ Of these 19, 15 contained WY domains.
 ```
   [1] "Pcac"
   [1] 0
-  [1] 51
+  [1] 36
   [1] "Pcap"
   [1] 0
-  [1] 35
+  [1] 95
   [1] "Psoj"
   [1] 0
-  [1] 91
+  [1] 60
   [1] "Pinf"
   [1] 0
   [1] 34
   [1] "Ppar"
   [1] 0
-  [1] 31
+  [1] 33
+```
+
+
+### 7.2) Extracting fasta files for all orthogroups
+
+```bash
+  OrthogroupTxt=$WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL_orthogroups.txt
+  cat $OrthogroupTxt | head -n1 | sed -E 's/ /\n/g' | grep -o '|' | wc -l
+  cat $OrthogroupTxt | head -n1 | grep -o -E 'P\w*\|' | sort | uniq -c
+  RxLRDir=analysis/RxLR_effectors/combined_evidence/P.cactorum/10300
+  cat $OrthogroupTxt | head -n1 | grep -o -E 'Pcac\|\w*' | sed 's/Pcac|//g' | grep -f $RxLRDir/10300_Total_RxLR_EER_WY_motif_hmm_headers.txt | wc -l
+```
+
+The largest RxLR group contained 72 proteins, 9 of which were from P.cactorum.
+Of these 9, 6 contained WY domains. Psoj RxLRs were not present in this
+orthogroup
+
+'''
+  9 Pcac|
+  13 Pcap|
+  20 Pinf|
+  30 Ppar|
+'''
+
+Identify orthogroups of the top 20 expressed RxLRs
+
+```bash
+    cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | less
+  # cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f2,14 -d '"' --output-delimite " - " |  head -n 20
+    cat analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/"$Strain"_Total_RxLR_EER_motif_hmm_expressed.gtf | grep -w 'transcript' | sort -r -n -k 14 -t '"' | cut -f2 -d '"' | head -n 20 | sed 's/^/Pcac|/g' > $WorkDir/Pcac_top_20_expressed_RxLRs.txt
+    cat $WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL_orthogroups.txt | grep -f $WorkDir/Pcac_top_20_expressed_RxLRs.txt |
+```
+
+```
+  orthogroup2 - g8566 - 4.951625 - Pcac (8), Pinf (5), Ppar (6), Pcap (5)
+  orthogroup17 - g14216 - 4.866843 - Pcac, Pinf (6), Ppar (2), Pcap, Psoj
+  orthogroup18 - g11506 - 1.970131 - Pcac, Pinf, Ppar (2), Pcap (6)
+  orthogroup28 - g19634 - 1.808004 - Pcac, Pinf (3), Ppar (4) & Pcap
+  orthogroup41 - g12572 - 0.933141 - Pcac, Pinf (3), Ppar (2) & Pcap
+  orthogroup68 - g7929 - 1.503567 - Pcac (2), Pinf (2), Ppar (2)
+  orthogroup79 - g18158 - 5.131975 - Pcac, Pinf, Ppar, Pcap & Psoj
+  orthogroup83 - g5288 - 1.629739 - Pcac (2), Ppar (2) & Pinf
+  orthogroup97 - g3433 - 0.900869 - Pcac, Pinf, Ppar, Pcap
+  orthogroup131 - g1876 - 4.194974 - Pcac, Ppar (3)
+  orthogroup133 - g15964 - 0.988131 - Pcac, Pinf & Ppar
+  orthogroup139 - g5978 - 2.010123 - Pcac, Pinf & Ppar
+  orthogroup195 - g11594 - 29.889056, g11370 - 29.864802 - Pcac unique
+  orthogroup232 - g8468 - 1.450752 - Pcac & Pinf
+  orthogroup369 - g8314 - 2.084139 - unique gene
+```
+The following genes were  probably represented by ORFs
+g12117 - 5.227685
+g17215 - 4.929356
+g14208 - 4.818298
+g3902 - 1.238576
+
+
+
+```bash
+  IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_RxLR
+  WorkDir=analysis/orthology/orthomcl/"$IsolateAbrv"
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogroupTxt=$WorkDir/tribeMCL/"$IsolateAbrv"_tribeMCL_orthogroups.txt
+  GoodProt=$WorkDir/goodProteins/goodProteins.fasta
+  OutDir=$WorkDir/tribeMCL/orthogroups_tribeMCL_fasta_inflation_5
+  mkdir -p $OutDir
+  # cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | cut -f1 -d ' ' > $OrthogroupTxt
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogroupTxt --fasta $GoodProt --out_dir $OutDir
 ```
