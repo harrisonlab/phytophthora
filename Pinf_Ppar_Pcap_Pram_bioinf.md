@@ -495,7 +495,7 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
 A hmm model relating to crinkler domains was used to identify putative crinklers
 in Augustus gene models. This was done with the following commands:
 
-```bash
+<!-- ```bash
   ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
   HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
   for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
@@ -529,6 +529,89 @@ in Augustus gene models. This was done with the following commands:
   P.sojae P6497
   Initial search space (Z):              26584  [actual number of targets]
   Domain search space  (domZ):             152  [number of targets reported over threshold]
+``` -->
+
+```bash
+  Pcac_pep=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+  for Proteome in $Pcac_pep $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+    mkdir -p $OutDir
+    echo "$Organism - $Strain"
+    # Run hmm searches LFLAK domains
+    CrinklerProts_LFLAK=$OutDir/"$Strain"_pub_CRN_LFLAK_hmm.txt
+    hmmsearch -T0 $LFLAK_hmm $Proteome > $CrinklerProts_LFLAK
+    cat $CrinklerProts_LFLAK | grep 'Initial search space'
+    cat $CrinklerProts_LFLAK | grep 'number of targets reported over threshold'
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    $ProgDir/hmmer2fasta.pl $CrinklerProts_LFLAK $Proteome > $OutDir/"$Strain"_pub_CRN_LFLAK_hmm.fa
+    # Run hmm searches DWL domains
+    CrinklerProts_DWL=$OutDir/"$Strain"_pub_CRN_DWL_hmm.txt
+    hmmsearch -T0 $DWL_hmm $Proteome > $CrinklerProts_DWL
+    cat $CrinklerProts_DWL | grep 'Initial search space'
+    cat $CrinklerProts_DWL | grep 'number of targets reported over threshold'
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    $ProgDir/hmmer2fasta.pl $CrinklerProts_DWL $Proteome > $OutDir/"$Strain"_pub_CRN_DWL_hmm.fa
+    # Identify the genes detected in both models
+    cat $OutDir/"$Strain"_pub_CRN_LFLAK_hmm.fa $OutDir/"$Strain"_pub_CRN_DWL_hmm.fa | grep '>' | cut -f1 | tr -d '>' | sort | uniq -d > $OutDir/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    cat $OutDir/"$Strain"_pub_CRN_LFLAK_DWL.txt | wc -l
+  done
+```
+
+```
+  P.cactorum - 10300
+  Initial search space (Z):              20689  [actual number of targets]
+  Domain search space  (domZ):              95  [number of targets reported over threshold]
+  Initial search space (Z):              20689  [actual number of targets]
+  Domain search space  (domZ):              82  [number of targets reported over threshold]
+  67
+  P.infestans - T30-4
+  Initial search space (Z):              17787  [actual number of targets]
+  Domain search space  (domZ):             193  [number of targets reported over threshold]
+  Initial search space (Z):              17787  [actual number of targets]
+  Domain search space  (domZ):             168  [number of targets reported over threshold]
+  167
+  P.parisitica - 310
+  Initial search space (Z):              20822  [actual number of targets]
+  Domain search space  (domZ):              44  [number of targets reported over threshold]
+  Initial search space (Z):              20822  [actual number of targets]
+  Domain search space  (domZ):              39  [number of targets reported over threshold]
+  31
+  P.capsici - LT1534
+  Initial search space (Z):              19805  [actual number of targets]
+  Domain search space  (domZ):             104  [number of targets reported over threshold]
+  Initial search space (Z):              19805  [actual number of targets]
+  Domain search space  (domZ):              88  [number of targets reported over threshold]
+  82
+  P.sojae - P6497
+  Initial search space (Z):              26584  [actual number of targets]
+  Domain search space  (domZ):             170  [number of targets reported over threshold]
+  Initial search space (Z):              26584  [actual number of targets]
+  Domain search space  (domZ):             133  [number of targets reported over threshold]
+  108
+```
+
+Gff annotations were extracted for these putative crinklers:
+
+```bash
+  PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gff3
+  for GeneGff in $PinfPubGff; do
+    echo "$GeneGff"
+    Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
+    CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
+    Source="pub"
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    echo "$Species - $Strain"
+    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+    cat $CRN_hmm_gff | grep 'exon' | cut -f9 | cut -f2 -d ':' | sort | uniq | wc -l
+  done
 ```
 
 
@@ -832,45 +915,72 @@ A hmm model relating to crinkler domains was used to identify putative crinklers
 in ORF gene models. This was done with the following commands:
 
 ```bash
-for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa); do
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/Phyt_annot_CRNs_D1.hmm
-Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
-Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
-mkdir -p $OutDir
-HmmResults="$Strain"_ORF_CRN_unmerged_hmmer.txt
-hmmsearch -T 0 $HmmModel $Proteome > $OutDir/$HmmResults
-echo "$Organism $Strain"
-cat $OutDir/$HmmResults | grep 'Initial search space'
-cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
-HmmFasta="$Strain"_ORF_CRN_hmmer_unmerged_out.fa
-$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Proteome > $OutDir/$HmmFasta
-Headers="$Strain"_CRN_hmmer_unmerged_headers.txt
-cat $OutDir/$HmmFasta | grep '>' | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' | sed 's/hmm_score/HMM_score/g' > $OutDir/$Headers
-cat $OutDir/$Headers | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.txt
-ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF_corrected.gff3)
-cat $ORF_Gff | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.gff
-CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/extract_gff_for_sigP_hits.pl tmp.txt tmp.gff CRN_HMM Name > $CRN_unmerged_Gff
-DbDir=analysis/databases/$Organism/$Strain
-mkdir -p $DbDir
-ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
-$ProgDir/make_gff_database.py --inp $CRN_unmerged_Gff --db $DbDir/CRN_ORF.db
-CRN_Merged_Gff=$OutDir/"$Strain"_CRN_merged_hmmer.gff3
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/merge_sigP_ORFs.py --inp $DbDir/CRN_ORF.db --id $HmmModel --out $DbDir/CRN_ORF_merged.db --gff > $CRN_Merged_Gff
-sed -i 's/_a_/:/g' $CRN_Merged_Gff
-sed -i 's/supercont1_b_/supercont1./g' $CRN_Merged_Gff
-sed -i 's/Supercontig_c_/Supercontig_2./g' $CRN_Merged_Gff
-echo "Number of CRN ORFs after merging:"
-cat $CRN_Merged_Gff | grep 'gene' | wc -l
-rm tmp.txt
-rm tmp.gff
-done
+  for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa); do
+    # Setting variables
+    Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
+    mkdir -p $OutDir
+    # Hmmer variables
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    HmmDir=/home/groups/harrisonlab/project_files/idris/analysis/CRN_effectors/hmmer_models
+    # Searches for LFLAK domain
+    LFLAK_hmm=$HmmDir/Pinf_Pram_Psoj_Pcap_LFLAK.hmm
+    HmmResultsLFLAK="$Strain"_ORF_CRN_LFLAK_unmerged_hmmer.txt
+    hmmsearch -T 0 $LFLAK_hmm $Proteome > $OutDir/$HmmResultsLFLAK
+    echo "Searching for LFLAK domains in: $Organism $Strain"
+    cat $OutDir/$HmmResultsLFLAK | grep 'Initial search space'
+    cat $OutDir/$HmmResultsLFLAK | grep 'number of targets reported over threshold'
+    HmmFastaLFLAK="$Strain"_ORF_CRN_LFLAK_unmerged_hmmer.fa
+    $ProgDir/hmmer2fasta.pl $OutDir/$HmmResultsLFLAK $Proteome > $OutDir/$HmmFastaLFLAK
+    # Searches for DWL domain
+    DWL_hmm=$HmmDir/Pinf_Pram_Psoj_Pcap_DWL.hmm
+    HmmResultsDWL="$Strain"_ORF_CRN_DWL_unmerged_hmmer.txt
+    hmmsearch -T 0 $DWL_hmm $Proteome > $OutDir/$HmmResultsDWL
+    echo "Searching for DWL domains in: $Organism $Strain"
+    cat $OutDir/$HmmResultsDWL | grep 'Initial search space'
+    cat $OutDir/$HmmResultsDWL | grep 'number of targets reported over threshold'
+    HmmFastaDWL="$Strain"_ORF_CRN_DWL_unmerged_hmmer.fa
+    $ProgDir/hmmer2fasta.pl $OutDir/$HmmResultsDWL $Proteome > $OutDir/$HmmFastaDWL
+    # Identify ORFs found by both models
+    CommonHeaders=$OutDir/"$Strain"_ORF_CRN_DWL_LFLAK_unmerged_headers.txt
+    cat $OutDir/$HmmFastaLFLAK $OutDir/$HmmFastaDWL | grep '>' | cut -f1 | tr -d '>' | sort | uniq -d > $CommonHeaders
+    echo "The number of CRNs common to both models are:"
+    cat $CommonHeaders | wc -l
+    # The sequences will be merged based upon the strength of their DWL domain score
+    # For this reason headers as they appear in the DWL fasta file were extracted
+    Headers="$Strain"_CRN_hmmer_unmerged_headers.txt
+    cat $OutDir/$HmmFastaDWL | grep '>' | grep -w -f $CommonHeaders | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' | sed 's/hmm_score/HMM_score/g' > $OutDir/$Headers
+    # As we are dealing with JGI and Broad sequences, some headers need formatting:
+    cat $OutDir/$Headers | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.txt
+    # As we are dealing with JGI and Broad sequences, some features need formatting:
+    ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF_corrected.gff3)
+    cat $ORF_Gff | sed 's/:/_a_/g' | sed 's/supercont1./supercont1_b_/g' | sed 's/Supercontig_2./Supercontig_c_/g' > tmp.gff
+    # Gff features were extracted for each header
+    CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_gff_for_sigP_hits.pl tmp.txt tmp.gff CRN_HMM Name > $CRN_unmerged_Gff
+    # Gff features were merged based upon the DWL hmm score
+    DbDir=analysis/databases/$Organism/$Strain
+    mkdir -p $DbDir
+    ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+    $ProgDir/make_gff_database.py --inp $CRN_unmerged_Gff --db $DbDir/CRN_ORF.db
+    CRN_Merged_Gff=$OutDir/"$Strain"_CRN_merged_hmmer.gff3
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/merge_sigP_ORFs.py --inp $DbDir/CRN_ORF.db --id LFLAK_DWL_CRN --out $DbDir/CRN_ORF_merged.db --gff > $CRN_Merged_Gff
+    # As we are dealing with JGI and Broad sequences, some features need formatting:
+    sed -i 's/_a_/:/g' $CRN_Merged_Gff
+    sed -i 's/supercont1_b_/supercont1./g' $CRN_Merged_Gff
+    sed -i 's/Supercontig_c_/Supercontig_2./g' $CRN_Merged_Gff
+    # Final results are reported:
+    echo "Number of CRN ORFs after merging:"
+    cat $CRN_Merged_Gff | grep 'gene' | wc -l
+    # Temporary files containing the reformatted headers and features were deleted
+    rm tmp.txt
+    rm tmp.gff
+  done
 ```
-
+<!--
 ```
   P.cactorum 10300
   Initial search space (Z):             443642  [actual number of targets]
@@ -897,4 +1007,56 @@ done
   Domain search space  (domZ):             398  [number of targets reported over threshold]
   Number of CRN ORFs after merging:
   212
+``` -->
+```
+Searching for LFLAK domains in: P.cactorum 10300
+Initial search space (Z):             443642  [actual number of targets]
+Domain search space  (domZ):             183  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 10300
+Initial search space (Z):             443642  [actual number of targets]
+Domain search space  (domZ):             205  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+85
+Number of CRN ORFs after merging:
+58
+Searching for LFLAK domains in: P.capsici LT1534
+Initial search space (Z):             437865  [actual number of targets]
+Domain search space  (domZ):             296  [number of targets reported over threshold]
+Searching for DWL domains in: P.capsici LT1534
+Initial search space (Z):             437865  [actual number of targets]
+Domain search space  (domZ):             361  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+174
+Number of CRN ORFs after merging:
+104
+Searching for LFLAK domains in: P.infestans T30-4
+Initial search space (Z):            1363381  [actual number of targets]
+Domain search space  (domZ):             568  [number of targets reported over threshold]
+Searching for DWL domains in: P.infestans T30-4
+Initial search space (Z):            1363381  [actual number of targets]
+Domain search space  (domZ):             760  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+373
+Number of CRN ORFs after merging:
+255
+Searching for LFLAK domains in: P.parisitica 310
+Initial search space (Z):             410940  [actual number of targets]
+Domain search space  (domZ):             104  [number of targets reported over threshold]
+Searching for DWL domains in: P.parisitica 310
+Initial search space (Z):             410940  [actual number of targets]
+Domain search space  (domZ):             105  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+47
+Number of CRN ORFs after merging:
+26
+Searching for LFLAK domains in: P.sojae P6497
+Initial search space (Z):             696564  [actual number of targets]
+Domain search space  (domZ):             414  [number of targets reported over threshold]
+Searching for DWL domains in: P.sojae P6497
+Initial search space (Z):             696564  [actual number of targets]
+Domain search space  (domZ):             506  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+230
+Number of CRN ORFs after merging:
+147
 ```
