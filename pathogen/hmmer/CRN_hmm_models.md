@@ -280,3 +280,52 @@ Fasta sequences for CRNs were extracted
     cat $CRNsFa | grep '>' | wc -l
   done
 ```
+
+
+
+265 Crinklers were identified in the genome. This may still represent a false
+ positives being predicted. The Crinklers predicted in Haas 2009 were compared
+ to the Crinklers predicted in this study.
+
+
+ ```bash
+   OutDir=analysis/Pinf_effectors
+   PinfCRNGff=$OutDir/PinfCRN.gff
+   PinfPredCRN=analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_Total_CRN.gff
+   PinfIntersectCRN=$OutDir/Pinf_ORF_CRN_LFLAK_DWL_intersected.gff
+   PinfIntersectCRN_headers=$OutDir/Pinf_ORF_CRN_LFLAK_DWL_intersected.txt
+   echo "Of the 194 published CRNs, the number we identified were:"
+   bedtools intersect -s -wo -a $PinfPredCRN -b $PinfCRNGff > $PinfIntersectCRN
+   cat $PinfIntersectCRN | grep 'exon' | cut -f2 -d '"' | sort | uniq > $PinfIntersectCRN_headers
+   cat $PinfIntersectCRN_headers | wc -l
+   echo "The number missing were:"
+   bedtools intersect -s -v -a $PinfCRNGff -b $PinfPredCRN | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq | grep -v -f $PinfIntersectCRN_headers > $OutDir/T30-4_pub_CRN_missing.txt
+   cat $OutDir/T30-4_pub_CRN_missing.txt | wc -l
+```
+
+```bash
+  echo "Of the 159 published CRN genes that have BLAST homologs to our CRNs, the following number were from published gene models:"
+  cat $PinfIntersectCRN | grep -v 'CRN_HMM' | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
+  echo "and the following number were from ORFs:"
+  cat $PinfIntersectCRN | grep 'CRN_HMM' | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
+```
+
+The 35 Crinklers that were predicted in published models, but missing from CRNs
+in this study were identified and fasta accessions extracted.
+Study of these proteins in geneious showed that one of them contained an LQLFLAK
+and none of them contained a canonical DWL domain (HVLVVVP). Some LIVQVP
+domain or DWL domain (HVLVVVP sequence). The closest was the presence of an
+LFVAQ sequence in one and RQVVVP in five sequences. 15 of the sequences had a
+very similar start.
+
+
+```bash
+  PinfProt=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  PinfProtMod=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all_mod.fa
+  ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
+  $ProgDir/unwrap_fasta.py --inp_fasta $PinfProt > $PinfProtMod
+
+  echo "The following Crinklers were not found:"
+  cat $OutDir/T30-4_pub_CRN_missing.txt | wc -l
+  cat $PinfProtMod | grep -w -A1 -f $OutDir/T30-4_pub_CRN_missing.txt | grep -v -E '^--' > $OutDir/T30-4_pub_CRN_LFLAK_DWL_missing.fa
+```
