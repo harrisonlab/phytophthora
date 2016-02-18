@@ -591,19 +591,32 @@ Extract crinklers from published gene models
   PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gff3
   PcapPubGff=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_genes.gff
   PsojPubGff=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_genes_20110401.gff
+  for GeneGff in $PcacAugGff; do
+    echo "$GeneGff"
+    Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
+    CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
+    Source="pred"
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    echo "$Species - $Strain"
+    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+  done
   # For P. capsici & P. sojae
-  for GeneGff in $PsojPubGff; do
+  for GeneGff in $PcapPubGff $PsojPubGff; do
     echo "$GeneGff"
     Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
     Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
     CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
     Source="pub"
-    CRN_hmm_fa=$(ls analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer_out.fa)
-    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.txt
-    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.gff
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    CRN_hmm_txt_mod=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL_mod.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    cat $CRN_hmm_txt | cut -f4 -d '|' > $CRN_hmm_txt_mod
     echo "$Species - $Strain"
-    cat $CRN_hmm_fa | grep '>' | cut -f1 | tr -d '>' | cut -f4 -d '|' > $CRN_hmm_txt
-    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+    cat $GeneGff | grep -w -f $CRN_hmm_txt_mod > $CRN_hmm_gff
+    rm $CRN_hmm_txt_mod
+    cat $CRN_hmm_gff | cut -f2 -d '"' | sort | uniq | wc -l
   done
   # For P. infestans & P. parisitica
   for GeneGff in $PinfPubGff $PparPubGff; do
@@ -612,12 +625,11 @@ Extract crinklers from published gene models
     Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
     CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
     Source="pub"
-    CRN_hmm_fa=$(ls analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer_out.fa)
-    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.txt
-    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_hmmer.gff
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
     echo "$Species - $Strain"
-    cat $CRN_hmm_fa | grep '>' | cut -f1 | tr -d '>' | cut -f4 -d '|' > $CRN_hmm_txt
     cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+    cat $CRN_hmm_gff | grep 'exon' | cut -f9 | cut -f2 -d ':' | sort | uniq | wc -l
   done
 ```
 
@@ -626,11 +638,7 @@ Extract crinklers from published gene models
   for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -v -e '67593' -e 'masked'); do
     Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
     Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-    AugGff=$MergeDir/"$Strain"_pub_CRN_hmmer.gff
-    if [ $Species == "P.cactorum" ]; then
-      AugGff=$MergeDir/"$Strain"_Aug_CRN_hmmer.gff3
-    fi
-    ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
+    AugGff=$MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff
     if [ $Species == P.infestans ]; then
       cat $ORFGff | sed 's/^supercont/Supercontig_/' | sed -e 's/_dna.*\tCRN_HMM/\tCRN_HMM/' > $MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
       ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
