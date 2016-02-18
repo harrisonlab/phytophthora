@@ -491,10 +491,10 @@ using the following commands:
 		TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
 		printf "$Organism\t$Strain\n"
 		printf "The number of bases masked by RepeatMasker:\t"
-		bedtools merge -i $RepMaskGff | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		bedtools sort -i $RepMaskGff | bedtools merge  | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
 		printf "The number of bases masked by TransposonPSI:\t"
 		sortBed -i $TransPSIGff > $RepDir/TPSI_sorted.bed
-		bedtools merge -i $RepDir/TPSI_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+		bedtools sort -i $RepDir/TPSI_sorted.bed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
 		cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
 		sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
 		printf "The total number of masked bases are:\t"
