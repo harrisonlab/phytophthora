@@ -195,6 +195,29 @@ using the following commands:
   done
 ```
 
+```
+  P.cactorum	10300
+  The number of bases masked by RepeatMasker:	9932231
+  The number of bases masked by TransposonPSI:	2318917
+  The total number of masked bases are:	10813641
+  P.infestans	T30-4
+  The number of bases masked by RepeatMasker:	123431647
+  The number of bases masked by TransposonPSI:	28631065
+  The total number of masked bases are:	152062712
+  P.parisitica	310
+  The number of bases masked by RepeatMasker:	5712393
+  The number of bases masked by TransposonPSI:	2413506
+  The total number of masked bases are:	6999606
+  P.capsici	LT1534
+  The number of bases masked by RepeatMasker:	12603095
+  The number of bases masked by TransposonPSI:	3902251
+  The total number of masked bases are:	13568722
+  P.sojae	67593
+  The number of bases masked by RepeatMasker:	22097217
+  The number of bases masked by TransposonPSI:	5746805
+  The total number of masked bases are:	23698005
+```
+
 # Gene Prediction
 
 
