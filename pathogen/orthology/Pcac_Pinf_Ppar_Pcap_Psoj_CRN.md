@@ -149,20 +149,20 @@ number of unique groups of inparalogs
 
 ```
   [1] "Pcac"
-  [1] 7
-  [1] 0
+  [1] 8
+  [1] 3
   [1] "Pcap"
   [1] 6
-  [1] 6
+  [1] 8
   [1] "Psoj"
-  [1] 4
+  [1] 30
   [1] 11
   [1] "Pinf"
+  [1] 4
+  [1] 4
+  [1] "Ppar"
   [1] 6
   [1] 1
-  [1] "Ppar"
-  [1] 12
-  [1] 6
 ```
 
 
@@ -178,11 +178,13 @@ following commands:
   cat $GoodProts | grep -v '>' | grep 'X' | wc -l
   cat $GoodProts | grep '>' |  wc -l
 ```
-
+<!--
 This identified that 7 of 843 CRNs in the analysis carried X's in their amino
-acid sequence. These genes were: Pcac|g12904.t1 Pcac|g13271.t1 Pcac|g15212.t1
+acid sequence. These genes were:
+```
+Pcac|g12904.t1 Pcac|g13271.t1 Pcac|g15212.t1
 Pcac|g15627.t1 Pcac|g17041.t1 Pcac|g17676.t1 504842|fgenesh2_kg.PHYCAscaffold_10_#_2_#_4097787:1
-
+``` -->
 
 
 
@@ -226,12 +228,18 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
   IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_CRN
   WorkDir=analysis/orthology/orthomcl/"$IsolateAbrv"
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
-  OrthogroupTxt=$WorkDir/orthogroups_fasta/"$IsolateAbrv"_Orthogroups.txt
+  # OrthogroupTxt=$WorkDir/orthogroups_fasta/"$IsolateAbrv"_Orthogroups.txt
   GoodProt=$WorkDir/goodProteins/goodProteins.fasta
   OutDir=$WorkDir/orthogroups_fasta
   mkdir -p $OutDir
   # cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | cut -f1 -d ' ' > $OrthogroupTxt
   $ProgDir/orthoMCLgroups2fasta.py --orthogroups $WorkDir/"$IsolateAbrv"_orthogroups.txt --fasta $GoodProt --out_dir $OutDir
+  GenesInOrthogroups=$OutDir/"$IsolateAbrv"_orthogroup_genes.txt
+  GenesNotInOrthogroupsTxt=$OutDir/"$IsolateAbrv"_non-orthogroup_genes.txt
+  GenesNotInOrthogroupsFasta=$OutDir/"$IsolateAbrv"_non-orthogroup_genes.fa
+  cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | sed 's/ /\n/g' | grep -v 'orthogroup' > $GenesInOrthogroups
+  cat $WorkDir/goodProteins/goodProteins.fasta $GenesInOrthogroups | grep '|' | tr -d '>' | cut -f1 -d '.' | sort | uniq -u > $GenesNotInOrthogroupsTxt
+  cat $WorkDir/goodProteins/goodProteins.fasta | grep -w -A1 -f $GenesNotInOrthogroupsTxt | grep -v -E '^--'> $GenesNotInOrthogroupsFasta
 ```
 
 
@@ -252,17 +260,17 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
 ```
   [1] "Pcac"
   [1] 0
-  [1] 8
+  [1] 1
   [1] "Pcap"
   [1] 0
-  [1] 11
+  [1] 1
   [1] "Psoj"
   [1] 0
-  [1] 15
+  [1] 4
   [1] "Pinf"
   [1] 0
-  [1] 11
+  [1] 2
   [1] "Ppar"
   [1] 0
-  [1] 7
+  [1] 0
 ```
