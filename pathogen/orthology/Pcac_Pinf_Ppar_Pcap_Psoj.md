@@ -114,14 +114,14 @@
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
   MergeHits="$IsolateAbrv"_blast.tab
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
-  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts
+  qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
 ## 5) Plot venn diagrams:
 
 ```bash
   ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
-  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r -inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
 ```
 
 Output was a pdf file of the venn diagram.
@@ -129,26 +129,32 @@ Output was a pdf file of the venn diagram.
 The following additional information was also provided. The format of the
 following lines is as follows:
 
-Isolate name (total number of orthogroups)
+Isolate name
+total number of orthogroups
 number of unique singleton genes
 number of unique groups of inparalogs
 
 ```
-  [1] "Pcac (8814)"
-  [1] 567
-  [1] 118
-  [1] "Pcap (7646)"
-  [1] 333
-  [1] 52
-  [1] "Pinf (8335)"
-  [1] 562
-  [1] 100
-  [1] "Ppar (8987)"
-  [1] 695
-  [1] 79
-  [1] "Psoj (9156)"
-  [1] 883
-  [1] 388
+  [1] "Pcac"
+  [1] 12631
+  [1] 1564
+  [1] 413
+  [1] "Pcap"
+  [1] 11158
+  [1] 1147
+  [1] 375
+  [1] "Psoj"
+  [1] 13822
+  [1] 2688
+  [1] 1002
+  [1] "Pinf"
+  [1] 11206
+  [1] 1230
+  [1] 258
+  [1] "Ppar"
+  [1] 12849
+  [1] 1755
+  [1] 315
 ```
 
 # 6) Downstream analysis
