@@ -42,8 +42,11 @@ The gff features for these proteins were extracted
   cat $PinfRxLRGff | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
 ```
 
-The location previously identified CRNs and RxLRs were intersected with the
-CRNs and RxLRs from this study.
+
+# Missing crinklers
+
+The location previously identified CRNs were intersected with the
+CRNs from this study.
 
 ```bash
   PinfPredCRN=analysis/CRN_effectors/hmmer_CRN/P.infestans/T30-4/T30-4_Total_CRN.gff
@@ -51,13 +54,7 @@ CRNs and RxLRs from this study.
   echo "Of the 194 published CRNs, the number we identified were:"
   bedtools intersect -s -wo -a $PinfPredCRN -b $PinfCRNGff > $PinfIntersectCRN
   cat $PinfIntersectCRN  | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
-  bedtools intersect -s -v -a $PinfCRNGff -b $PinfPredCRN | grep -w 'exon' | cut -f9 | cut -f2 -d '"' > $OutDir/T30-4_pub_CRN_missing.txt
-
-  PinfPredRxLR=analysis/RxLR_effectors/combined_evidence/P.infestans/T30-4/T30-4_Total_RxLR_EER_motif_hmm.gff
-  PinfIntersectRxLR=$OutDir/PinfRxLR_intersected.gff
-  echo "Of the 486 published RxLRs, the number we identified were:"
-  bedtools intersect -s -wb -a $PinfPredRxLR -b $PinfRxLRGff > $PinfIntersectRxLR
-  cat $PinfIntersectRxLR | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
+  bedtools intersect -s -v -a $PinfCRNGff -b $PinfPredCRN | grep -w 'exon' | cut -f9 | cut -f2 -d '"' | sort | uniq > $OutDir/T30-4_pub_CRN_missing.txt
 ```
 
 
@@ -115,6 +112,146 @@ Published genes that did not contain a VL...P motif were identified
   cat $PinfCRNFa |  grep -v -E 'VLV..P' | grep -B1 -E '^M' | grep '>' | wc -l
   cat $PinfCRNFa |  grep -v -E 'VLV..P' | grep -B1 -E '^M' | grep -v -E '^--' > $PinfCRN_no_HVLVVVP
 ```
+
+
+# 3. RxLRs
+
+## 3.a Missing RxLRs
+
+Missing RxLRs were further investigated:
+
+```bash
+  OutDir=analysis/Pinf_effectors
+  PinfRxLRGff=$OutDir/PinfRxLR.gff
+  PinfPredRxLR=analysis/RxLR_effectors/combined_evidence/P.infestans/T30-4/T30-4_Total_RxLR_EER_motif_hmm.gff
+  PinfIntersectRxLR=$OutDir/PinfRxLR_intersected.gff
+  echo "Of the 486 published RxLRs, the number we identified were:"
+  bedtools intersect -s -wb -a $PinfPredRxLR -b $PinfRxLRGff > $PinfIntersectRxLR
+  cat $PinfIntersectRxLR | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
+  bedtools intersect -s -v -a $PinfRxLRGff -b $PinfPredRxLR | grep -w 'exon' | cut -f9 | cut -f4 -d '"' | sort | uniq > $OutDir/T30-4_pub_RxLR_missing.txt
+  PinfRxLRFa=$OutDir/PinfRxLR.fa
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+  $ProgDir/extract_from_fasta.py --fasta $PinfRxLRFa --headers $OutDir/T30-4_pub_RxLR_missing.txt > $OutDir/T30-4_pub_RxLR_missing.fa
+
+  cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -v '>' | grep -E -o 'R.L.' | sort | uniq -c | sort -n -r
+```
+
+A diversity of RxLR sequences were observed in the fasta file of non-predicted
+RxLRs
+
+```bash
+  mkdir -p $OutDir/SigP
+  signalp-2.0 -t euk -f summary -trunc 70 $OutDir/T30-4_pub_RxLR_missing.fa > $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/rxlr
+  $ProgDir/annotate_signalP2hmm3_v3.pl $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.txt $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.tab $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.aa $OutDir/SigP/T30-4_pub_RxLR_missing_sigP_neg.aa $OutDir/T30-4_pub_RxLR_missing.fa
+```
+There are 115 signalP positives
+There are 23 signalP negatives
+
+```bash
+  mkdir -p $OutDir/SigP
+  signalp-4.1 -t euk -f summary -c 70 $OutDir/T30-4_pub_RxLR_missing.fa > $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+  $ProgDir/sigP_4.1_parser.py --inp_sigP $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.txt   --out_tab $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.tab --out_fasta $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.aa --out_neg $OutDir/SigP/T30-4_pub_RxLR_missing_sigP_neg.aa --inp_fasta $OutDir/T30-4_pub_RxLR_missing.fa
+  cat $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.aa | grep '>' | wc -l
+  cat $OutDir/SigP/T30-4_pub_RxLR_missing_sigP_neg.aa | grep '>' | wc -l
+```
+
+There are 120 signalP-4.1 positives
+There are 19 SignalP-4.1 negatives
+
+From this it can be determined that it is not the prediction of signal peptides
+that is preventing these genes from being predicted as RxLRs.
+
+```bash
+mkdir -p $OutDir/RxLR
+ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+$ProgDir/RxLR_EER_regex_finder.py $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.aa > $OutDir/RxLR/T30-4_pub_RxLR_missing_sigP_motif_present.fa
+cat $OutDir/RxLR/T30-4_pub_RxLR_missing_sigP_motif_present.fa | grep '>' | wc -l
+cat $OutDir/RxLR/T30-4_pub_RxLR_missing_sigP_motif_present.fa | grep 'EER_motif_start' | wc -l
+```
+
+59 of the 120 genes carried RxLR motifs. None of the genes carried the EER as
+defined in our methology.
+
+This was further investigated:
+```bash
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E -o 'R.L..{,40}[ED][ED][EDKR]' | less
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E 'R.L..{,40}[ED][ED][EDKR]' | wc -l
+# 42
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E -o 'R.LR.{,40}[ED][EDKR]' | less
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E 'R.LR.{,40}[ED][EDKR]' | wc -l
+# 50
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E -o 'R.L..{,40}[ED][EDKR]' | less
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E 'R.L..{,40}[ED][EDKR]' | wc -l
+# 100
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E -o -e 'R.LR.{,40}[ED][EDKR]' -e 'R.L..{,40}[ED][ED][ED][KR]' | less
+cat $OutDir/T30-4_pub_RxLR_missing.fa | grep -E -e 'R.LR.{,40}[ED][EDKR]' -e 'R.L..{,40}[ED][ED][ED][KR]' | wc -l
+# 55
+```
+
+This shows that unpredicted RxLRs contain variants of the RxLR motif or the EER
+motif. This raises questions of where to draw the line of RxLR prediction.
+Without functional validation it is hard to say if these variants are genuine
+RxLRs or false +ves.
+
+
+## 3.b Additional RxLRs
+
+Additional RxLRs were further investigated
+
+```bash
+  OutDir=analysis/Pinf_effectors
+  PinfRxLRGff=$OutDir/PinfRxLR.gff
+  PinfPredRxLR=analysis/RxLR_effectors/combined_evidence/P.infestans/T30-4/T30-4_Total_RxLR_EER_motif_hmm.gff
+  PinfIntersectRxLR=$OutDir/PinfRxLR_intersected.gff
+  echo "Of the 486 published RxLRs, the number we identified were:"
+  bedtools intersect -s -wb -a $PinfPredRxLR -b $PinfRxLRGff > $PinfIntersectRxLR
+  cat $PinfIntersectRxLR | grep 'exon' | cut -f4 -d '"' | sort | uniq | wc -l
+  bedtools intersect -s -v -a $PinfPredRxLR -b $PinfRxLRGff | grep -E -e "PI_T30-4_FINAL_CALLGENES_4.exon" -e 'RxLR_EER_combined.transcript' | cut -f9 | cut -f2,3 -d ';' | rev | cut -f1 -d '=' | rev | sort | uniq > $OutDir/T30-4_pub_RxLR_additional.txt
+  PinfRxLRFa=analysis/RxLR_effectors/combined_evidence/P.infestans/T30-4/T30-4_Total_RxLR_EER_motif_hmm_headers.fa
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+  $ProgDir/extract_from_fasta.py --fasta $PinfRxLRFa --headers $OutDir/T30-4_pub_RxLR_additional.txt > $OutDir/T30-4_pub_RxLR_additional.fa
+
+  cat $OutDir/T30-4_pub_RxLR_additional.fa | grep -v '>' | grep -E -o 'R.L.' | sort | uniq -c | sort -n -r
+```
+
+```bash
+  mkdir -p $OutDir/SigP
+  signalp-4.1 -t euk -f summary -c 70 $OutDir/T30-4_pub_RxLR_additional.fa > $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+  $ProgDir/sigP_4.1_parser.py --inp_sigP $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.txt   --out_tab $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.tab --out_fasta $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.aa --out_neg $OutDir/SigP/T30-4_pub_RxLR_additional_sigP_neg.aa --inp_fasta $OutDir/T30-4_pub_RxLR_additional.fa
+  cat $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.aa | grep '>' | wc -l
+  cat $OutDir/SigP/T30-4_pub_RxLR_additional_sigP_neg.aa | grep '>' | wc -l
+```
+
+There are 33 signalP-4.1 positives
+There are 83 SignalP-4.1 negatives
+
+```bash
+  mkdir -p $OutDir/SigP
+  signalp-2.0 -t euk -f summary -trunc 70 $OutDir/T30-4_pub_RxLR_additional.fa > $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/rxlr
+  $ProgDir/annotate_signalP2hmm3_v3.pl $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.txt $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.tab $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.aa $OutDir/SigP/T30-4_pub_RxLR_additional_sigP_neg.aa $OutDir/T30-4_pub_RxLR_additional.fa
+```
+
+There are 102 signalP positives
+There are 13 signalP negatives
+
+These RxLRs look to be sensitive to prediction program used. SigP 2 was required
+to predict many of these RxLRs. 13 RxLRs did not carry detectable secretion
+signal, indicating that at least 13 RxLRs were predicted from the hmm model
+rather than the motif searches.
+
+```bash
+  mkdir -p $OutDir/RxLR
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
+  $ProgDir/RxLR_EER_regex_finder.py $OutDir/SigP/T30-4_pub_RxLR_additional_sigP.aa > $OutDir/RxLR/T30-4_pub_RxLR_additional_sigP_motif_present.fa
+  cat $OutDir/RxLR/T30-4_pub_RxLR_additional_sigP_motif_present.fa | grep '>' | wc -l
+  cat $OutDir/RxLR/T30-4_pub_RxLR_additional_sigP_motif_present.fa | grep 'EER_motif_start' | wc -l
+```
+
+96 of the 102 genes carried RxLR motifs and 90 of these carried EER motifs.
 
 
 <!--
