@@ -136,30 +136,35 @@ draw.quintuple.venn(
 dev.off()
 
 singles = df1[grepl("single*", rownames(df1)), ]
-uniq_1=sum(singles[, 1])
-uniq_2=sum(singles[, 2])
-uniq_3=sum(singles[, 3])
-uniq_4=sum(singles[, 4])
-uniq_5=sum(singles[, 5])
+uniq_1=sum(singles[, label1])
+uniq_2=sum(singles[, label2])
+uniq_3=sum(singles[, label3])
+uniq_4=sum(singles[, label4])
+uniq_5=sum(singles[, label5])
 orthogroups = df1[grepl("orthogroup*", rownames(df1)), ]
-inpara_1 = sum(orthogroups[,1] == 1 & orthogroups[,2] == 0 & orthogroups[,3] == 0 & orthogroups[,4] == 0 & orthogroups[,5] == 0)
-inpara_2 = sum(orthogroups[,1] == 0 & orthogroups[,2] == 1 & orthogroups[,3] == 0 & orthogroups[,4] == 0 & orthogroups[,5] == 0)
-inpara_3 = sum(orthogroups[,1] == 0 & orthogroups[,2] == 0 & orthogroups[,3] == 1 & orthogroups[,4] == 0 & orthogroups[,5] == 0)
-inpara_4 = sum(orthogroups[,1] == 0 & orthogroups[,2] == 0 & orthogroups[,3] == 0 & orthogroups[,4] == 1 & orthogroups[,5] == 0)
-inpara_5 = sum(orthogroups[,1] == 0 & orthogroups[,2] == 0 & orthogroups[,3] == 0 & orthogroups[,4] == 0 & orthogroups[,5] == 1)
+inpara_1 = sum(orthogroups[,label1] == 1 & orthogroups[,label2] == 0 & orthogroups[,label3] == 0 & orthogroups[,label4] == 0 & orthogroups[,label5] == 0)
+inpara_2 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 1 & orthogroups[,label3] == 0 & orthogroups[,label4] == 0 & orthogroups[,label5] == 0)
+inpara_3 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 0 & orthogroups[,label3] == 1 & orthogroups[,label4] == 0 & orthogroups[,label5] == 0)
+inpara_4 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 0 & orthogroups[,label3] == 0 & orthogroups[,label4] == 1 & orthogroups[,label5] == 0)
+inpara_5 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 0 & orthogroups[,label3] == 0 & orthogroups[,label4] == 0 & orthogroups[,label5] == 1)
 label1
+area1
 uniq_1
 inpara_1
 label2
+area2
 uniq_2
 inpara_2
 label3
+area3
 uniq_3
 inpara_3
 label4
+area4
 uniq_4
 inpara_4
 label5
+area5
 uniq_5
 inpara_5
 
