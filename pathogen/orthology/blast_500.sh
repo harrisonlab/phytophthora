@@ -3,7 +3,7 @@
 #$ -cwd
 #$ -pe smp 1
 #$ -l virtual_free=1G
-#$ -l h=blacklace02.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace05.blacklace|blacklace06.blacklace
+#$ -l h=blacklace02.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace06.blacklace
 
 set -u
 set -e
