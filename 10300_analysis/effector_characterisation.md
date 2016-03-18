@@ -261,7 +261,7 @@ TotalRxLRsTxt=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm.txt
 TotalRxLRsGff=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm.gff
 TotalRxLRsWYTxt=$MergeDir/"$Strain"_Total_RxLR_EER_WY_motif_hmm.txt
 TotalRxLRsWYGff=$MergeDir/"$Strain"_Total_RxLR_EER_WY_motif_hmm.gff
-TotalRxLRsHeaders=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_headers.txt
+# TotalRxLRsHeaders=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_headers.txt
 bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
 # bedtools intersect -wb -u -a $ORFGff -b $AugGff > $AugInORFs
 bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
@@ -452,12 +452,12 @@ Fasta sequences for RxLRs were extracted for each isolate
     Species=$(echo "$AugFa" | rev | cut -f4 -d '/' | rev)
     ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
     MergeDir=analysis/RxLR_effectors/combined_evidence/$Species/$Strain
-    TotalRxLRsHeaders=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_headers.txt
+    TotalRxLRsTxt=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm.txt
     RxLRsFa=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_headers.fa
     ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
-    $ProgDir/unwrap_fasta.py --inp_fasta $AugFa | grep -A1 -w -f $TotalRxLRsHeaders | grep -v -E '^--$' > $RxLRsFa
+    $ProgDir/unwrap_fasta.py --inp_fasta $AugFa | grep -A1 -w -f $TotalRxLRsTxt | grep -v -E '^--$' > $RxLRsFa
     ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalRxLRsHeaders >> $RxLRsFa
+    $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalRxLRsTxt >> $RxLRsFa
     echo "$Strain"
     echo "The number of sequences extracted is"
     cat $RxLRsFa | grep '>' | wc -l
@@ -598,9 +598,12 @@ Extract crinklers from published gene models
     CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
     Source="pred"
     CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    CRN_hmm_txt_mod=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL_mod.txt
     CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    cat $CRN_hmm_txt | sed -E 's/\.t.+$//g' > $CRN_hmm_txt_mod
     echo "$Species - $Strain"
-    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+    cat $GeneGff | grep -w -f $CRN_hmm_txt_mod > $CRN_hmm_gff
+    cat $CRN_hmm_gff | cut -f2 -d '"' | sort | uniq | wc -l
   done
   # For P. capsici & P. sojae
   for GeneGff in $PcapPubGff $PsojPubGff; do
@@ -635,10 +638,11 @@ Extract crinklers from published gene models
 
 
 ```bash
-  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -v -e '67593' -e 'masked'); do
+  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/10300 | grep -v -e '67593' -e 'masked'); do
     Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
     Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
     AugGff=$MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
     if [ $Species == P.infestans ]; then
       cat $ORFGff | sed 's/^supercont/Supercontig_/' | sed -e 's/_dna.*\tCRN_HMM/\tCRN_HMM/' > $MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
       ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer_mod.gff3
@@ -749,8 +753,69 @@ Extract crinklers from published gene models
   done
 ```
 
-
 ```
+P.cactorum - 10300
+The number of ORF CRNs overlapping Augustus CRNs:
+55
+The number of Augustus CRNs overlapping ORF CRNs:
+55
+The number of CRNs unique to ORF models:
+3
+The number of CRNs unique to Augustus models:
+12
+The total number of CRNs are:
+70
+
+P.capsici - LT1534
+The number of ORF CRNs overlapping Augustus CRNs:
+72
+The number of Augustus CRNs overlapping ORF CRNs:
+71
+The number of CRNs unique to ORF models:
+32
+The number of CRNs unique to Augustus models:
+11
+The total number of CRNs are:
+114
+
+P.infestans - T30-4
+The number of ORF CRNs overlapping Augustus CRNs:
+157
+The number of Augustus CRNs overlapping ORF CRNs:
+157
+The number of CRNs unique to ORF models:
+98
+The number of CRNs unique to Augustus models:
+10
+The total number of CRNs are:
+265
+
+P.parisitica - 310
+The number of ORF CRNs overlapping Augustus CRNs:
+22
+The number of Augustus CRNs overlapping ORF CRNs:
+22
+The number of CRNs unique to ORF models:
+4
+The number of CRNs unique to Augustus models:
+9
+The total number of CRNs are:
+35
+
+P.sojae - P6497
+The number of ORF CRNs overlapping Augustus CRNs:
+96
+The number of Augustus CRNs overlapping ORF CRNs:
+89
+The number of CRNs unique to ORF models:
+51
+The number of CRNs unique to Augustus models:
+19
+The total number of CRNs are:
+159
+```
+
+<!-- ```
 P.cactorum - 10300
 The number of ORF CRNs overlapping Augustus CRNs:
 77
@@ -807,7 +872,7 @@ The number of CRNs unique to Augustus models:
 19
 The total number of CRNs are:
 222
-```
+``` -->
 
 Fasta sequences for CRNs were extracted from each isolate
 
@@ -866,33 +931,32 @@ to the 10300 genome.
 
 ```
   The top 20 expressed CRNs are:
-  g10478.t1 - 1214.517975
   g1786.t1 - 781.976786
   g17786.t1 - 383.018279
   g18873.t1 - 373.339419
   g13219.t1 - 346.771781
   g14548.t1 - 266.755802
+  g19529.t1 - 254.736537
   g14980.t1 - 247.070946
   g778.t1 - 243.816930
   g15212.t1 - 142.053576
-  g15058.t1 - 141.025410
   g8090.t1 - 96.736487
   g15485.t1 - 87.810172
-  g15517.t1 - 62.029919
   g15471.t1 - 60.885705
   g14356.t1 - 56.727299
-  g11218.t1 - 54.741992
-  g11753.t1 - 47.221044
-  g18103.t1 - 44.617325
-  g17488.t1 - 44.495114
   g17134.t1 - 28.375429
+  g10998.t1 - 26.094800
+  g14894.t1 - 19.551693
+  g10526.t1 - 18.019939
+  g445.t1 - 16.065962
+  g20243.t1 - 14.698188
+  g11419.t1 - 13.194537
   The total number of CRNs was:
-  95
+  67
   The number of CRNs with 1x coverage or greater was:
-  sort -r -n -k 14 -t '"' | cut -f14 -d '"' | grep -v -E '0\.' | wc -l
-  53
+  42
   The number of CRNs with 0x coverage was:
-  16
+  11
 ```
 
 The ortholog groups that these genes belonged to were investigated:
