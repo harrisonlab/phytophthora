@@ -169,6 +169,7 @@ ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors;
 $ProgDir/RxLR_EER_regex_finder.py $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.aa > $OutDir/RxLR/T30-4_pub_RxLR_missing_sigP_motif_present.fa
 cat $OutDir/RxLR/T30-4_pub_RxLR_missing_sigP_motif_present.fa | grep '>' | wc -l
 cat $OutDir/RxLR/T30-4_pub_RxLR_missing_sigP_motif_present.fa | grep 'EER_motif_start' | wc -l
+cat $OutDir/SigP/T30-4_pub_RxLR_missing_sigP.aa | grep -v '>' | grep 'R.L.' | grep -v 'R.LR' | wc -l
 ```
 
 59 of the 120 genes carried RxLR motifs. None of the genes carried the EER as
