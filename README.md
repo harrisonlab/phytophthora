@@ -46,6 +46,8 @@ and annotation.
   mkdir -p raw_dna/paired/P.cactorum/2003_3/R
   mkdir -p raw_dna/paired/P.idaei/SCRP370/F
   mkdir -p raw_dna/paired/P.idaei/SCRP370/R
+  mkdir -p raw_dna/paired/P.rubi/SCRP249/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP249/R
   mkdir -p raw_dna/paired/P.rubi/SCRP324/F
   mkdir -p raw_dna/paired/P.rubi/SCRP324/R
   mkdir -p raw_dna/paired/P.rubi/SCRP333/F
@@ -87,7 +89,7 @@ and annotation.
   cp $RawDat/SCRP324_S2_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP324/R/.
   cp $RawDat/SCRP333_S3_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/F/.
   cp $RawDat/SCRP333_S3_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/R/.
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160412_M04465_0010-AMLCU
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160415_M004465_00011-AMLCL
   cp $RawDat/20033_S4_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/F/.
   cp $RawDat/20033_S4_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/R/.
   cp $RawDat/PC1315_S5_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
