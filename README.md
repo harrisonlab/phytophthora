@@ -42,6 +42,18 @@ and annotation.
   mkdir -p raw_dna/paired/P.fragariae/Nov77/R
   mkdir -p raw_dna/paired/P.fragariae/ONT3/F
   mkdir -p raw_dna/paired/P.fragariae/ONT3/R
+  mkdir -p raw_dna/paired/P.cactorum/2003_3/F
+  mkdir -p raw_dna/paired/P.cactorum/2003_3/R
+  mkdir -p raw_dna/paired/P.idaei/SCRP370/F
+  mkdir -p raw_dna/paired/P.idaei/SCRP370/R
+  mkdir -p raw_dna/paired/P.rubi/SCRP324/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP324/R
+  mkdir -p raw_dna/paired/P.rubi/SCRP333/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP333/R
+  mkdir -p raw_dna/paired/P.cactorum/2003_4/F
+  mkdir -p raw_dna/paired/P.cactorum/2003_4/R
+  mkdir -p raw_dna/paired/P.cactorum/PC13_15/F
+  mkdir -p raw_dna/paired/P.cactorum/PC13_15/R
 
 
   RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/150716_M01678_0023_AB0YF
@@ -63,6 +75,23 @@ and annotation.
   cp $RawDat/Pfrag-Nov-77_S3_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/Nov77/R/.
   cp $RawDat/Pfrag-ONT-3_S1_L001_R1_001.fastq.gz raw_dna/paired/P.fragariae/ONT3/F/.
   cp $RawDat/Pfrag-ONT-3_S1_L001_R2_001.fastq.gz raw_dna/paired/P.fragariae/ONT3/R/.
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160404_M004465_0008-ALVUT
+  cp $RawDat/Pc20033_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_3/F/.
+  cp $RawDat/Pc20033_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_3/R/.
+  cp $RawDat/SCRP370_S3_L001_R1_001.fastq.gz  raw_dna/paired/P.idaei/SCRP370/F/.
+  cp $RawDat/SCRP370_S3_L001_R2_001.fastq.gz  raw_dna/paired/P.idaei/SCRP370/R/.
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160412_M04465_0010-AMLCU
+  cp $RawDat/SCRP249_S1_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP249/F/.
+  cp $RawDat/SCRP249_S1_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP249/R/.
+  cp $RawDat/SCRP324_S2_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP324/F/.
+  cp $RawDat/SCRP324_S2_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP324/R/.
+  cp $RawDat/SCRP333_S3_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/F/.
+  cp $RawDat/SCRP333_S3_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/R/.
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160412_M04465_0010-AMLCU
+  cp $RawDat/20033_S4_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/F/.
+  cp $RawDat/20033_S4_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/R/.
+  cp $RawDat/PC1315_S5_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
+  cp $RawDat/PC1315_S5_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
 ```
 
 
@@ -290,12 +319,12 @@ A range of hash lengths were used and the best assembly selected for subsequent 
 Quast
 
 ```bash
-  for Strain in 415 416 A4 SCRP245_v2 Bc23; do
-  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  	Assembly=$(ls -d assembly/spades/*/$Strain/filtered_contigs/contigs_min_500bp.fasta)
-  	OutDir=$(ls -d assembly/spades/*/$Strain/filtered_contigs)
-    assembly/spades/$Species/$Strain
-  	qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  for Strain in $(ls -d assembly/spades/*/* | rev | cut -f1 -d'/' | rev); do
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    Assembly=$(ls -d assembly/spades/*/$Strain/filtered_contigs/contigs_min_500bp.fasta)
+    Species=$(echo $Assembly | rev | cut -f4 -d'/' | rev)
+    OutDir=$(ls -d assembly/spades/*/$Strain/filtered_contigs)
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
   done
 ```
 
