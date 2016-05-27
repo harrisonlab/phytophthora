@@ -15,7 +15,7 @@ for P.cactorum data:
   mkdir -p $OutDir
   cat raw_dna/pacbio/P.cactorum/414/*/Analysis_Results/*.subreads.fastq > $OutDir/concatenated_pacbio.fastq
 ```
-
+<!--
 for P. fragariae data (commands for tom to run)
 
 ```bash
@@ -29,7 +29,7 @@ for P. fragariae data (commands for tom to run)
   OutDir=raw_dna/pacbio/P.fragariae/Bc16/extracted
   mkdir -p $OutDir
   cat raw_dna/pacbio/P.fragariae/Bc16/*/Analysis_Results/*.subreads.fastq > $OutDir/concatenated_pacbio.fastq
-```
+``` -->
 
 ## Assembly
 
@@ -47,10 +47,19 @@ for P. fragariae data (commands for tom to run)
   qsub $ProgDir/submit_canu.sh $Reads $GenomeSz $Prefix $OutDir
 ```
 
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $(ls assembly/canu/*/*/*_canu.contigs.fasta); do
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
+    OutDir=assembly/canu/$Organism/$Strain/filtered_contigs
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
+```
 
 ### Spades Assembly
 
-For P. fragariae
+<!-- For P. fragariae
 
 ```bash
 for PacBioDat in $(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq); do
@@ -69,26 +78,42 @@ echo $TrimR2_Read
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
 qsub $ProgDir/subSpades_2lib_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir 50
 done
-```
+``` -->
 
 For P. cactorum
 
 ```bash
   for PacBioDat in $(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq); do
+    echo $StrainPath
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Organism=$(echo $PacBioDat | rev | cut -f4 -d '/' | rev)
     Strain=$(echo $PacBioDat | rev | cut -f3 -d '/' | rev)
     IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
-    TrimF1_Read=$(ls $IlluminaDir/414_assembly_F_trim.fastq);
-    TrimR1_Read=$(ls $IlluminaDir/414_assembly_R_trim.fastq);
-    OutDir=assembly/spades_pacbio/$Organism/"$Strain"
+    echo $Strain
+    echo $Organism
+    TrimF1_Read=$(ls $IlluminaDir/F/cact414_S2_L001_R1_001_trim.fq.gz);
+    TrimR1_Read=$(ls $IlluminaDir/R/cact414_S2_L001_R2_001_trim.fq.gz);
+    TrimF2_Read=$(ls $IlluminaDir/F/cact414_S2_L001_R1_001_trim.fq.gz);
+    TrimR2_Read=$(ls $IlluminaDir/R/cact414_S2_L001_R2_001_trim.fq.gz);
+    echo $TrimF1_Read
     echo $TrimR1_Read
-    echo $TrimR1_Read
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
-    qsub $ProgDir/sub_spades_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $OutDir 10
+    echo $TrimF2_Read
+    echo $TrimR2_Read
+    OutDir=assembly/spades/$Organism/$Strain
+    qsub $ProgDir/subSpades_2lib_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir 28
   done
 ```
 
+Contigs shorter thaan 500bp were renomed from the assembly
 
+```bash
+  for Contigs in $(ls assembly/spades_pacbio/*/*/contigs.fasta); do
+    AssemblyDir=$(dirname $Contigs)
+    mkdir $AssemblyDir/filtered_contigs
+    FilterDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
+    $FilterDir/filter_abyss_contigs.py $Contigs 500 > $AssemblyDir/filtered_contigs/contigs_min_500bp.fasta
+  done
+```
 
 Quast
 
@@ -102,15 +127,7 @@ Quast
   done
 ```
 
-```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/canu/*/*/*_canu.contigs.fasta); do
-    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
-    OutDir=assembly/canu/$Organism/$Strain/filtered_contigs
-    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-  done
-```
+
 
 Contigs were renamed in accordance with ncbi recomendations.
 
