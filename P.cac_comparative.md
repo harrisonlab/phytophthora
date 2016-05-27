@@ -36,12 +36,12 @@ and annotation.
   RawDat=/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/130624_P404
   cp $RawDat/130624_cactp404_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/404/F/.
   cp $RawDat/130624_cactp404_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/404/R/.
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/cact414_130120_S2_L001_R1_001.fastq.gz
-  cp   cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/cact414_130120_S2_L001_R1_001.fastq.gz/cact414_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/414/R/cact414_130120_S2_L001_R2_001.fastq.gz
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/cact414_130517_S2_L001_R1_001.fastq.gz
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/414/R/cact414_130517_S2_L001_R1_001.fastq.gz
+  RawDat="/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120"
+  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/.
+  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R1_001.fastq.gz  raw_dna/paired/P.cactorum/414/R/.
+  RawDat="/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517"
+  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/.
+  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/414/R/.
   mkdir -p raw_dna/paired/P.cactorum/415/F
   mkdir -p raw_dna/paired/P.cactorum/415/R
   mkdir -p raw_dna/paired/P.cactorum/416/F
@@ -89,6 +89,21 @@ This was done with fastq-mcf
   done
 ```
 
+Trimming was then performed for strains with multiple runs of data
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+	IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+	echo "414"
+	StrainPath=raw_dna/paired/P.cactorum/414
+	ReadsF=$(ls $StrainPath/F/cact414_S2_L001_R1_001.fastq.gz)
+	ReadsR=$(ls $StrainPath/R/cact414_S2_L001_R2_001.fastq.gz)
+	qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+	StrainPath=raw_dna/paired/P.cactorum/414
+	ReadsF=$(ls $StrainPath/F/cact414_S2_L001_R1_001.fastq.gz)
+	ReadsR=$(ls $StrainPath/R/cact414_S2_L001_R2_001.fastq.gz)
+	qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+```
 
 Data quality was visualised once again following trimming:
 
@@ -168,6 +183,33 @@ qsub $ProgDir/submit_SPAdes.sh $F_Read $R_Read $OutDir correct 10
 done
 ```
 
+
+```bash
+  for StrainPath in $(ls -d qc_dna/paired/P.*/414); do  
+    echo $StrainPath
+    ProgDir=ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+    Jobs=$(qstat | grep 'rna_qc' | grep -w 'r' | wc -l)
+    while [ $Jobs -gt 1 ]; do
+      sleep 10
+      printf "."
+      Jobs=$(qstat | grep 'rna_qc' | grep -w 'r' | wc -l)
+      done
+    Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+    Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+    echo $Strain
+    echo $Organism
+    TrimF1_Read=$(ls $StrainPath/F/cact414_S2_L001_R1_001_trim.fq.gz);
+    TrimR1_Read=$(ls $StrainPath/R/cact414_S2_L001_R2_001_trim.fq.gz);
+    TrimF2_Read=$(ls $StrainPath/F/cact414_S2_L001_R1_001_trim.fq.gz);
+    TrimR2_Read=$(ls $StrainPath/R/cact414_S2_L001_R2_001_trim.fq.gz);
+    echo $TrimF1_Read
+    echo $TrimR1_Read
+    echo $TrimF2_Read
+    echo $TrimR2_Read
+    OutDir=assembly/spades/$Organism/$Strain
+    qsub $ProgDir/subSpades_2lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir correct 10
+  done
+```
 
 <!-- ```bash
 for Assembly in $(ls assembly/spades/P.cactorum/*/*/*500bp.fasta); do
