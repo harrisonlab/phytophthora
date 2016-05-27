@@ -91,10 +91,10 @@ For P. cactorum
     IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
     echo $Strain
     echo $Organism
-    TrimF1_Read=$(ls $IlluminaDir/F/cact414_S2_L001_R1_001_trim.fq.gz);
-    TrimR1_Read=$(ls $IlluminaDir/R/cact414_S2_L001_R2_001_trim.fq.gz);
-    TrimF2_Read=$(ls $IlluminaDir/F/cact414_S2_L001_R1_001_trim.fq.gz);
-    TrimR2_Read=$(ls $IlluminaDir/R/cact414_S2_L001_R2_001_trim.fq.gz);
+    TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+    TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+    TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+    TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
     echo $TrimF1_Read
     echo $TrimR1_Read
     echo $TrimF2_Read
@@ -104,7 +104,7 @@ For P. cactorum
   done
 ```
 
-Contigs shorter thaan 500bp were renomed from the assembly
+Contigs shorter than 500bp were renomed from the assembly
 
 ```bash
   for Contigs in $(ls assembly/spades_pacbio/*/*/contigs.fasta); do
