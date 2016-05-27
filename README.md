@@ -159,6 +159,16 @@ done
 Trimming was performed on data to trim adapters from sequences and remove poor quality data.
 This was done with fastq-mcf
 
+```bash
+for Strain in 414; do
+echo $Strain
+Read_F=$(ls raw_dna/paired/P.*/$Strain/F/cact414_130517_S2_L001_R1_001.fastq.gz)
+Read_R=$(ls raw_dna/paired/P.*/$Strain/R/cact414_130517_S2_L001_R2_001.fastq.gz)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+done
+```
 
 ```bash
   for Strain in 415 416 A4; do
