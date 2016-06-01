@@ -24,7 +24,7 @@ Upregulated genes during an RNAseq timecourse.
 
 #Making local repositories for data
 
-```shell
+```bash
 	Organism=P.cactorum
 	Strain=10300
 	ProjDir=/home/groups/harrisonlab/project_files/idris
@@ -35,7 +35,7 @@ Upregulated genes during an RNAseq timecourse.
 	mkdir -p raw_dna/mate_paired/$Organism/$Strain/R
 ```
 Move raw data into local repositories:
-```shell
+```bash
 	RawDatDir=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads
 	cp $RawDatDir/060612_ID141_0001_650MVAAXX/Pcactorum_ID141_lane3_1Kb_R1.fastq raw_dna/paired/P.cactorum/10300/F/.
 	cp $RawDatDir/060612_ID141_0001_650MVAAXX/Pcactorum_ID141_lane3_1Kb_R2.fastq raw_dna/paired/P.cactorum/10300/R/.
@@ -176,7 +176,7 @@ to accept sequence data from two genomic libraries and to run with a max kmer le
 A local install of velvet in my user profile was recompiled to accept up to 5 genomic libraries
 as inputs and to accept longer maximum kmer lengths. The commands used to recompile velvet were
 as follows:
-```shell
+```bash
 	cd ~/prog/velvet_1.2.08
 	make CATEGORIES=5 MAXKMERLENGTH=201 OPENMP=1 OMP_NUM_THREADS=15
 ```
@@ -185,7 +185,7 @@ This local install of velvet was used to assemble the 10300 genome.
 The assembly job was submitted to the SGE via a dedicated script for this assembly.
 
 The command used to submit this assembly to the SGE was:
-```shell
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/assembly
 	qsub $ProgDir/velvet_10300_assembly.sh
 ```
@@ -194,7 +194,7 @@ The script can be viewed in the repository harrison_lab/phytophthora/assembly .
 <!--
 However, for reference, the variables set in this script were:
 
-```shell
+```bash
 	CurPath=$PWD
 	ProgDir=/home/armita/prog/velvet_1.2.08
 	TrimPath=qc_dna/paired/P.cactorum/10300
@@ -240,7 +240,7 @@ nextclip was used.
 Cateory A reads contain adapters in both reads of a pair. Category B and C reads
 contain an adapter in a single read of the pair. Category D reads don't contain
 adapters in the either read of the pair.
-```shell
+```bash
 	qlogin
 	cd /home/groups/harrisonlab/project_files/idris
 	InF=qc_dna/mate-paired/P.cactorum/10300/F/Pcact10300_S2_L001_R1_001_trim.fq.gz
@@ -272,7 +272,7 @@ Assembly was performed using Abyss.
 
 A SGE script was written to perform assembly using Abyss on the cluster.
 
-```shell
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/assembly
 	qsub $ProgDir/abyss_10300_assembly.sh
 ```
@@ -286,7 +286,7 @@ qlogin within a 'screen' session.
 
 These were the commands used:
 
-```shell
+```bash
 	screen -a
 	qlogin -l h=blacklace11 -l virtual_free=12G -pe smp 8
 
@@ -394,7 +394,7 @@ logout
 ```
 
 The results of abyss assemblies at different kmers were summarised using the commands:
-```shell
+```bash
 	for AbyssDir in $(ls -d assembly/abyss/P.cactorum/10300/10300_abyss_*); do
 		ls $AbyssDir/10300_abyss-stats.csv
 		cat $AbyssDir/10300_abyss-stats.csv | tail -n +2 | sed 's/,/\t/g'
@@ -404,7 +404,7 @@ The results of abyss assemblies at different kmers were summarised using the com
 The output files from abyss did not summarise the number of contigs
 that were assembled longer than 500bp. These were determined using
 the program
-```shell
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
 		for Unitigs in $(ls assembly/abyss/P.cactorum/10300/10300_abyss_*/10300_abyss-scaffolds.fa); do
 		echo $Unitigs
@@ -466,7 +466,7 @@ Repeat masking was performed and used the following programs:
 
 The best assembly was used to perform repeatmasking
 
-```shell
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
 	BestAss10300=assembly/abyss/P.cactorum/10300/10300_abyss_53/10300_abyss-scaffolds_500bp_renamed.fa
 
@@ -522,7 +522,7 @@ Quality of genome assemblies was assessed by looking for the gene space in the a
 
 This was first performed on the 10300 unmasked assembly:
 
-```shell
+```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
 	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
 	qsub $ProgDir/sub_cegma.sh $Genome dna
