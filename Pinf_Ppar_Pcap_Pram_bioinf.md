@@ -34,7 +34,7 @@ http://www.broadinstitute.org/annotation/genome/phytophthora_infestans/MultiDown
 The current release represents 4,921 contigs and 18140 proteins. -->
 This data was moved into the following directories:
 
-```shell
+```bash
   Organism=P.infestans
 	Strain=T30-4
 	ProjDir=/home/groups/harrisonlab/project_files/idris
@@ -54,7 +54,7 @@ http://www.ncbi.nlm.nih.gov/Traces/wgs/?val=AGFV02
 The current release is 82 Mb, represents 708 contigs and 27,942 genes (Unpublished) -->
 This data was moved into the following directories:
 
-```shell
+```bash
   Organism=P.parasitica
 	Strain=310
 	ProjDir=/home/groups/harrisonlab/project_files/idris
@@ -73,7 +73,7 @@ This was the current release. -->
 The current release is 56 Mb represents 917 contigs and 19805 genes.
 This data was moved into the following directories:
 
-```shell
+```bash
   Organism=P.capsici
 	Strain=LT1534
 	ProjDir=/home/groups/harrisonlab/project_files/idris
@@ -93,7 +93,7 @@ http://genome.jgi.doe.gov/Physo3/Physo3.info.html
 The current release is 82Mb represents 83 contigs and 26584 genes.
 This data was moved into the following directories:
 
-```shell
+```bash
   Organism=P.sojae
 	Strain=P6497
 	ProjDir=/home/groups/harrisonlab/project_files/idris
@@ -299,6 +299,89 @@ done
 #Functional annotation
 
 #Genomic analysis
+
+
+## BLAST searches for previously identified effectors
+
+
+BLast searches were used to identify the presence of previously identified
+effectors in Phytophthora genomes.
+
+
+
+```bash
+  Pcac_ass=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+  Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.parsed.fa
+  Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs_parsed.fasta
+  Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
+  Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
+  for Assembly in $(ls $Pcac_ass $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass); do
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+		Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+  	Effector=analysis/blast_homology/oomycete_avr_genes/appended_oomycete_avr_cds.fasta
+    OutDir=analysis/blast_homology/$Organism/$Strain
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    qsub $ProgDir/run_blast2csv.sh $Effector dna $Assembly $OutDir
+  done
+```
+
+
+Convert top blast hits into gff annotations
+
+```bash
+  for BlastHitsCsv in $(ls analysis/blast_homology/*/*/*appended_oomycete_avr_cds.fasta_hits.csv); do
+    Organism=$(echo $BlastHitsCsv | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $BlastHitsCsv | rev | cut -f2 -d '/' | rev)
+    echo "$Organism - $Strain"
+    HitsGff=$(echo $BlastHitsCsv | sed  's/.csv/.gff/g')
+    Column2=Avr_gene_homolog
+    NumHits=1
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    $ProgDir/blast2gff.pl $Column2 $NumHits $BlastHitsCsv > $HitsGff
+  done
+```
+
+The blast hits were summarised in a single table for all the genomes. The top
+identity of the top blast hit in relation to the enquire query sequence was
+presented for each blast hit.
+
+```bash
+  OutFile=analysis/blast_homology/oomycete_avr_genes/oomycete_avr_summary.tab
+  echo "Organism" > tmp2.tab
+  cat analysis/blast_homology/P.sojae/P6497/P6497_appended_oomycete_avr_cds.fasta_hits.csv | cut -f1 >> tmp2.tab
+  for BlastHits in $(ls analysis/blast_homology/*/*/*appended_oomycete_avr_cds.fasta_hits.csv); do
+    Strain=$(echo $BlastHits | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $BlastHits | rev | cut -f3 -d '/' | rev)
+    echo "$Organism" > tmp.tab
+    echo "$Strain" >> tmp.tab
+    cat $BlastHits | cut -f9  | tail -n +2 >> tmp.tab
+    paste tmp2.tab tmp.tab > $OutFile
+    cp $OutFile tmp2.tab
+  done
+  rm tmp.tab
+  rm tmp2.tab
+```
+<!--
+```bash
+	for HitsGff in $(ls analysis/blast_homology/*/*/*Fo_path_genes_CRX.fa_homologs.gff | grep -v 'trinity' | grep -w 'Fus2'); do
+		Strain=$(echo $HitsGff | rev | cut -f2 -d '/' | rev)
+		Organism=$(echo $HitsGff | rev | cut -f3 -d '/' | rev)
+		echo "$Organism - $Strain"
+		# GffBraker=gene_pred/codingquary/$Organism/$Strain/final/final_genes_Braker.gff3
+		# GffQuary=gene_pred/codingquary/$Organism/$Strain/final/final_genes_CodingQuary.gff3
+		GffAppended=gene_pred/codingquary/$Organism/$Strain/final/final_genes_appended.gff3
+		OutDir=$(dirname $HitsGff)
+		SixIntersect=$OutDir/"$Strain"_Fo_path_genes_CRX.fa_hit_genes.bed
+		# bedtools intersect -wo -a $HitsGff -b $GffBraker > $SixIntersect
+		# bedtools intersect -wo -a $HitsGff -b $GffQuary >> $SixIntersect
+		bedtools intersect -wao -a $HitsGff -b $GffAppended > $SixIntersect
+		bedtools intersect -wao -a $HitsGff -b $GffAppended | cut -f9,18 | grep -v 'Parent'
+		echo ""
+	done > analysis/blast_homology/Fo_path_genes/Fo_path_genes_CRX_hit_genes_summary.tab
+``` -->
+
+
+
 
 ## RxLR genes
 
@@ -637,6 +720,67 @@ Gff annotations were extracted for these putative crinklers:
   done
 ```
 
+Gff annotations were extracted for these putative crinklers:
+
+```bash
+  PinfPubGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gff3
+  for GeneGff in $PinfPubGff; do
+    echo "$GeneGff"
+    Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
+    CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
+    Source="pub"
+    CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
+    CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
+    echo "$Species - $Strain"
+    cat $GeneGff | grep -w -f $CRN_hmm_txt > $CRN_hmm_gff
+    cat $CRN_hmm_gff | grep 'exon' | cut -f9 | cut -f2 -d ':' | sort | uniq | wc -l
+  done
+```
+
+Fasta sequences for CRNs were extracted
+
+```bash
+  Pcac_pep=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+  for AugFa in $Pcac_pep $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+    Strain=$(echo "$AugFa" | rev | cut -f3 -d '/' | rev)
+    Species=$(echo "$AugFa" | rev | cut -f4 -d '/' | rev)
+    ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
+    MergeDir=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain
+    TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
+    CRNsFa=$MergeDir/"$Strain"_Total_CRN.fa
+    ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
+    $ProgDir/unwrap_fasta.py --inp_fasta $AugFa | grep -A1 -w -f $TotalCRNsHeaders | grep -v -E '^--$' > $CRNsFa
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsHeaders >> $CRNsFa
+    echo "$Strain"
+    echo "The number of sequences extracted is"
+    cat $CRNsFa | grep '>' | wc -l
+  done
+```
+
+Signal peptides were identified in the predicted Crinklers using SignalP2.0:
+
+```bash
+  for Crinklers in $(ls analysis/CRN_effectors/hmmer_CRN/*/*/*_Total_CRN.fa); do
+    echo "$Crinklers"
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    Strain=$(echo $Crinklers | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Crinklers | rev | cut -f3 -d '/' | rev)
+    qsub $ProgDir/pred_sigP.sh $Crinklers
+  done
+```
+
+```bash
+  for File in $(ls gene_pred/hmmer_CRN_sigP/P*/*/*/*_Total_CRN.fa_sp.aa); do
+    echo $(basename $File)
+    cat $File | grep '>' | wc -l
+  done
+```
 
 ### E) From ORF gene models - Signal peptide & RxLR motif
 
