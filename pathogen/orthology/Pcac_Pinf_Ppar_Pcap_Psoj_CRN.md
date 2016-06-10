@@ -168,6 +168,59 @@ number of unique groups of inparalogs
 
 # 6) Downstream analysis
 
+
+## 6.0) Identifying Signal peptides in Crinklers
+
+
+
+Signal peptides were identified in the predicted Crinklers:
+
+```bash
+  for Crinklers in $(ls analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/formatted/*.fasta); do
+    echo "$Crinklers"
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    Strain=$(echo $Crinklers | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Crinklers | rev | cut -f3 -d '/' | rev)
+    qsub $ProgDir/pred_sigP.sh $Crinklers
+  done
+```
+
+
+
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogroupTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_orthogroups.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/goodProteins/goodProteins.fasta
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/fasta/all_orthogroups
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogroupTxt --fasta $GoodProt --out_dir $OutDir > $OutDir/extractionlog.txt
+  for File in $(ls $OutDir/orthogroup*.fa); do
+    cat $File | grep '>' | tr -d '> '
+  done > $OutDir/orthogroup_genes.txt
+  cat $GoodProt | grep '>' | tr -d '> ' | grep -v -f $OutDir/orthogroup_genes.txt > $OutDir/singleton_genes.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+  $ProgDir/extract_from_fasta.py --fasta $GoodProt --headers $OutDir/singleton_genes.txt > $OutDir/singleton_genes.fa
+  echo "The numbe of singleton genes extracted is:"
+  cat $OutDir/singleton_genes.fa | grep '>' | wc -l
+  cat $OutDir/singleton_genes.fa | grep -A1 '>Pcac' > $OutDir/Pcac_singletons.fa
+  echo "the number of singleton genes in P.cactorum is:"
+  cat $OutDir/Pcac_singletons.fa | grep '>' | wc -l
+```
+
+```bash
+  cat gene_pred/orthomcl_sigP/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/formatted/split/P*.fasta_sp.aa | grep '>' | cut -f1 | sed 's/>//g' | tr -d ' ' > tmp.txt
+  # cat analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_orthogroups.txt | grep -f tmp.txt | less -S
+  for File in $(ls -v analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/fasta/all_orthogroups/*.fa); do
+  echo $(basename $File);
+  echo "total genes:"
+  cat $File | grep '>' | tr -d '>' | cut -f1 -d '|' | sort | uniq -c | sort -r -n
+  echo "SigP genes:"
+  cat $File | grep -f tmp.txt | tr -d '>' | cut -f1 -d '|' | sort | uniq -c | sort -r -n
+  cat $File | grep -f tmp.txt;
+  echo ""
+  done > gene_pred/orthomcl_sigP/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/formatted/split/CRNs_containing_sigP.txt
+```
+
 ## 6.1) Identification of Pseudogenes
 
 Some predicted ORFs carried X's in their amino acid sequence. These ORFs are not
