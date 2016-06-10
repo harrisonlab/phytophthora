@@ -430,3 +430,44 @@ The final number of genes per isolate was observed using:
     echo "";
   done
 ```
+
+
+
+#Functional annotation
+
+## A) Interproscan
+
+Interproscan was used to give gene models functional annotations.
+Annotation was run using the commands below:
+
+Note: This is a long-running script. As such, these commands were run using
+'screen' to allow jobs to be submitted and monitored in the background.
+This allows the session to be disconnected and reconnected over time.
+
+Screen ouput detailing the progress of submission of interporscan jobs
+was redirected to a temporary output file named interproscan_submission.log .
+
+```bash
+	screen -a
+	cd /home/groups/harrisonlab/project_files/idris
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	for Genes in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -w -e '414'); do
+	echo $Genes
+	$ProgDir/sub_interproscan.sh $Genes
+	done 2>&1 | tee -a interproscan_submisison.log
+```
+
+Following interproscan annotation split files were combined using the following
+commands:
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	for Proteins in $(ls gene_pred/codingquary/F.*/*/*/final_genes_combined.pep.fasta | grep -w 'Fus2'); do
+		Strain=$(echo $Proteins | rev | cut -d '/' -f3 | rev)
+		Organism=$(echo $Proteins | rev | cut -d '/' -f4 | rev)
+		echo "$Organism - $Strain"
+		echo $Strain
+		InterProRaw=gene_pred/interproscan/$Organism/$Strain/raw
+		$ProgDir/append_interpro.sh $Proteins $InterProRaw
+	done
+```
