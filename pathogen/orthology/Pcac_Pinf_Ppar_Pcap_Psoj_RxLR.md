@@ -164,27 +164,32 @@ NULL
 
 At an inflation value of 5:
 
-Isolate name (total number of orthogroups)
+Isolate name
+total number of orthogroups
 number of unique singleton genes
 number of unique groups of inparalogs
 
 ```
 [1] "Pcac"
+[1] 136
 [1] 26
 [1] 6
 [1] "Pcap"
+[1] 109
 [1] 22
 [1] 16
 [1] "Psoj"
-[1] 28
-[1] 33
-[1] "Pinf"
-[1] 31
-[1] 8
-[1] "Ppar"
+[1] 122
 [1] 95
 [1] 6
-NULL
+[1] "Pinf"
+[1] 181
+[1] 28
+[1] 33
+[1] "Ppar"
+[1] 181
+[1] 31
+[1] 8
 ```
 
 
