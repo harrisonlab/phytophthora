@@ -293,10 +293,6 @@ Gene prediction was performed using Braker1.
 First, RNAseq data was aligned to Fusarium genomes.
 * qc of RNA seq data was performed as part of sequencing the 10300 genome:
 
-```bash
-FileF=qc_rna/raw_rna/genbank/P.cactorum/F/SRR1206032_trim.fq.gz
-FileR=qc_rna/raw_rna/genbank/P.cactorum/R/SRR1206033_trim.fq.gz
-```
 
 #### Aligning
 
@@ -364,14 +360,14 @@ therefore features can not be restricted by strand when they are intersected.
 Secondly, genes were predicted using CodingQuary:
 
 ```bash
-	for Assembly in $(ls repeat_masked/*/*/*/*_contigs_softmasked.fa | grep -w -e 'Fus2'); do
+	for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep -w -e '414'); do
 		Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 		Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 		echo "$Organism - $Strain"
 		OutDir=gene_pred/codingquary/$Organism/$Strain
 		CufflinksGTF=gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf
 		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
-		qsub $ProgDir/run_CQ-PM_unstranded_EMR.sh $Assembly $CufflinksGTF $OutDir
+		qsub $ProgDir/sub_CodingQuary.sh $Assembly $CufflinksGTF $OutDir
 	done
 ```
 
@@ -381,12 +377,12 @@ models:
 
 ```bash
 	# for BrakerGff in $(ls gene_pred/braker/F.*/*_braker_new/*/augustus.gff3 | grep -w -e 'Fus2'); do
-	for BrakerGff in $(ls gene_pred/braker/F.*/*_braker_pacbio/*/augustus.gff3 | grep -e 'Fus2'); do
+	for BrakerGff in $(ls gene_pred/braker/P.*/*_braker_pacbio/*/augustus.gff3 | grep -e '414'); do
 		Strain=$(echo $BrakerGff| rev | cut -d '/' -f3 | rev | sed 's/_braker_new//g' | sed 's/_braker_pacbio//g')
 		Organism=$(echo $BrakerGff | rev | cut -d '/' -f4 | rev)
 		echo "$Organism - $Strain"
 		# BrakerGff=gene_pred/braker/$Organism/$Strain/F.oxysporum_fsp_cepae_Fus2_braker/augustus_extracted.gff
-		Assembly=$(ls repeat_masked/$Organism/$Strain/*/"$Strain"_contigs_softmasked.fa)
+		Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/"$Strain"_contigs_softmasked.fa)
 		CodingQuaryGff=gene_pred/codingquary/$Organism/$Strain/out/PredictedPass.gff3
 		PGNGff=gene_pred/codingquary/$Organism/$Strain/out/PGN_predictedPass.gff3
 		AddDir=gene_pred/codingquary/$Organism/$Strain/additional
@@ -426,11 +422,11 @@ models:
 
 The final number of genes per isolate was observed using:
 ```bash
-for DirPath in $(ls -d gene_pred/codingquary/F.*/*/final | grep -w -e'Fus2'); do
-echo $DirPath;
-cat $DirPath/final_genes_Braker.pep.fasta | grep '>' | wc -l;
-cat $DirPath/final_genes_CodingQuary.pep.fasta | grep '>' | wc -l;
-cat $DirPath/final_genes_combined.pep.fasta | grep '>' | wc -l;
-echo "";
-done
+  for DirPath in $(ls -d gene_pred/codingquary/P.*/*/final | grep -w -e '414'); do
+    echo $DirPath;
+    cat $DirPath/final_genes_Braker.pep.fasta | grep '>' | wc -l;
+    cat $DirPath/final_genes_CodingQuary.pep.fasta | grep '>' | wc -l;
+    cat $DirPath/final_genes_combined.pep.fasta | grep '>' | wc -l;
+    echo "";
+  done
 ```
