@@ -295,6 +295,24 @@ Orthologroups only containing P.cactorum 10300 genes were extracted:
   cat $WorkDir/goodProteins/goodProteins.fasta | grep -w -A1 -f $GenesNotInOrthogroupsTxt | grep -v -E '^--'> $GenesNotInOrthogroupsFasta
 ```
 
+The names of Crinklers in each orthogroup (& P.cactorum orthogroups) were
+extracted using the commands:
+
+```bash
+  for File in $(ls -v analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/fasta/all_orthogroups/*.fa | grep -v 'Pcac_singletons'); do
+    Orthogroup=$(basename $File | sed 's/.fa//g');
+    for Gene in $(cat $File | grep '>' | sed 's/>//g'); do
+      printf "$Orthogroup\t$Gene\n";
+    done;
+  done > analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/fasta/all_orthogroups/CRN_headers_by_orthogroup.txt
+  for File in $(ls -v analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/fasta/all_orthogroups/*.fa | grep -v 'Pcac_singletons'); do
+    Orthogroup=$(basename $File | sed 's/.fa//g');
+    for Gene in $(cat $File | grep 'Pcac' | sed 's/>Pcac|//g'); do
+      printf "$Orthogroup\t$Gene\n";
+    done;
+  done > analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/fasta/all_orthogroups/Pcac_CRN_headers_by_orthogroup.txt
+```
+
 
 # Run TribeMCL on orthoMCL data
 
