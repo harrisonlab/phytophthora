@@ -563,6 +563,10 @@ Gene prediction was performed using Braker1.
 		echo "##gff-version 3" > $OutDir/augustus_extracted.gff
 		cat $File | grep -v '#' >> $OutDir/augustus_extracted.gff
 	done
+	Assembly=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+	OutDir=gene_pred/braker/P.cactorum/10300/P.cactorum
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+	$ProgDir/gff2fasta.pl $Assembly $OutDir/augustus_extracted.gff $OutDir/final_genes_Braker
 ```
 
 ## Gene prediction 2 - atg.pl prediction of ORFs
@@ -709,6 +713,7 @@ Required programs:
  * SigP
  * biopython
 
+#### A.1) Signal peptide prediction using SignalP 2.0
 
 Proteins that were predicted to contain signal peptides were identified using
 the following commands:
@@ -809,7 +814,7 @@ the number of SigP-RxLR genes are:	207
 the number of SigP-RxLR-EER genes are:	109
 ```
 
-RxLR genes were also predicted using SignalP4.1 This showed poorer perfromance
+RxLR genes were also predicted using SignalP4.1 This showed poorer perfomance
 in prediction of RxLRs than SignalP 2:
 ```
 strain: 10300	species: P.cactorum
@@ -828,6 +833,17 @@ analyses.
 	cat $SigP2File $SigP4File | grep '>' | grep 'EER' | cut -f1 | tr -d ' ' | sort | uniq | wc -l
 ```
 
+#### B.2) Prediction using Phobius
+
+Secreted proteins were also predicted using Phobius
+
+```bash
+	OutDir=analysis/phobius/P.cactorum/10300
+	mkdir -p $OutDir
+	Proteome=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	phobius.pl $Proteome > $OutDir/10300_phobius.txt
+	cat $OutDir/10300_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed s'/ID.*g/g/g' > $OutDir/10300_phobius_headers.txt
+```
 
 ### B) From Augustus gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search gene models predicted with Braker1. These were run with the following commands:
@@ -983,9 +999,11 @@ Domain search space  (domZ):              17  [number of targets reported over t
 
 Required programs:
  * SigP
+ * Phobius
  * biopython
 
 
+#### E.1) Prediction using SignalP2.0
 Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
@@ -1096,7 +1114,7 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 		cat $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt | wc -l
 		printf "\n"
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-		$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_regex.txt  $SigP_Merged_Gff RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex.gff
+		$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_regex.txt  $SigP_Merged_Gff 	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex.gff
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 		$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex.txt $SigP_Merged_Gff RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_EER_regex.gff
 	done
@@ -1111,6 +1129,18 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 * the number of SigP gene is:	14767
 * the number of SigP-RxLR genes are:	916
 * the number of SigP-RxLR-EER genes are:	169
+
+#### E.2) Prediction using Phobius
+
+Secreted proteins were also predicted using Phobius
+
+```bash
+	OutDir=analysis/phobius/P.cactorum/10300
+	mkdir -p $OutDir
+	Proteome=gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa
+	phobius.pl $Proteome > $OutDir/10300_phobius_ORF.txt
+	cat $OutDir/10300_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed s'/ID.*g/g/g' > $OutDir/10300_phobius_headers_ORF.txt
+```
 
 ### F) From ORF gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search ORFs predicted with atg.pl. These were run with the following commands:
@@ -1258,7 +1288,7 @@ Total number of RxLRs shared between prediciton sources:
 
 ## 5. BLAST Searches
 
-## 5.1 Identifying RxLR homolgs
+## 5.1 Identifying RxLR homologs
 
 nucleotide sequence of previously characterised RxLR genes were used to perform
 BLAST searches against assemlies.
@@ -1299,7 +1329,7 @@ annotations:
 	$ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
 ``` -->
 
-### 5.1.b Blasting for Hmmer predicted RxLRs from publihsed genomes.
+### 5.1.b Blasting for Hmmer predicted RxLRs from published genomes.
 
 These RxLRs were predicted from RxLR Hmm motifs.
 
