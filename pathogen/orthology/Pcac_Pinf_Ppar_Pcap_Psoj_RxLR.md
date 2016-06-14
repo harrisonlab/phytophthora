@@ -274,8 +274,40 @@ orthogroup
   OutDir=$WorkDir/orthogroups_fasta_inflation_5
   mkdir -p $OutDir
   # cat $WorkDir/"$IsolateAbrv"_orthogroups.txt | cut -f1 -d ' ' > $OrthogroupTxt
-  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $WorkDir/"$IsolateAbrv"_orthogroups.txt --fasta $GoodProt --out_dir $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $WorkDir/"$IsolateAbrv"_orthogroups.txt --fasta $GoodProt --out_dir $OutDir > $OutDir/extractionlog.txt
+  for File in $(ls -v $OutDir/orthogroup*.fa); do
+    cat $File | grep '>' | tr -d '> '
+  done > $OutDir/orthogroup_genes.txt
+  cat $GoodProt | grep '>' | tr -d '> ' | grep -v -f $OutDir/orthogroup_genes.txt > $OutDir/singleton_genes.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+  $ProgDir/extract_from_fasta.py --fasta $GoodProt --headers $OutDir/singleton_genes.txt > $OutDir/singleton_genes.fa
+  echo "The numbe of singleton genes extracted is:"
+  cat $OutDir/singleton_genes.fa | grep '>' | wc -l
+  cat $OutDir/singleton_genes.fa | grep -A1 '>Pcac' > $OutDir/Pcac_singletons.fa
+  echo "the number of singleton genes in P.cactorum is:"
+  cat $OutDir/Pcac_singletons.fa | grep '>' | wc -l
 ```
+
+The names of RxLRs in each orthogroup (& P.cactorum orthogroups) were
+extracted using the commands:
+
+```bash
+  for File in $(ls -v $OutDir/*.fa | grep -v 'Pcac_singletons'); do
+    Orthogroup=$(basename $File | sed 's/.fa//g');
+    for Gene in $(cat $File | grep '>' | sed 's/>//g'); do
+      printf "$Orthogroup\t$Gene\n";
+    done;
+  done >$OutDir/RxLR_headers_by_orthogroup.txt
+  for File in $(ls -v $OutDir/*.fa | grep -v 'Pcac_singletons'); do
+    Orthogroup=$(basename $File | sed 's/.fa//g');
+    for Gene in $(cat $File | grep 'Pcac' | sed 's/>Pcac|//g'); do
+      printf "$Orthogroup\t$Gene\n";
+    done;
+  done > $OutDir/Pcac_RxLR_headers_by_orthogroup.txt
+```
+
+
+
 
 # 7) Run TribeMCL on orthoMCL data
 
