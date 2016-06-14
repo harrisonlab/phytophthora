@@ -79,10 +79,10 @@ This was done with fastq-mcf
 
 
 ```bash
-  for Strain in 404 414 415 416 62471; do
-    echo $Strain
-    Read_F=$(ls raw_dna/paired/P.*/$Strain/F/*.fastq.gz)
-    Read_R=$(ls raw_dna/paired/P.*/$Strain/R/*.fastq.gz)
+  for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e '415' -e '416' -e '62471'); do
+    echo $StrainPath
+    Read_F=$(ls $StrainPath/F/*.fastq.gz)
+    Read_R=$(ls $StrainPath/R/*.fastq.gz)
     IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
     qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
@@ -103,6 +103,18 @@ Trimming was then performed for strains with multiple runs of data
 	ReadsF=$(ls $StrainPath/F/414_run2_F.fastq.gz)
 	ReadsR=$(ls $StrainPath/R/414_run2_R.fastq.gz)
 	qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+  IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+
+  echo "404"
+  StrainPath=raw_dna/paired/P.cactorum/404
+  ReadsF=$(ls $StrainPath/F/130624_cactp404_S3_L001_R1_001.fastq.gz)
+  ReadsR=$(ls $StrainPath/R/130624_cactp404_S3_L001_R2_001.fastq.gz)
+  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+  StrainPath=raw_dna/paired/P.cactorum/404
+  ReadsF=$(ls $StrainPath/F/cactp404_S3_L001_R1_001.fastq.gz)
+  ReadsR=$(ls $StrainPath/R/cactp404_S3_L001_R2_001.fastq.gz)
+  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
 ```
 
 Data quality was visualised once again following trimming:
@@ -163,24 +175,24 @@ Assembly was performed with:
 ## Spades Assembly
 
 ```bash
-for StrainPath in $(ls -d qc_dna/paired/P.cactorum/*); do
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
-Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
-Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
-F_Read=$(ls $StrainPath/F/*.fq.gz)
-R_Read=$(ls $StrainPath/R/*.fq.gz)
-OutDir=assembly/spades/$Organism/$Strain
-Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
-while [ $Jobs -gt 1 ]; do
-	sleep 5m
-	printf "."
-	Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
-done		
-printf "\n"
-echo $F_Read
-echo $R_Read
-qsub $ProgDir/submit_SPAdes.sh $F_Read $R_Read $OutDir correct 10
-done
+  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -e '62471'); do
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+    Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+    Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+    F_Read=$(ls $StrainPath/F/*.fq.gz)
+    R_Read=$(ls $StrainPath/R/*.fq.gz)
+    OutDir=assembly/spades/$Organism/$Strain
+    Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+    while [ $Jobs -gt 1 ]; do
+    	sleep 5m
+    	printf "."
+    	Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+    done		
+    printf "\n"
+    echo $F_Read
+    echo $R_Read
+    qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct 10
+  done
 ```
 
 
@@ -196,6 +208,24 @@ done
     TrimR1_Read=$(ls $StrainPath/R/414_run1_R_trim.fq.gz);
     TrimF2_Read=$(ls $StrainPath/F/414_run2_F_trim.fq.gz);
     TrimR2_Read=$(ls $StrainPath/R/414_run2_R_trim.fq.gz);
+    echo $TrimF1_Read
+    echo $TrimR1_Read
+    echo $TrimF2_Read
+    echo $TrimR2_Read
+    OutDir=assembly/spades/$Organism/$Strain
+    qsub $ProgDir/subSpades_2lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir correct 10
+  done
+  for StrainPath in $(ls -d qc_dna/paired/P.*/404); do  
+    echo $StrainPath
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+    Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+    Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+    echo $Strain
+    echo $Organism
+    TrimF1_Read=$(ls $StrainPath/F/130624_cactp404_S3_L001_R1_001_trim.fq.gz);
+    TrimR1_Read=$(ls $StrainPath/R/130624_cactp404_S3_L001_R2_001_trim.fq.gz);
+    TrimF2_Read=$(ls $StrainPath/F/cactp404_S3_L001_R1_001_trim.fq.gz);
+    TrimR2_Read=$(ls $StrainPath/R/cactp404_S3_L001_R2_001_trim.fq.gz);
     echo $TrimF1_Read
     echo $TrimR1_Read
     echo $TrimF2_Read
