@@ -688,11 +688,11 @@ cat $Gff | grep -w -f $OutDir/"$Strain"_Aug_RxLR_EER_regex.txt > $OutDir/"$Strai
 done
 ```
 ```
-strain: 414	species: P.cactorum
-the total number of SigP gene is:	10267
-the number of unique SigP gene is:	5555
-the number of SigP-RxLR genes are:	449
-the number of SigP-RxLR-EER genes are:	204
+  strain: 414	species: P.cactorum
+  the total number of SigP gene is:	10267
+  the number of unique SigP gene is:	5555
+  the number of SigP-RxLR genes are:	449
+  the number of SigP-RxLR-EER genes are:	204
 ```
 
 
@@ -720,6 +720,56 @@ the number of SigP-RxLR-EER genes are:	204
   done
 ```
 
+```
+  P.cactorum 414
+  Initial search space (Z):              32832  [actual number of targets]
+  Domain search space  (domZ):             146  [number of targets reported over threshold]
+```
+
+### F) Combining RxLRs from Regex and hmm searches
+
+
+The total RxLRs are
+
+```bash
+  for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep -v 'Aug' | grep '414'); do
+    Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
+    Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
+    Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended.gff3)
+    Proteome=$(ls gene_pred/codingquary/$Organism/$Strain/*/final_genes_combined.pep.fasta)
+    HmmRxLR=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/*_RxLR_hmmer_headers.txt
+    echo "Number of RxLRs identified by Regex:"
+    cat $RegexRxLR | wc -l
+    echo "Number of RxLRs identified by Hmm:"
+    cat $HmmRxLR | wc -l
+    echo "Number of RxLRs in combined dataset:"
+    cat $RegexRxLR $HmmRxLR | sort | uniq | wc -l
+    echo "Number of RxLRs in both datasets:"
+    cat $RegexRxLR $HmmRxLR | sort | uniq -d | wc -l
+    echo "Extracting RxLRs from datasets"
+    OutDir=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain
+    mkdir -p $OutDir
+    cat $RegexRxLR $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_RxLR_headers.txt
+    Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended.gff3)
+    cat $Gff | grep -w -f $OutDir/"$Strain"_total_RxLR_headers.txt > $OutDir/"$Strain"_total_RxLR.gff
+    echo "Number of genes in the extracted gff file:"
+    cat $OutDir/"$Strain"_total_RxLR.gff | grep -w 'gene' | wc -l
+  done
+```
+
+```
+  Number of RxLRs identified by Regex:
+  204
+  Number of RxLRs identified by Hmm:
+  145
+  Number of RxLRs in combined dataset:
+  230
+  Number of RxLRs in both datasets:
+  118
+  Extracting RxLRs from datasets
+  Number of genes in the extracted gff file:
+  230
+```
 
 ### D) From Augustus gene models - Hmm evidence of CRN effectors
 
@@ -764,4 +814,19 @@ DWL_hmm=$(ls $HmmDir/Pinf_Pram_Psoj_Pcap_DWL.hmm)
   Initial search space (Z):              32832  [actual number of targets]
   Domain search space  (domZ):             189  [number of targets reported over threshold]
   170
+```
+
+Extract gff annotations for Crinklers:
+
+```bash
+  for CRNlist in $(ls analysis/CRN_effectors/hmmer_CRN/*/*/*_pub_CRN_LFLAK_DWL.txt | grep '414'); do
+    Strain=$(echo $CRNlist | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $CRNlist | rev | cut -f3 -d '/' | rev)
+    OutName=$(echo $CRNlist | sed 's/.txt/.gff/g')
+    echo "$Organism - $Strain"
+    Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended.gff3)
+    cat $CRNlist | sed -r 's/\.t.$//g' > tmp.txt
+    cat $Gff | grep -w -f tmp.txt >  $OutName
+    rm tmp.txt
+  done
 ```
