@@ -66,7 +66,8 @@ Data quality was visualised using fastqc:
 
 
 ```bash
-  for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300'); do
+  for RawData in $(ls raw_dna/paired/P./*/*/*.fastq.gz); do
+  # for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300'); do
     echo $RawData;
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
@@ -80,6 +81,7 @@ This was done with fastq-mcf
 
 ```bash
   for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e '415' -e '416' -e '62471'); do
+  # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
     echo $StrainPath
     Read_F=$(ls $StrainPath/F/*.fastq.gz)
     Read_R=$(ls $StrainPath/R/*.fastq.gz)
@@ -131,7 +133,7 @@ kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
 ```bash
-  for TrimPath in $(ls -d qc_dna/paired/P.cactorum/*); do
+  for TrimPath in $(ls -d qc_dna/paired/P.*/* | grep -v -e 'cactorum' | grep 'idaei'); do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
     TrimF=$(ls $TrimPath/F/*.fq.gz)
     TrimR=$(ls $TrimPath/R/*.fq.gz)
@@ -176,6 +178,7 @@ Assembly was performed with:
 
 ```bash
   for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -e '62471'); do
+  # for StrainPath in $(ls -d qc_dna/paired/P.idaei/*); do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -184,9 +187,9 @@ Assembly was performed with:
     OutDir=assembly/spades/$Organism/$Strain
     Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
     while [ $Jobs -gt 1 ]; do
-    	sleep 5m
-    	printf "."
-    	Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+      sleep 5m
+      printf "."
+      Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
     done		
     printf "\n"
     echo $F_Read
@@ -235,11 +238,107 @@ Assembly was performed with:
   done
 ```
 
-<!-- ```bash
-for Assembly in $(ls assembly/spades/P.cactorum/*/*/*500bp.fasta); do
-Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
-Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
-Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
-OutDir=assembly/spades/$Organism/$Strain/filtered_contigs; qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
+
+Contigs were renamed in accordance with ncbi recomendations.
+
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+  touch tmp.csv
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta); do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+    OutDir=assembly/spades/$Organism/$Strain/filtered_contigs
+    $ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file tmp.csv
+  done
+  rm tmp.csv
+```
+
+
+```bash
+  for Assembly in $(ls assembly/spades/P.cactorum/*/*/contigs_min_500bp_renamed.fasta); do
+    Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
+    OutDir=assembly/spades/$Organism/$Strain/filtered_contigs;
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
+  done
+```
+
+
+
+# Repeatmasking
+
+Repeat masking was performed and used the following programs:
+	Repeatmasker
+	Repeatmodeler
+
+The best assemblies were used to perform repeatmasking
+
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+	for BestAss in $(ls assembly/spades/*/*/*/contigs_min_500bp_renamed.fasta); do
+		qsub $ProgDir/rep_modeling.sh $BestAss
+		qsub $ProgDir/transposonPSI.sh $BestAss
+	done
+```
+
+The number of bases masked by transposonPSI and Repeatmasker were summarised
+using the following commands:
+
+```bash
+for RepDir in $(ls -d repeat_masked/F.*/*/* | grep -v 'edited' | grep -e 'Fus2'); do
+Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
+RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
+TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+printf "$Organism\t$Strain\n"
+printf "The number of bases masked by RepeatMasker:\t"
+sortBed -i $RepMaskGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+printf "The number of bases masked by TransposonPSI:\t"
+sortBed -i $TransPSIGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+printf "The total number of masked bases are:\t"
+cat $RepMaskGff $TransPSIGff | sortBed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+echo
 done
-``` -->
+```
+
+```
+
+```
+
+# Gene Prediction
+
+
+Gene prediction followed three steps:
+	Pre-gene prediction
+		- Quality of genome assemblies were assessed using Cegma to see how many core eukaryotic genes can be identified.
+	Gene model training
+		- Gene models were trained using assembled RNAseq data as part of the Braker1 pipeline
+	Gene prediction
+		- Gene models were used to predict genes in genomes as part of the the Braker1 pipeline. This used RNAseq data as hints for gene models.
+
+# Pre-gene prediction
+
+Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
+```bash
+	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+	cd /home/groups/harrisonlab/project_files/fusarium
+	for Genome in $(ls repeat_masked/F.*/*/*/*_contigs_unmasked.fa | grep -w 'Fus2'); do
+	#for Genome in $(ls repeat_masked/F.*/*/*/*_contigs_unmasked.fa | grep -w 'fo47'); do
+		echo $Genome;
+		qsub $ProgDir/sub_cegma.sh $Genome dna;
+	done
+```
+
+Outputs were summarised using the commands:
+```bash
+	for File in $(ls gene_pred/cegma/F*/Fus2/*_dna_cegma.completeness_report); do
+		Strain=$(echo $File | rev | cut -f2 -d '/' | rev);
+		Species=$(echo $File | rev | cut -f3 -d '/' | rev);
+		printf "$Species\t$Strain\n";
+		cat $File | head -n18 | tail -n+4;printf "\n";
+	done > gene_pred/cegma/cegma_results_dna_summary.txt
+
+	less gene_pred/cegma/cegma_results_dna_summary.txt
+```
