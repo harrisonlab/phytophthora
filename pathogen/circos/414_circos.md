@@ -20,13 +20,23 @@ Commands for generating a circos plot for P. cac isolate 414
   # Convert coverage bed files into circos format
   $ProgDir/coverage_bed2circos.py --bed $OutDir/414_gene_density.bed > $OutDir/414_gene_density_lineplot.txt
 
-
   # Plot location of RxLR genes as a scatterplot
   RxLR_gff=analysis/RxLR_effectors/combined_evidence/P.cactorum/414/414_total_RxLR.gff
   $ProgDir/gff2circos_scatterplot.py --gff $RxLR_gff --feature gene --value 0.66 > $OutDir/414_RxLR_scatterplot.txt
   # Plot location of CRN genes as a scatterplot
   CRN_gff=analysis/CRN_effectors/hmmer_CRN/P.cactorum/414/414_pub_CRN_LFLAK_DWL.gff
   $ProgDir/gff2circos_scatterplot.py --gff $CRN_gff --feature gene --value 0.33 > $OutDir/414_CRN_scatterplot.txt
+
+  # Convert FoC MiSeq reads aligning in 100kb windows into coverage stats
+  for ReadsBam in $(ls analysis/genome_alignment/bowtie/P.*/*/vs_414/414_contigs_unmasked.fa_aligned_sorted.bam); do
+    Strain=$(echo $ReadsBam | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $ReadsBam | rev | cut -f4 -d '/' | rev)
+    # AlignDir=$(dirname $ReadsBam)
+    echo "$Organism - $Strain"
+    bedtools coverage -abam $ReadsBam -b $OutDir/414_100kb_windows.gff > $OutDir/"$Strain"_coverage_vs_414.bed
+    # Convert coverage bed files into circos format
+    $ProgDir/coverage_bed2circos.py --bed $OutDir/"$Strain"_coverage_vs_414.bed > $OutDir/"$Strain"_coverage_vs_414_scatterplot.txt
+  done
 
   circos -conf /home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/circos/414_circos.conf -outputdir $OutDir
 ```
