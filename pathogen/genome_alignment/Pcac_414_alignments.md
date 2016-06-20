@@ -15,7 +15,7 @@ Alignment of reads from a single run:
     echo $R_Read
     OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_414
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
-    qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
+    # qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
   done
 ```
 
@@ -23,7 +23,7 @@ Alignment of reads from multiple sequencing runs:
 
 ```bash
   Reference=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w '414')
-  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '404'); do
+  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -w -e '404' -e 414); do
     echo $StrainPath
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -37,6 +37,7 @@ Alignment of reads from multiple sequencing runs:
     echo $F2_Read
     echo $R2_Read
     OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_414
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
     qsub $ProgDir/bowtie/sub_bowtie_2lib.sh $Reference $F1_Read $R1_Read $F2_Read $R2_Read $OutDir
   done
   for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '10300'); do
@@ -53,6 +54,7 @@ Alignment of reads from multiple sequencing runs:
     echo $F2_Read
     echo $R2_Read
     OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/300bp_vs_414
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
     qsub $ProgDir/bowtie/sub_bowtie_2lib.sh $Reference $F1_Read $R1_Read $F2_Read $R2_Read $OutDir
     F1_Read=$(ls $StrainPath/F/*1Kb*.fq.gz | head -n1);
     R1_Read=$(ls $StrainPath/R/*1Kb*.fq.gz | head -n1);
@@ -66,12 +68,21 @@ Alignment of reads from multiple sequencing runs:
     qsub $ProgDir/bowtie/sub_bowtie_2lib.sh $Reference $F1_Read $R1_Read $F2_Read $R2_Read $OutDir
   done
 ```
-<!--
+
+The multiple alignments of 10300 reads were aligned using the following commands:
+
+```bash
+  OutDir=analysis/genome_alignment/bowtie/P.cactorum/10300/vs_414
+  mkdir -p $OutDir
+  samtools merge -f $OutDir/414_contigs_unmasked.fa_aligned_sorted.bam analysis/genome_alignment/bowtie/P.cactorum/10300/*_vs_414/414_contigs_unmasked.fa_aligned_sorted.bam
+```
+
+
 Alignment of reads from P.idaei:
 
 ```bash
   Reference=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w '414')
-  for StrainPath in $(ls -d qc_dna/paired/P.ideai/*); do
+  for StrainPath in $(ls -d qc_dna/paired/P.idaei/*); do
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -83,4 +94,4 @@ Alignment of reads from P.idaei:
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
     qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
   done
-``` -->
+```
