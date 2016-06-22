@@ -95,3 +95,17 @@ Alignment of reads from P.idaei:
     qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
   done
 ```
+
+Alignment of Pacbio reads vs the P414 genome.
+
+```bash
+  Reference=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w '414')
+  for Pacbio_Reads in $(ls -d raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq); do
+    Organism=$(echo $Pacbio_Reads | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $Pacbio_Reads | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    OutDir=analysis/genome_alignment/bowtie/$Organism/"$Strain"_pacbio/vs_414
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
+    qsub $ProgDir/bowtie/sub_bowtie_unpaired.sh $Reference $Pacbio_Reads $OutDir
+  done
+```
