@@ -95,8 +95,12 @@ Alignment of reads from P.idaei:
     qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
   done
 ```
+<!--
+Bowtie is not appropriate for aligning Pacbio reads - too much memory overhead.
 
-Alignment of Pacbio reads vs the P414 genome.
+Alignment of Pacbio reads vs the P414 genome. PacBio reads maxed out the RAM of
+the node and therefore the wrapper script was modified to allow submission to
+a node with greater RAM.
 
 ```bash
   Reference=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w '414')
@@ -106,6 +110,12 @@ Alignment of Pacbio reads vs the P414 genome.
     echo "$Organism - $Strain"
     OutDir=analysis/genome_alignment/bowtie/$Organism/"$Strain"_pacbio/vs_414
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
-    qsub $ProgDir/bowtie/sub_bowtie_unpaired.sh $Reference $Pacbio_Reads $OutDir
+    qsub -h $ProgDir/bowtie/sub_bowtie_unpaired.sh $Reference $Pacbio_Reads $OutDir
+    # The job ID was identified as:
+    JobID=$(qstat | grep 'sub_bowtie' | tail -n1 | cut -f1 -d ' ')
+    qalter -N "Pacbio_bowtie" $JobID
+    qalter -l h=blacklace01.blacklace $JobID
+    qalter -l virtual_free=5G $JobID
+    qalter -h U $JobID
   done
-```
+``` -->
