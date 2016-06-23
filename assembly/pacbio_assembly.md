@@ -31,6 +31,18 @@ for P. fragariae data (commands for tom to run)
   cat raw_dna/pacbio/P.fragariae/Bc16/*/Analysis_Results/*.subreads.fastq > $OutDir/concatenated_pacbio.fastq
 ``` -->
 
+<!-- Sequencing depth and possible contamination was identified using kmer counting
+kmer counting was performed using kmc
+This allowed estimation of sequencing depth and total genome size
+
+```bash
+  for Reads in $(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq); do
+    echo $Reads
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+    qsub $ProgDir/kmc_kmer_counting.sh $Reads
+  done
+``` -->
+
 ## Assembly
 
 
