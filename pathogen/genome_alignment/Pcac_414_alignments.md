@@ -15,7 +15,7 @@ Alignment of reads from a single run:
     echo $R_Read
     OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_414
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
-    # qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
+    qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
   done
 ```
 
