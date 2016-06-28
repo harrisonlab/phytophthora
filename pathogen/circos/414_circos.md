@@ -1,6 +1,5 @@
 Commands for generating a circos plot for P. cac isolate 414
 
-
 ```bash
   OutDir=analysis/circos/P.cactorum/414
   mkdir -p $OutDir
@@ -40,3 +39,7 @@ Commands for generating a circos plot for P. cac isolate 414
 
   circos -conf /home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/circos/414_circos.conf -outputdir $OutDir
 ```
+
+Note - Bedtools overestimates coverage from paired end data, treating an overlapping paired read as 2X coverage.
+You should therefore be careful to use coverage plots as a representation of areas that show coverage rather
+than a quantification of coverage in an area. Discussed at: https://www.biostars.org/p/172179/
