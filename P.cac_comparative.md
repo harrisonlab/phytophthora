@@ -1161,7 +1161,7 @@ Secreted proteins were also predicted using Phobius
 Secreted proteins from different sources were combined into a single file:
 
 ```bash
-  for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2' | grep -w -e '404' -e '414' -e '415' -e '416'); do
+  for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2' | grep -w -v -e '404' -e '414' -e '415' -e '416'); do
     Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -1202,6 +1202,21 @@ Secreted proteins from different sources were combined into a single file:
   61712
   This represented the following number of unique genes:
   29425
+  P.cactorum - 62471
+  The following number of sequences were predicted as secreted:
+  55686
+  This represented the following number of unique genes:
+  26324
+  P.idaei - 371
+  The following number of sequences were predicted as secreted:
+  54493
+  This represented the following number of unique genes:
+  25750
+  P.idaei - SCRP370
+  The following number of sequences were predicted as secreted:
+  54601
+  This represented the following number of unique genes:
+  25802
 ```
 
 #### E.3) Prediction of RxLRs
@@ -1569,7 +1584,7 @@ A hmm model relating to crinkler domains was used to identify putative crinklers
 in ORF gene models. This was done with the following commands:
 
 ```bash
-for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa | grep -w -e '404' -e '414' -e '415' -e '416'); do
+for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e 'atg' -e '10300' -e '414_v2' | grep -v -w -e '404' -e '414' -e '415' -e '416'); do
 # Setting variables
 Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
@@ -1666,6 +1681,36 @@ The number of CRNs common to both models are:
 200
 Number of CRN ORFs after merging:
 141
+Searching for LFLAK domains in: P.cactorum 62471
+Initial search space (Z):             488325  [actual number of targets]
+Domain search space  (domZ):             245  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 62471
+Initial search space (Z):             488325  [actual number of targets]
+Domain search space  (domZ):             308  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+153
+Number of CRN ORFs after merging:
+100
+Searching for LFLAK domains in: P.idaei 371
+Initial search space (Z):             487686  [actual number of targets]
+Domain search space  (domZ):             217  [number of targets reported over threshold]
+Searching for DWL domains in: P.idaei 371
+Initial search space (Z):             487686  [actual number of targets]
+Domain search space  (domZ):             254  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+122
+Number of CRN ORFs after merging:
+86
+Searching for LFLAK domains in: P.idaei SCRP370
+Initial search space (Z):             486809  [actual number of targets]
+Domain search space  (domZ):             220  [number of targets reported over threshold]
+Searching for DWL domains in: P.idaei SCRP370
+Initial search space (Z):             486809  [actual number of targets]
+Domain search space  (domZ):             256  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+125
+Number of CRN ORFs after merging:
+89
 ```
 
 
@@ -1694,16 +1739,12 @@ Extract crinklers from published gene models
 
 
 ```bash
-for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -w -e '414'); do
+for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e 'atg' -e '10300' -e '414_v2' | grep -w -e '404' -e '414' -e '415' -e '416'); do
 Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
 Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
 AugGff=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
-# AugTxt=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.txt)
 AugFa=$(ls gene_pred/codingquary/"$Species"/"$Strain"/final/final_genes_combined.pep.fasta)
-
-
 ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
-# ORFsTxt=$(ls $MergeDir/"$Strain"_total_ORF_RxLR_headers.txt)
 ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
 ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
 AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
@@ -1719,39 +1760,77 @@ bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
 echo "$Species - $Strain"
 
 echo "The number of ORF CRNs overlapping Augustus CRNs:"
-cat $ORFsInAug | grep -w 'gene' | wc -l
-cat $ORFsInAug | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' > $TotalCRNsTxt
+cat $ORFsInAug | grep -w -e 'transcript' -e 'mRNA' | wc -l
 echo "The number of Augustus CRNs overlapping ORF CRNs:"
-cat $AugInORFs | grep -w 'gene' | wc -l
-cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
+cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | wc -l
+cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $TotalCRNsTxt
 echo "The number of CRNs unique to ORF models:"
-cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f3 -d ';' | cut -f2 -d '=' | wc -l
-cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f3 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
+cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | wc -l
+cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
 echo "The number of CRNs unique to Augustus models:"
-cat $AugUniq | grep -w 'gene' | wc -l
+cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | wc -l
 cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
 
 cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
 
-# echo "The total number of CRNs are:"
-# cat $TotalCRNsGff | grep 'AUGUSTUS' | cut -f9 > $TotalCRNsHeaders
-# cat $TotalCRNsGff | grep -o -E -e 'Name=.*$' -e 'name ".*";' | sed -e 's/^Name=//g' | sed 's/^name "//g' | sed 's/";$//g' | sort | uniq >> $TotalCRNsHeaders
-# cat $TotalCRNsHeaders | wc -l
-
-
 CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
-ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
-# $ProgDir/unwrap_fasta.py --inp_fasta $AugFa | grep -A1 -w -f $AugTxt | grep -v -E '^--$' > $RxLRsFa
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalCRNsTxt > $CRNsFa
-# echo "$Strain"
 $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsTxt >> $CRNsFa
-# echo "$Strain"
 echo "The number of sequences extracted is"
 cat $CRNsFa | grep '>' | wc -l
 
 done
 ```
+
+```
+P.cactorum - 404
+The number of ORF CRNs overlapping Augustus CRNs:
+93
+The number of Augustus CRNs overlapping ORF CRNs:
+93
+The number of CRNs unique to ORF models:
+4
+The number of CRNs unique to Augustus models:
+19
+The number of sequences extracted is
+113
+P.cactorum - 414
+The number of ORF CRNs overlapping Augustus CRNs:
+151
+The number of Augustus CRNs overlapping ORF CRNs:
+151
+The number of CRNs unique to ORF models:
+4
+The number of CRNs unique to Augustus models:
+17
+The number of sequences extracted is
+173
+P.cactorum - 415
+The number of ORF CRNs overlapping Augustus CRNs:
+126
+The number of Augustus CRNs overlapping ORF CRNs:
+126
+The number of CRNs unique to ORF models:
+4
+The number of CRNs unique to Augustus models:
+20
+The number of sequences extracted is
+147
+P.cactorum - 416
+The number of ORF CRNs overlapping Augustus CRNs:
+137
+The number of Augustus CRNs overlapping ORF CRNs:
+137
+The number of CRNs unique to ORF models:
+4
+The number of CRNs unique to Augustus models:
+17
+The number of sequences extracted is
+155
+
+```
+
 
 ## 4. 2 Ananlysis of RxLR effectors
 
