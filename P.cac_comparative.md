@@ -1118,7 +1118,7 @@ the following commands:
  single file for each strain. This was done with the following commands:
 
 ```bash
-for SplitDir in $(ls -d gene_pred/ORF_split/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v '10300' | grep -w -v -e '404' -e '414' -e '415' -e '416' | grep -v -e '414'); do
+for SplitDir in $(ls -d gene_pred/ORF_split/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2'); do
 Strain=$(echo $SplitDir | cut -d '/' -f4)
 Organism=$(echo $SplitDir | cut -d '/' -f3)
 echo "$Organism - $Strain"
@@ -1717,70 +1717,50 @@ Number of CRN ORFs after merging:
 
 Extract crinklers from published gene models
 
-```bash
-  PcacAugGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
-
-
-#   for GeneGff in $(ls gene_pred/codingquary/P.cactorum/414/final/final_genes_appended.gff3); do
-#     echo "$GeneGff"
-#     Strain=$(echo "$GeneGff" | rev | cut -f3 -d '/' | rev)
-#     Species=$(echo "$GeneGff" | rev | cut -f4 -d '/' | rev)
-#     CrnDir=$(ls -d analysis/CRN_effectors/hmmer_CRN/$Species/$Strain)
-#     Source="pred"
-#     CRN_hmm_txt=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.txt
-#     CRN_hmm_txt_mod=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL_mod.txt
-#     CRN_hmm_gff=analysis/CRN_effectors/hmmer_CRN/$Species/$Strain/"$Strain"_pub_CRN_LFLAK_DWL.gff
-#     cat $CRN_hmm_txt | sed -E 's/\.t.+$//g' > $CRN_hmm_txt_mod
-#     echo "$Species - $Strain"
-#     cat $GeneGff | grep -w -f $CRN_hmm_txt_mod > $CRN_hmm_gff
-#     cat $CRN_hmm_gff | cut -f2 -d '"' | sort | uniq | wc -l
-#   done
-# ```
-
 
 ```bash
-for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e 'atg' -e '10300' -e '414_v2' | grep -w -e '404' -e '414' -e '415' -e '416'); do
-Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
-Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-AugGff=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
-AugFa=$(ls gene_pred/codingquary/"$Species"/"$Strain"/final/final_genes_combined.pep.fasta)
-ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
-ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
-ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
-AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
-ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
-AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
-TotalCRNsTxt=$MergeDir/"$Strain"_final_CRN.txt
-TotalCRNsGff=$MergeDir/"$Strain"_final_CRN.gff
-TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
-bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
-bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
-bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
-bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
-echo "$Species - $Strain"
+  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e 'atg' -e '10300' -e '414_v2' | grep -w -e '404' -e '414' -e '415' -e '416'); do
+    Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
+    Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
+    AugGff=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
+    AugFa=$(ls gene_pred/codingquary/"$Species"/"$Strain"/final/final_genes_combined.pep.fasta)
+    ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
+    ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
+    ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
+    AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
+    ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
+    AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
+    TotalCRNsTxt=$MergeDir/"$Strain"_final_CRN.txt
+    TotalCRNsGff=$MergeDir/"$Strain"_final_CRN.gff
+    TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
+    bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
+    bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
+    bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
+    bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
+    echo "$Species - $Strain"
 
-echo "The number of ORF CRNs overlapping Augustus CRNs:"
-cat $ORFsInAug | grep -w -e 'transcript' -e 'mRNA' | wc -l
-echo "The number of Augustus CRNs overlapping ORF CRNs:"
-cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | wc -l
-cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $TotalCRNsTxt
-echo "The number of CRNs unique to ORF models:"
-cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | wc -l
-cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
-echo "The number of CRNs unique to Augustus models:"
-cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | wc -l
-cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
+    echo "The number of ORF CRNs overlapping Augustus CRNs:"
+    cat $ORFsInAug | grep -w -e 'transcript' -e 'mRNA' | wc -l
+    echo "The number of Augustus CRNs overlapping ORF CRNs:"
+    cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | wc -l
+    cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $TotalCRNsTxt
+    echo "The number of CRNs unique to ORF models:"
+    cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | wc -l
+    cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
+    echo "The number of CRNs unique to Augustus models:"
+    cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | wc -l
+    cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
 
-cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+    cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
 
-CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalCRNsTxt > $CRNsFa
-$ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsTxt >> $CRNsFa
-echo "The number of sequences extracted is"
-cat $CRNsFa | grep '>' | wc -l
+    CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalCRNsTxt > $CRNsFa
+    $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsTxt >> $CRNsFa
+    echo "The number of sequences extracted is"
+    cat $CRNsFa | grep '>' | wc -l
 
-done
+  done
 ```
 
 ```
