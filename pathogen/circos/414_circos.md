@@ -19,6 +19,22 @@ Commands for generating a circos plot for P. cac isolate 414
   # Convert coverage bed files into circos format
   $ProgDir/coverage_bed2circos.py --bed $OutDir/414_gene_density.bed > $OutDir/414_gene_density_lineplot.txt
 
+  # # Plot location of transposons as a scatterplot
+  # Repeatmasker_gff=repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_transposonmasked.gff
+  # TransposonPSI_gff=repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa.TPSI.allHits.chains.gff3
+  # $ProgDir/gff2circos_scatterplot.py --gff $Repeatmasker_gff --feature similarity --value 0.5 > $OutDir/414_transposon_scatterplot.txt
+  # $ProgDir/gff2circos_scatterplot.py --gff $TransposonPSI_gff --feature translated_nucleotide_match --value 0.5 >> $OutDir/414_transposon_scatterplot.txt
+
+  # Plot location of transposons as a line plot
+  Repeatmasker_gff=repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_transposonmasked.gff
+  TransposonPSI_gff=repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa.TPSI.allHits.chains.gff3
+
+  bedtools coverage -a $Repeatmasker_gff -b $OutDir/414_100kb_windows.gff > $OutDir/414_transposon_density.bed
+    # bedtools coverage -a $TransposonPSI_gff -b $OutDir/414_100kb_windows.gff > $OutDir/414_transposon_density.bed
+  # Convert coverage bed files into circos format
+  $ProgDir/coverage_bed2circos.py --bed $OutDir/414_transposon_density.bed --per_X_bp "100000" > $OutDir/414_transposon_density_lineplot.txt
+
+
   # Plot location of RxLR genes as a scatterplot
   RxLR_gff=analysis/RxLR_effectors/combined_evidence/P.cactorum/414/414_total_RxLR.gff
   $ProgDir/gff2circos_scatterplot.py --gff $RxLR_gff --feature gene --value 0.66 > $OutDir/414_RxLR_scatterplot.txt
@@ -27,7 +43,7 @@ Commands for generating a circos plot for P. cac isolate 414
   $ProgDir/gff2circos_scatterplot.py --gff $CRN_gff --feature gene --value 0.33 > $OutDir/414_CRN_scatterplot.txt
 
   # Convert FoC MiSeq reads aligning in 100kb windows into coverage stats
-  for ReadsBam in $(ls analysis/genome_alignment/bowtie/P.*/*/vs_414/414_contigs_unmasked.fa_aligned_sorted.bam); do
+  for ReadsBam in $(ls analysis/genome_alignment/bowtie/P.*/*/vs_414/414_contigs_unmasked.fa_aligned_sorted.bam | grep -e '10300' -e '414'); do
     Strain=$(echo $ReadsBam | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $ReadsBam | rev | cut -f4 -d '/' | rev)
     # AlignDir=$(dirname $ReadsBam)
