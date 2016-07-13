@@ -1161,7 +1161,7 @@ Secreted proteins were also predicted using Phobius
 Secreted proteins from different sources were combined into a single file:
 
 ```bash
-  for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2' | grep -w -v -e '404' -e '414' -e '415' -e '416'); do
+  for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2' | grep -w -e '404' -e '414' -e '415' -e '416'); do
     Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -1237,7 +1237,7 @@ selected on the basis of its SignalP Hmm score. Biopython was used to identify
 overlaps and identify the ORF with the best signalP score.
 
 ```bash
-  for ORF_Gff in $(ls gene_pred/ORF_finder/*/*/*_ORF.gff3 | grep -v -e 'atg' | grep -v -w -e '414' | grep -w -e '404' -e '415' -e '416'); do
+  for ORF_Gff in $(ls gene_pred/ORF_finder/*/*/*_ORF.gff3 | grep -v -e 'atg' | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2' | grep -v -w -e '404' -e '414' -e '415' -e '416'); do
     Organism=$(echo $ORF_Gff | rev |  cut -d '/' -f3 | rev) ;
     Strain=$(echo $ORF_Gff | rev | cut -d '/' -f2 | rev);
     OutDir=$(ls -d gene_pred/combined_sigP_ORF/$Organism/$Strain)
@@ -1263,12 +1263,13 @@ overlaps and identify the ORF with the best signalP score.
   done
 ```
 
+#<--- Progress up to here
 The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
 
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
 
 ```bash
-for Secretome in $(ls gene_pred/combined_sigP_ORF/*/*/*_all_secreted.fa | grep -v -w -e '414' | grep -w -e '404' -e '415' -e '416'); do
+for Secretome in $(ls gene_pred/combined_sigP_ORF/*/*/*_all_secreted.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2' | grep -v -w -e '404' -e '414' -e '415' -e '416'); do
 ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors
 Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
 Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
@@ -1288,6 +1289,7 @@ ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt  $SigP_Merged_Gff 	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff
 SigP_Gff=gene_pred/combined_sigP_ORF/$Organism/$Strain/"$Strain"_all_secreted_unmerged.gff
 ORF_fasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt  $SigP_Gff	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff
 # ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt $SigP_Merged_Gff RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_EER_regex.gff
