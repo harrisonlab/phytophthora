@@ -200,19 +200,19 @@ regions with low coverage flagged using a python script flag_low_coverage.py.
 These low coverage regions were visually inspected using IGV.
 
 ```bash
-  Assembly=$(ls assembly/merged_canu_spades/*/*/filtered_contigs/contigs_min_500bp_renamed.fasta)
-  Reads=$(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq)
+  Assembly=$(ls assembly/merged_canu_spades/P.cactorum/414/filtered_contigs/contigs_min_500bp_renamed.fasta)
+  Reads=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq)
   OutDir=analysis/genome_alignment/bwa/P.cactorum/414/vs_414
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/bwa
   qsub $ProgDir/sub_bwa_pacbio.sh $Assembly $Reads $OutDir
-
-  AlignedBam=$OutDir/414_contigs_renamed.fasta_aligned_sorted.bam.gz
-  CoverageTxt=$OutDir/414_bp_genome_cov.txt
-  bedtools genomecov -max 5 -bga -d -ibam $AlignedBam -g $Assembly > $CoverageTxt
-
-  Threshold=5
-  FlaggedRegions=$OutDir/414_flagged_regions.txt
-  $ProgDir/flag_low_coverage.py --genomecov $CoverageTxt --min $Threshold > $FlaggedRegions
+  #
+  # AlignedBam=$OutDir/414_contigs_renamed.fasta_aligned_sorted.bam.gz
+  # CoverageTxt=$OutDir/414_bp_genome_cov.txt
+  # bedtools genomecov -max 5 -bga -d -ibam $AlignedBam -g $Assembly > $CoverageTxt
+  #
+  # Threshold=5
+  # FlaggedRegions=$OutDir/414_flagged_regions.txt
+  # $ProgDir/flag_low_coverage.py --genomecov $CoverageTxt --min $Threshold > $FlaggedRegions
 ```
 
 # Repeatmasking
