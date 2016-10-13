@@ -56,6 +56,20 @@ and annotation.
   RawDatDir=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160108_M01678_0039_AEMMF
   cp $RawDatDir/62471_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/62471/F/.
   cp $RawDatDir/62471_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/62471/R/.
+  # Data run on 13/10/16 161010_M04465_0026_000000000-APP5B
+  RawDatDir=/home/miseq_readonly/miseq_data/2016/RAW/161010_M04465_0026_000000000-APP5B/Data/Intensities/BaseCalls
+  Species=P.cactorum
+  Strain=15_7
+  mkdir -p raw_dna/paired/$Species/$Strain/F
+  mkdir -p raw_dna/paired/$Species/$Strain/R
+  cp $RawDatDir/Pcact15-07_S2_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/.
+  cp $RawDatDir/Pcact15-07_S2_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/.
+  Species=P.cactorum
+  Strain=15_13
+  mkdir -p raw_dna/paired/$Species/$Strain/F
+  mkdir -p raw_dna/paired/$Species/$Strain/R
+  cp $RawDatDir/Pcact15-13_S3_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/.
+  cp $RawDatDir/Pcact15-13_S3_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/.
 ```
 
 #Data qc
@@ -396,7 +410,7 @@ First, RNAseq data was aligned to Fusarium genomes.
 #### Aligning
 
 ```bash
-  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -v -w -e '414' -e 'P.fragariae'); do
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e 'P.fragariae' | grep 'A4'); do
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     echo "$Organism - $Strain"
@@ -413,8 +427,17 @@ First, RNAseq data was aligned to Fusarium genomes.
 
 #### Braker prediction
 
+Before braker predictiction was performed, I double checked that I had the
+genemark key in my user area and copied it over from the genemark install
+directory:
+
 ```bash
-    for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -v -w -e '414' -e 'P.fragariae'); do
+	ls ~/.gm_key
+	cp /home/armita/prog/genemark/gm_key_64 ~/.gm_key
+```
+
+```bash
+    for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep 'A4'); do
     	Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     	Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     	echo "$Organism - $Strain"
@@ -422,12 +445,12 @@ First, RNAseq data was aligned to Fusarium genomes.
     	samtools merge -f alignment/$Organism/$Strain/concatenated/concatenated.bam \
       alignment/$Organism/$Strain/SRR1206032/accepted_hits.bam \
     	alignment/$Organism/$Strain/SRR1206033/accepted_hits.bam
-    	OutDir=gene_pred/braker/$Organism/"$Strain"_braker
-    	AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
-    	GeneModelName="$Organism"_"$Strain"_braker
-    	rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker
-    	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
-    	qsub $ProgDir/sub_braker_fungi.sh $Assembly $OutDir $AcceptedHits $GeneModelName
+    	# OutDir=gene_pred/braker/$Organism/"$Strain"_braker
+    	# AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
+    	# GeneModelName="$Organism"_"$Strain"_braker
+    	# rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker
+    	# ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
+    	# qsub $ProgDir/sub_braker_fungi.sh $Assembly $OutDir $AcceptedHits $GeneModelName
   	done
 ```
 
@@ -443,30 +466,30 @@ Note - cufflinks doesn't always predict direction of a transcript and
 therefore features can not be restricted by strand when they are intersected.
 
 ```bash
-	for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -v -w -e '404' -e '414' -e 'P.fragariae'); do
-		Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-		Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-		echo "$Organism - $Strain"
-		OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
-		mkdir -p $OutDir
-		AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-		qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
-	done
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep 'A4'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
+mkdir -p $OutDir
+AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
+done
 ```
 
 Secondly, genes were predicted using CodingQuary:
 
 ```bash
-	for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep -v -w -e '414' -e 'fragariae'); do
-		Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-		Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-		echo "$Organism - $Strain"
-		OutDir=gene_pred/codingquary/$Organism/$Strain
-		CufflinksGTF=gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf
-		ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
-		qsub $ProgDir/sub_CodingQuary.sh $Assembly $CufflinksGTF $OutDir
-	done
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep 'A4'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+OutDir=gene_pred/codingquary/$Organism/$Strain
+CufflinksGTF=gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+qsub $ProgDir/sub_CodingQuary.sh $Assembly $CufflinksGTF $OutDir
+done
 ```
 
 Then, additional transcripts were added to Braker gene models, when CodingQuary
