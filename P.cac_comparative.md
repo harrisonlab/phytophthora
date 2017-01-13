@@ -769,6 +769,171 @@ Secreted proteins from different sources were combined into a single file:
   3006
 ```
 
+
+### C) From Augustus gene models - Effector-like structure identification using EffectorP
+
+Required programs:
+ * EffectorP.py
+
+```bash
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta); do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    BaseName="$Organism"_"$Strain"_EffectorP
+    OutDir=analysis/effectorP/$Organism/$Strain
+    ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation/fungal_effectors
+    qsub $ProgDir/pred_effectorP.sh $Proteome $BaseName $OutDir
+  done
+```
+
+Those genes that were predicted as secreted and tested positive by effectorP
+were identified:
+
+```bash
+  for File in $(ls analysis/effectorP/*/*/*_EffectorP.txt); do
+    Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+    echo "$Organism - $Strain"
+    Headers=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_headers.txt/g')
+    cat $File | grep 'Effector' | cut -f1 > $Headers
+    printf "EffectorP headers:\t"
+    cat $Headers | wc -l
+    Secretome=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
+    OutFile=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.aa/g')
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_from_fasta.py --fasta $Secretome --headers $Headers > $OutFile
+    OutFileHeaders=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted_headers.txt/g')
+    cat $OutFile | grep '>' | tr -d '>' > $OutFileHeaders
+    printf "Secreted effectorP headers:\t"
+    cat $OutFileHeaders | wc -l
+    Gff=$(ls gene_pred/codingquary/$Organism/$Strain/*/final_genes_appended.gff3)
+    EffectorP_Gff=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.gff/g')
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_gff_for_sigP_hits.pl $OutFileHeaders $Gff effectorP ID > $EffectorP_Gff
+  done
+```
+```
+P.cactorum - 404
+EffectorP headers:	17770
+Secreted effectorP headers:	850
+P.cactorum - 414
+EffectorP headers:	18440
+Secreted effectorP headers:	969
+P.cactorum - 415
+EffectorP headers:	20870
+Secreted effectorP headers:	945
+P.cactorum - 416
+EffectorP headers:	21304
+Secreted effectorP headers:	927
+P.cactorum - 62471
+EffectorP headers:	17022
+Secreted effectorP headers:	836
+P.idaei - 371
+EffectorP headers:	17156
+Secreted effectorP headers:	799
+P.idaei - SCRP370
+EffectorP headers:	16918
+Secreted effectorP headers:	797
+```
+
+## D) CAZY proteins
+
+Carbohydrte active enzymes were idnetified using CAZYfollowing recomendations
+at http://csbl.bmb.uga.edu/dbCAN/download/readme.txt :
+
+```bash
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta); do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    OutDir=gene_pred/CAZY/$Organism/$Strain
+    mkdir -p $OutDir
+    Prefix="$Strain"_CAZY
+    CazyHmm=../../dbCAN/dbCAN-fam-HMMs.txt
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
+    qsub $ProgDir/sub_hmmscan.sh $CazyHmm $Proteome $Prefix $OutDir
+  done
+```
+
+The Hmm parser was used to filter hits by an E-value of E1x10-5 or E 1x10-e3 if they had a hit over a length of X %.
+
+Those proteins with a signal peptide were extracted from the list and gff files
+representing these proteins made.
+
+```bash
+for File in $(ls gene_pred/CAZY/*/*/*CAZY.out.dm); do
+Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+OutDir=$(dirname $File)
+echo "$Organism - $Strain"
+ProgDir=/home/groups/harrisonlab/dbCAN
+$ProgDir/hmmscan-parser.sh $OutDir/"$Strain"_CAZY.out.dm > $OutDir/"$Strain"_CAZY.out.dm.ps
+CazyHeaders=$(echo $File | sed 's/.out.dm/_headers.txt/g')
+cat $OutDir/"$Strain"_CAZY.out.dm.ps | cut -f3 | sort | uniq > $CazyHeaders
+printf "number of CAZY genes identified:\t"
+cat $CazyHeaders | wc -l
+Gff=$(ls gene_pred/codingquary/$Organism/$Strain/final/final_genes_appended.gff3)
+CazyGff=$OutDir/"$Strain"_CAZY.gff
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_gff_for_sigP_hits.pl $CazyHeaders $Gff CAZyme ID > $CazyGff
+
+SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/*_all_secreted.fa)
+SecretedHeaders=$(echo $SecretedProts | sed 's/.fa/_headers.txt/g')
+cat $SecretedProts | grep '>' | tr -d '>' > $SecretedHeaders
+CazyGffSecreted=$OutDir/"$Strain"_CAZY_secreted.gff
+$ProgDir/extract_gff_for_sigP_hits.pl $SecretedHeaders $CazyGff Secreted_CAZyme ID > $CazyGffSecreted
+printf "number of Secreted CAZY genes identified:\t"
+cat $CazyGffSecreted | grep -w 'mRNA' | cut -f9 | tr -d 'ID=' | cut -f1 -d ';' > $OutDir/"$Strain"_CAZY_secreted_headers.txt
+cat $OutDir/"$Strain"_CAZY_secreted_headers.txt | wc -l
+done
+```
+```
+P.cactorum - 404
+number of CAZY genes identified:	638
+number of Secreted CAZY genes identified:	328
+P.cactorum - 414
+number of CAZY genes identified:	1049
+number of Secreted CAZY genes identified:	456
+P.cactorum - 415
+number of CAZY genes identified:	764
+number of Secreted CAZY genes identified:	353
+P.cactorum - 416
+number of CAZY genes identified:	758
+number of Secreted CAZY genes identified:	348
+P.cactorum - 62471
+number of CAZY genes identified:	632
+number of Secreted CAZY genes identified:	329
+P.idaei - 371
+number of CAZY genes identified:	593
+number of Secreted CAZY genes identified:	284
+P.idaei - SCRP370
+number of CAZY genes identified:	602
+number of Secreted CAZY genes identified:	288
+```
+
+Note - the CAZY genes identified may need further filtering based on e value and
+cuttoff length - see below:
+
+Cols in yourfile.out.dm.ps:
+1. Family HMM
+2. HMM length
+3. Query ID
+4. Query length
+5. E-value (how similar to the family HMM)
+6. HMM start
+7. HMM end
+8. Query start
+9. Query end
+10. Coverage
+
+* For fungi, use E-value < 1e-17 and coverage > 0.45
+
+* The best threshold varies for different CAZyme classes (please see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4132414/ for details). Basically to annotate GH proteins, one should use a very relax coverage cutoff or the sensitivity will be low (Supplementary Tables S4 and S9); (ii) to annotate CE families a very stringent E-value cutoff and coverage cutoff should be used; otherwise the precision will be very low due to a very high false positive rate (Supplementary Tables S5 and S10)
+
+
+# D) Prediction of RxLRs from - Augustus/CodingQuary gene models
+
  The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
 
  The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
@@ -1000,6 +1165,10 @@ done
   137
 
 ```
+72 of 137 RxLRs were in the predicted 797 effectorP genes.
+```bash
+  cat analysis/RxLR_effectors/combined_evidence/P.idaei/SCRP370/SCRP370_total_RxLR_headers.txt $OutFileHeaders | sort | cut -f1 -d '.' | uniq -d | wc -l
+```
 
 ### D) From Augustus gene models - Hmm evidence of CRN effectors
 
@@ -1080,6 +1249,11 @@ in Augustus gene models. This was done with the following commands:
   Initial search space (Z):              26983  [actual number of targets]
   Domain search space  (domZ):             103  [number of targets reported over threshold]
   92
+```
+
+23 of 92 P.idaei CRNs were in the effectorP dataset.
+```bash
+cat analysis/CRN_effectors/hmmer_CRN/P.idaei/SCRP370/SCRP370_pub_CRN_LFLAK_DWL.txt $OutFileHeaders | sort | cut -f1 -d '.' | uniq -d | wc -l
 ```
 
 Extract gff annotations for Crinklers:
