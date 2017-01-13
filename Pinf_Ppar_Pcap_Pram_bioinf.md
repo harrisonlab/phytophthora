@@ -556,6 +556,45 @@ Hmm models for the WY domain contained in many RxLRs were used to search gene mo
   Domain search space  (domZ):             285  [number of targets reported over threshold]
 ```
 
+#### B.2) Prediction using Phobius
+
+Secreted proteins were also predicted using Phobius
+
+```bash
+  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa
+  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
+  Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
+
+  cat $Pinf_pep | cut -f1 -d ' ' > assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26_parsed.pep.all.fa
+  cat $Ppar_pep | cut -f1 -d ' ' > assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins_parsed.pep.all.fa
+  cat $Pcap_pep | sed "s/jgi|Phyca11|.*|//g" | cut -f4 -d '|' > assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins_parsed.fasta
+  cat $Psoj_pep | sed "s/jgi|Physo3||.*|//g" > assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401_parsed.aa.fasta
+
+  Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26_parsed.pep.all.fa
+  Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins_parsed.pep.all.fa
+  Pcap_pep=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins_parsed.fasta
+  Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401_parsed.aa.fasta
+
+  for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+    echo "$Proteome"
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    OutDir=analysis/phobius/$Organism/$Strain
+    mkdir -p $OutDir
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    cat $Proteome | sed -e "s/*$//g" > $OutDir/tmp.fa
+    phobius.pl $OutDir/tmp.fa > $OutDir/"$Strain"_phobius.txt
+    cat $OutDir/"$Strain"_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed 's/ID   //g' > $OutDir/"$Strain"_phobius_headers.txt
+    rm $OutDir/tmp.fa
+    # qsub $ProgDir/sub_phobius.sh $Proteome $OutDir
+  done
+  cat analysis/phobius/P.infestans/T30-4/T30-4_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed 's/ID   //g' > analysis/phobius/P.infestans/T30-4/T30-4_phobius_headers.txt
+  cat analysis/phobius/P.parisitica/310/310_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed 's/ID   //g' > analysis/phobius/P.parisitica/310/310_phobius_headers.txt
+  cat analysis/phobius/P.capsici/LT1534/LT1534_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed 's/ID   //g' > analysis/phobius/P.capsici/LT1534/LT1534_phobius_headers.txt
+  cat analysis/phobius/P.sojae/P6497/P6497_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed 's/ID   //g' | cut -f3 -d '|' > analysis/phobius/P.sojae/P6497/P6497_phobius_headers.txt
+```
+
 ### C) From Augustus gene models - Hmm evidence of RxLR effectors
 ```bash
   for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
