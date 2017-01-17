@@ -1141,17 +1141,30 @@ The RxLR_EER_regex_finder.py script was used to search for this regular expressi
 * the number of SigP-RxLR genes are:	916
 * the number of SigP-RxLR-EER genes are:	169
 
-#### E.2) Prediction using Phobius
+#### E.2) SigP ORF Prediction using Phobius
 
-Secreted proteins were also predicted using Phobius
+Secreted proteins were also predicted using Phobius. This was done in a screen
+session on the head node of the cluster.
 
+```bash
+for FastaFile in $(ls gene_pred/ORF_sigP/*/*/*_ORF_sp.aa | grep -e 'P.cactorum'); do
+Strain=$(echo $FastaFile | rev | cut -d '/' -f2 | rev)
+Organism=$(echo $FastaFile | rev | cut -d '/' -f3 | rev)
+echo "$Strain"
+OutDir=analysis/phobius/$Organism/$Strain
+mkdir -p $OutDir
+phobius.pl $FastaFile > $OutDir/"$Strain"_phobius_ORF.txt
+cat $OutDir/"$Strain"_phobius_ORF.txt | grep -B1 'SIGNAL' | grep 'ID' | sed s'/ID   //g' > $OutDir/"$Strain"_phobius_headers_ORF.txt
+done
+```
+<!--
 ```bash
 	OutDir=analysis/phobius/P.cactorum/10300
 	mkdir -p $OutDir
 	Proteome=gene_pred/ORF_finder/P.cactorum/10300/10300.aa_cat.fa
 	phobius.pl $Proteome > $OutDir/10300_phobius_ORF.txt
 	cat $OutDir/10300_phobius.txt | grep -B1 'SIGNAL' | grep 'ID' | sed s'/ID.*g/g/g' > $OutDir/10300_phobius_headers_ORF.txt
-```
+``` -->
 
 ### F) From ORF gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search ORFs predicted with atg.pl. These were run with the following commands:
@@ -1771,13 +1784,13 @@ Building gene tables for publication:
 For P. cactorum
 
 ```bash
-OutDir=analysis/gene_tables/P.cactorum
+OutDir=analysis/gene_tables/$Organism/$Strain
 mkdir -p $OutDir
 GeneGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
 GeneFasta=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
 SigP2=gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa
-SigP4=
-PhobiusTxt=analysis/phobius/P.cactorum/10300/10300_phobius_headers.txt
+# SigP4=
+PhobiusTxt=analysis/phobius/P.cactorum/10300/10300_phobius_ORF_headers.txt
 RxLR_Motif=analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_Aug_RxLR_EER_regex.fa
 RxLR_Hmm=analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.fa
 RxLR_WY=analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.fa
@@ -1787,6 +1800,32 @@ OrthoName=Pcac
 OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 $ProgDir/gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL > $OutDir/10300_gene_table.tsv
+
+# For ORF gene models
+Organism=P.cactorum
+Strain=10300
+OutDir=analysis/gene_tables/$Organism/$Strain
+mkdir -p $OutDir
+# Prepare an set of all additional ORFs
+AllRxLR=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain/"$Strain"_Total_RxLR_EER_motif_hmm_headers.fa
+AllCRN=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa
+AddORFs=$OutDir/additionalORF_headers.txt
+cat $AllRxLR $AllCRN | grep '>' | cut -f1 | tr -d '>' | grep 'contig' > $AddORFs
+
+# Create gene table
+ORFGff=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
+ORFFasta=gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa
+SigP2=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
+# SigP4=
+PhobiusTxt=analysis/phobius/$Organism/$Strain/"$Strain"_phobius_headers_ORF.txt
+RxLR_Motif=analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_ORF_RxLR_EER_regex.fa
+RxLR_Hmm=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmmer.fa
+RxLR_WY=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/"$Strain"_ORF_WY_hmmer.fa
+CRN_LFLAK_DWL=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa
+#OrthoName=
+# OrthoFile=
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+$ProgDir/gene_tables_ORFs.py --add_headers $AddORFs --gene_gff $ORFGff --gene_fasta $ORFFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK_DWL $CRN_LFLAK_DWL > $OutDir/"$Strain"_ORF_gene_table.tsv
 ```
 
 For P. infestans
@@ -1794,7 +1833,7 @@ For P. infestans
 ```bash
 Organism=P.infestans
 Strain=T30-4
-OutDir=analysis/gene_tables/$Organism
+	OutDir=analysis/gene_tables/$Organism/$Strain
 mkdir -p $OutDir
 GeneGff=assembly/external_group/P.infestans/T30-4/pep/phytophthora_infestans_t30-4_1_transcripts.gff3
 GeneFasta=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all_parsed.fa
@@ -1820,7 +1859,7 @@ For P. parasitica
 	cat assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa | cut -f1 -d ' ' > assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
 	cat analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_pub_RxLR_EER_regex.fa | cut -f1 -d ' ' > analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_pub_RxLR_EER_regex_parsed.fa
 
-	OutDir=analysis/gene_tables/$Organism
+	OutDir=analysis/gene_tables/$Organism/$Strain
 	mkdir -p $OutDir
 	GeneGff=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_transcripts.gtf
 	GeneFasta=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins_parsed.pep.all.fa
@@ -1853,7 +1892,7 @@ cat analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/"$Strain"_pub_WY_hmmer.fa
 cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_LFLAK_hmm.fa | sed -e "s/jgi|Phyca11|//g" | sed -e 's/|.*//g' > analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_LFLAK_hmm_parsed.fa
 cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_DWL_hmm.fa | sed -e "s/jgi|Phyca11|//g" | sed -e 's/|.*//g' > analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_DWL_hmm_parsed.fa
 
-OutDir=analysis/gene_tables/$Organism
+OutDir=analysis/gene_tables/$Organism/$Strain
 mkdir -p $OutDir
 GeneGff=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_genes.gtf
 GeneFasta=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins_parsed.fasta
@@ -1886,7 +1925,7 @@ For P. sojae
 	cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_LFLAK_hmm.fa | sed -e "s/jgi|Physo3|//g"| sed -e 's/|.*//g' > analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_LFLAK_hmm_parsed.fa
 	cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_DWL_hmm.fa | sed -e "s/jgi|Physo3|//g"| sed -e 's/|.*//g' > analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_pub_CRN_DWL_hmm_parsed.fa
 
-	OutDir=analysis/gene_tables/$Organism
+	OutDir=analysis/gene_tables/$Organism/$Strain
 	mkdir -p $OutDir
 	GeneGff=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_genes_20110401.gtf
 	GeneFasta=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401_parsed2.aa.fasta
@@ -1902,4 +1941,35 @@ For P. sojae
 	OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 	$ProgDir/gene_tables.py --gff_format gtf --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL > $OutDir/"$Strain"_gene_table.tsv
+```
+
+```bash
+for ORFGff in $(ls gene_pred/ORF_finder/*/*/*_ORF_corrected.gff3); do
+# For ORF gene models
+Organism=$(echo $ORFGff | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $ORFGff | rev | cut -f2 -d '/' | rev)
+echo "$Organism - $Strain"
+OutDir=analysis/gene_tables/$Organism/$Strain
+mkdir -p $OutDir
+# Prepare an set of all additional ORFs
+AllRxLR=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain/"$Strain"_Total_RxLR_EER_motif_hmm_headers.fa
+AllCRN=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa
+AddORFs=$OutDir/additionalORF_headers.txt
+cat $AllRxLR $AllCRN | grep '>' | cut -f1 | tr -d '>' | grep 'contig' > $AddORFs
+
+# Create gene table
+ORFGff=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
+ORFFasta=gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa
+SigP2=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
+# SigP4=
+PhobiusTxt=analysis/phobius/$Organism/$Strain/"$Strain"_phobius_headers_ORF.txt
+RxLR_Motif=analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_ORF_RxLR_EER_regex.fa
+RxLR_Hmm=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmmer.fa
+RxLR_WY=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/"$Strain"_ORF_WY_hmmer.fa
+CRN_LFLAK_DWL=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa
+#OrthoName=
+# OrthoFile=
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+$ProgDir/gene_tables_ORFs.py --add_headers $AddORFs --gene_gff $ORFGff --gene_fasta $ORFFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK_DWL $CRN_LFLAK_DWL > $OutDir/"$Strain"_ORF_gene_table.tsv
+done
 ```
