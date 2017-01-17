@@ -1025,8 +1025,24 @@ the number of SigP-RxLR genes are:	1742
 the number of SigP-RxLR-EER genes are:	277
 ```
 
+#### E.2) SigP ORF Prediction using Phobius
 
- ### F) From ORF gene models - Hmm evidence of WY domains
+Secreted proteins were also predicted using Phobius. This was done in a screen
+session on the head node of the cluster.
+
+```bash
+for FastaFile in $(ls gene_pred/ORF_sigP/*/*/*_ORF_sp.aa | grep -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
+Strain=$(echo $FastaFile | rev | cut -d '/' -f2 | rev)
+Organism=$(echo $FastaFile | rev | cut -d '/' -f3 | rev)
+echo "$Strain"
+OutDir=analysis/phobius/$Organism/$Strain
+mkdir -p $OutDir
+phobius.pl $FastaFile > $OutDir/"$Strain"_phobius_ORF.txt
+cat $OutDir/"$Strain"_phobius_ORF.txt | grep -B1 'SIGNAL' | grep 'ID' | sed s'/ID   //g' > $OutDir/"$Strain"_phobius_headers_ORF.txt
+done
+```
+
+### F) From ORF gene models - Hmm evidence of WY domains
 Hmm models for the WY domain contained in many RxLRs were used to search ORFs predicted with atg.pl. These were run with the following commands:
 
 
