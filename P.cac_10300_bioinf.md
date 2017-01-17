@@ -1952,21 +1952,21 @@ echo "$Organism - $Strain"
 OutDir=analysis/gene_tables/$Organism/$Strain
 mkdir -p $OutDir
 # Prepare an set of all additional ORFs
-AllRxLR=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain/"$Strain"_Total_RxLR_EER_motif_hmm_headers.fa
-AllCRN=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa
+AllRxLR=$(ls analysis/RxLR_effectors/combined_evidence/$Organism/$Strain/"$Strain"_Total_RxLR_EER_motif_hmm_headers.fa)
+AllCRN=$(ls analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa)
 AddORFs=$OutDir/additionalORF_headers.txt
 cat $AllRxLR $AllCRN | grep '>' | cut -f1 | tr -d '>' | grep 'contig' > $AddORFs
 
 # Create gene table
-ORFGff=gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3
-ORFFasta=gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa
-SigP2=gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa
+ORFGff=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF_corrected.gff3)
+ORFFasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
+SigP2=$(ls gene_pred/ORF_sigP/$Organism/$Strain/"$Strain"_ORF_sp.aa)
 # SigP4=
-PhobiusTxt=analysis/phobius/$Organism/$Strain/"$Strain"_phobius_headers_ORF.txt
-RxLR_Motif=analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_ORF_RxLR_EER_regex.fa
-RxLR_Hmm=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmmer.fa
-RxLR_WY=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/"$Strain"_ORF_WY_hmmer.fa
-CRN_LFLAK_DWL=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa
+PhobiusTxt=$(ls analysis/phobius/$Organism/$Strain/"$Strain"_phobius_headers_ORF.txt)
+RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_ORF_RxLR_EER_regex.fa)
+RxLR_Hmm=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmmer.fa)
+RxLR_WY=$(ls analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/"$Strain"_ORF_WY_hmmer.fa)
+CRN_LFLAK_DWL=$(ls analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/"$Strain"_Total_CRN.fa)
 #OrthoName=
 # OrthoFile=
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
