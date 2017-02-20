@@ -569,7 +569,7 @@ Secreted proteins were also predicted using Phobius
   cat $Pinf_pep | cut -f1 -d ' ' > assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26_parsed.pep.all.fa
   cat $Ppar_pep | cut -f1 -d ' ' > assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins_parsed.pep.all.fa
   cat $Pcap_pep | sed "s/jgi|Phyca11|.*|//g" | cut -f4 -d '|' > assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins_parsed.fasta
-  cat $Psoj_pep | sed "s/jgi|Physo3||.*|//g" > assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401_parsed.aa.fasta
+  cat $Psoj_pep | sed "s/jgi|Physo3||.*|//g" | tr -d '*' > assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401_parsed.aa.fasta
 
   Pinf_pep=assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26_parsed.pep.all.fa
   Ppar_pep=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins_parsed.pep.all.fa
@@ -577,6 +577,7 @@ Secreted proteins were also predicted using Phobius
   Psoj_pep=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401_parsed.aa.fasta
 
   for Proteome in $Pinf_pep $Ppar_pep $Pcap_pep $Psoj_pep; do
+  # for Proteome in $Pcap_pep; do  
     echo "$Proteome"
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
@@ -1037,7 +1038,7 @@ Organism=$(echo $FastaFile | rev | cut -d '/' -f3 | rev)
 echo "$Strain"
 OutDir=analysis/phobius/$Organism/$Strain
 mkdir -p $OutDir
-phobius.pl $FastaFile > $OutDir/"$Strain"_phobius_ORF.txt
+# phobius.pl $FastaFile > $OutDir/"$Strain"_phobius_ORF.txt
 cat $OutDir/"$Strain"_phobius_ORF.txt | grep -B1 'SIGNAL' | grep 'ID' | sed s'/ID   //g' > $OutDir/"$Strain"_phobius_headers_ORF.txt
 done
 ```
