@@ -70,6 +70,33 @@ and annotation.
   mkdir -p raw_dna/paired/$Species/$Strain/R
   cp $RawDatDir/Pcact15-13_S3_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/.
   cp $RawDatDir/Pcact15-13_S3_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/.
+  # Data run on 10/02/17 170210_M04465_0034_000000000-ATJ0E
+  RawDatDir=/home/miseq_data/2017/RAW/170210_M04465_0034_000000000-ATJ0E/Data/Intensities/BaseCalls
+  Date=170210
+  Species=P.cactorum
+  Strain=404
+  mkdir -p raw_dna/paired/$Species/$Strain/F
+  mkdir -p raw_dna/paired/$Species/$Strain/R
+  cp $RawDatDir/P404_S3_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/"$Strain"_"$Date"_F.fastq.gz
+  cp $RawDatDir/P404_S3_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/"$Strain"_"$Date"_R.fastq.gz
+  Species=P.cactorum
+  Strain=414
+  mkdir -p raw_dna/paired/$Species/$Strain/F
+  mkdir -p raw_dna/paired/$Species/$Strain/R
+  cp $RawDatDir/P414_S4_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/"$Strain"_"$Date"_F.fastq.gz
+  cp $RawDatDir/P414_S4_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/"$Strain"_"$Date"_R.fastq.gz
+  Species=P.cactorum
+  Strain=P295
+  mkdir -p raw_dna/paired/$Species/$Strain/F
+  mkdir -p raw_dna/paired/$Species/$Strain/R
+  cp $RawDatDir/P295_S2_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/"$Strain"_"$Date"_F.fastq.gz
+  cp $RawDatDir/P295_S2_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/"$Strain"_"$Date"_R.fastq.gz
+  Species=P.cactorum
+  Strain=12420
+  mkdir -p raw_dna/paired/$Species/$Strain/F
+  mkdir -p raw_dna/paired/$Species/$Strain/R
+  cp $RawDatDir/12-420_S1_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/"$Strain"_"$Date"_F.fastq.gz
+  cp $RawDatDir/12-420_S1_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/"$Strain"_"$Date"_R.fastq.gz
 ```
 
 #Data qc
@@ -80,7 +107,7 @@ Data quality was visualised using fastqc:
 
 
 ```bash
-  for RawData in $(ls raw_dna/paired/P./*/*/*.fastq.gz); do
+  for RawData in $(ls raw_dna/paired/P.*/*/*/*.fastq.gz | grep '170210'); do
   # for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300'); do
     echo $RawData;
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
@@ -94,7 +121,7 @@ This was done with fastq-mcf
 
 
 ```bash
-  for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e '415' -e '416' -e '62471'); do
+  for StrainPath in $(ls -d raw_dna/paired/*/* | grep -v -w -e '404' -e '414'); do
   # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
     echo $StrainPath
     Read_F=$(ls $StrainPath/F/*.fastq.gz)
@@ -119,9 +146,13 @@ Trimming was then performed for strains with multiple runs of data
 	ReadsF=$(ls $StrainPath/F/414_run2_F.fastq.gz)
 	ReadsR=$(ls $StrainPath/R/414_run2_R.fastq.gz)
 	qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+	StrainPath=raw_dna/paired/P.cactorum/414
+  ReadsF=$(ls $StrainPath/F/414_170210_F.fastq.gz)
+  ReadsR=$(ls $StrainPath/R/414_170210_R.fastq.gz)
+  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
   IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-
   echo "404"
   StrainPath=raw_dna/paired/P.cactorum/404
   ReadsF=$(ls $StrainPath/F/130624_cactp404_S3_L001_R1_001.fastq.gz)
@@ -131,18 +162,55 @@ Trimming was then performed for strains with multiple runs of data
   ReadsF=$(ls $StrainPath/F/cactp404_S3_L001_R1_001.fastq.gz)
   ReadsR=$(ls $StrainPath/R/cactp404_S3_L001_R2_001.fastq.gz)
   qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+  StrainPath=raw_dna/paired/P.cactorum/404
+  ReadsF=$(ls $StrainPath/F/404_170210_F.fastq.gz)
+  ReadsR=$(ls $StrainPath/R/404_170210_R.fastq.gz)
+  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
 ```
 
 Data quality was visualised once again following trimming:
 
 ```bash
-  for RawData in $(ls qc_dna/paired/P.cactorum/*/*/*q.gz | grep -w -e '414'); do
-    echo $RawData;
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
-    qsub $ProgDir/run_fastqc.sh $RawData;
+for RawData in $(ls qc_dna/paired/P.cactorum/*/*/*q.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+GenomeSz=65
+OutDir=$(dirname $RawData)
+qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
+done
+```
+
+Find predicted coverage for these isolates:
+
+```bash
+  for StrainDir in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -w -e '411' -e '10300_old'); do
+    Strain=$(basename $StrainDir)
+    printf "$Strain\t"
+    for File in $(ls qc_dna/paired/P.cactorum/"$Strain"/*/*.txt); do
+      echo $(basename $File);
+      cat $File | tail -n1 | rev | cut -f2 -d ' ' | rev;
+    done | grep -v '.txt' | awk '{ SUM += $1} END { print SUM }'
   done
 ```
 
+```
+  10300	206.15
+  12420	25.6
+  15_13	55.63
+  15_7	59.71
+  2003_3	34.72
+  2003_4	34.57
+  P404	69.52
+  P414	76.49
+  P415	42.77
+  P416	52.26
+  62471	72.21
+  P295	39.29
+  PC13_15	45.69
+```
+
+<!--
 kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
@@ -182,6 +250,7 @@ commands:
   The mode kmer abundance is:  5 <- incorrect thresholding - aprox. 40x
 ```
 
+-->
 
 #Assembly
 
@@ -191,28 +260,29 @@ Assembly was performed with:
 ## Spades Assembly
 
 ```bash
-  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -e '62471'); do
-  # for StrainPath in $(ls -d qc_dna/paired/P.idaei/*); do
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
-    Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
-    Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
-    F_Read=$(ls $StrainPath/F/*.fq.gz)
-    R_Read=$(ls $StrainPath/R/*.fq.gz)
-    OutDir=assembly/spades/$Organism/$Strain
-    Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
-    while [ $Jobs -gt 1 ]; do
-      sleep 5m
-      printf "."
-      Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
-    done		
-    printf "\n"
-    echo $F_Read
-    echo $R_Read
-    qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct 10
-  done
+for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -e '404' -e '414' -e '10300' -e '411'); do
+# for StrainPath in $(ls -d qc_dna/paired/P.idaei/*); do
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+F_Read=$(ls $StrainPath/F/*.fq.gz)
+R_Read=$(ls $StrainPath/R/*.fq.gz)
+OutDir=assembly/spades/$Organism/$Strain
+Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 5m
+printf "."
+Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+done		
+printf "\n"
+echo $F_Read
+echo $R_Read
+qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct
+# qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct 10
+done
 ```
 
-
+<!--
 ```bash
   for StrainPath in $(ls -d qc_dna/paired/P.*/414); do  
     echo $StrainPath
@@ -221,17 +291,24 @@ Assembly was performed with:
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
     echo $Strain
     echo $Organism
-    TrimF1_Read=$(ls $StrainPath/F/414_run1_F_trim.fq.gz);
-    TrimR1_Read=$(ls $StrainPath/R/414_run1_R_trim.fq.gz);
-    TrimF2_Read=$(ls $StrainPath/F/414_run2_F_trim.fq.gz);
-    TrimR2_Read=$(ls $StrainPath/R/414_run2_R_trim.fq.gz);
+    TrimF1_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n1 | tail -n1);
+    TrimR1_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n1 | tail -n1);
+    TrimF2_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n2 | tail -n1);
+    TrimR2_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n2 | tail -n1);
+    TrimF3_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n3 | tail -n1);
+    TrimR3_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n3 | tail -n1);
     echo $TrimF1_Read
     echo $TrimR1_Read
     echo $TrimF2_Read
     echo $TrimR2_Read
+    echo $TrimF3_Read
+    echo $TrimR3_Read
     OutDir=assembly/spades/$Organism/$Strain
-    qsub $ProgDir/subSpades_2lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir correct 10
+    qsub $ProgDir/subSpades_3lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
   done
+``` -->
+
+```bash
   for StrainPath in $(ls -d qc_dna/paired/P.*/404); do  
     echo $StrainPath
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
@@ -239,16 +316,20 @@ Assembly was performed with:
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
     echo $Strain
     echo $Organism
-    TrimF1_Read=$(ls $StrainPath/F/130624_cactp404_S3_L001_R1_001_trim.fq.gz);
-    TrimR1_Read=$(ls $StrainPath/R/130624_cactp404_S3_L001_R2_001_trim.fq.gz);
-    TrimF2_Read=$(ls $StrainPath/F/cactp404_S3_L001_R1_001_trim.fq.gz);
-    TrimR2_Read=$(ls $StrainPath/R/cactp404_S3_L001_R2_001_trim.fq.gz);
+    TrimF1_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n1 | tail -n1);
+    TrimR1_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n1 | tail -n1);
+    TrimF2_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n2 | tail -n1);
+    TrimR2_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n2 | tail -n1);
+    TrimF3_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n3 | tail -n1);
+    TrimR3_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n3 | tail -n1);
     echo $TrimF1_Read
     echo $TrimR1_Read
     echo $TrimF2_Read
     echo $TrimR2_Read
+    echo $TrimF3_Read
+    echo $TrimR3_Read
     OutDir=assembly/spades/$Organism/$Strain
-    qsub $ProgDir/subSpades_2lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir correct 10
+    qsub $ProgDir/subSpades_3lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
   done
 ```
 
