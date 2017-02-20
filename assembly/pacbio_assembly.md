@@ -13,7 +13,21 @@ for P.cactorum data:
   cp -r $RawDatDir/H06_1 raw_dna/pacbio/P.cactorum/414/.
   OutDir=raw_dna/pacbio/P.cactorum/414/extracted
   mkdir -p $OutDir
-  cat raw_dna/pacbio/P.cactorum/414/*/Analysis_Results/*.subreads.fastq > $OutDir/concatenated_pacbio.fastq
+  cat raw_dna/pacbio/P.cactorum/414/*/Analysis_Results/*.subreads.fastq | gzip -cf > $OutDir/concatenated_pacbio.fastq.gz
+  #
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/pacbio/Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage.tar.gz
+  mkdir -p raw_dna/pacbio/P.cactorum/414
+  cp -r $RawDat raw_dna/pacbio/P.cactorum/414/.
+  cd raw_dna/pacbio/P.cactorum/414
+  tar -zxvf Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage.tar.gz
+  # Data for 414 was contained in E02_1, F02_1 and G02_1
+  cat \
+  Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage/E02_1/Analysis_Results/*.subreads.fastq \
+  Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage/F02_1/Analysis_Results/*.subreads.fastq \
+  Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage/G02_1/Analysis_Results/*.subreads.fastq \
+  | gzip -cf > extracted/concatenated_pacbio_extra_coverage.fastq.gz
+  rm Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage.tar.gz
+  rm -r Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage
 ```
 <!--
 for P. fragariae data (commands for tom to run)
@@ -48,15 +62,55 @@ This allowed estimation of sequencing depth and total genome size
 
 ### Canu assembly
 
+<!--
 ```bash
-  Reads=$(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq)
+  Reads=$(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq.gz)
+  Run1=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
+  Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
+  Reads=raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_both.fastq.gz
+  cat $Run1 $Run2 > $Reads
   GenomeSz="65m"
   Strain=$(echo $Reads | rev | cut -f3 -d '/' | rev)
   Organism=$(echo $Reads | rev | cut -f4 -d '/' | rev)
   Prefix="$Strain"_canu
-  OutDir="assembly/canu/$Organism/$Strain"
+  OutDir=assembly/canu/$Organism/"$Strain"_3
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
   qsub $ProgDir/submit_canu.sh $Reads $GenomeSz $Prefix $OutDir
+```
+
+```bash
+  Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
+  GenomeSz="65m"
+  Strain=$(echo $Run2 | rev | cut -f3 -d '/' | rev)
+  Organism=$(echo $Run2 | rev | cut -f4 -d '/' | rev)
+  Prefix="$Strain"_canu
+  OutDir=assembly/canu/$Organism/"$Strain"_4
+  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
+  qsub $ProgDir/submit_canu.sh $Run2 $GenomeSz $Prefix $OutDir
+```
+-->
+
+```bash
+  Run1=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
+  Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
+  GenomeSz="65m"
+  Strain=$(echo $Run1 | rev | cut -f3 -d '/' | rev)
+  Organism=$(echo $Run1 | rev | cut -f4 -d '/' | rev)
+  Prefix="$Strain"_canu2
+  OutDir=assembly/canu/$Organism"_2"/$Strain
+  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
+  qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
+```
+
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -e '_2' -e '_3'); do
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
+    OutDir=$(dirname $Assembly)
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
 ```
 
 Assemblies were polished using Pilon
@@ -89,25 +143,31 @@ Assemblies were polished using Pilon
 For P. cactorum
 
 ```bash
-  for PacBioDat in $(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq); do
-    echo $StrainPath
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
-    Organism=$(echo $PacBioDat | rev | cut -f4 -d '/' | rev)
-    Strain=$(echo $PacBioDat | rev | cut -f3 -d '/' | rev)
-    IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
-    echo $Strain
-    echo $Organism
-    TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
-    TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
-    TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
-    TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
-    echo $TrimF1_Read
-    echo $TrimR1_Read
-    echo $TrimF2_Read
-    echo $TrimR2_Read
-    OutDir=assembly/spades_pacbio/$Organism/$Strain
-    qsub $ProgDir/subSpades_2lib_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir 28
-  done
+  # for PacBioDat in $(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq); do
+for PacBioDat in $(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz); do
+echo $StrainPath
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+Organism=$(echo $PacBioDat | rev | cut -f4 -d '/' | rev)
+Strain=$(echo $PacBioDat | rev | cut -f3 -d '/' | rev)
+IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+echo $Strain
+echo $Organism
+TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+# OutDir=assembly/spades_pacbio/$Organism/$Strain
+OutDir=assembly/spades_pacbio/$Organism/"$Strain"_4
+qsub $ProgDir/subSpades_3lib_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir 28
+done
 ```
 
 Contigs shorter than 500bp were removed from the assembly
