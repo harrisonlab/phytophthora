@@ -901,6 +901,21 @@ Fasta sequences for CRNs were extracted from each isolate
   done
 ```
 
+The number of secreted Crinklers were identified:
+
+```bash
+  for CRN_headers in $(ls analysis/CRN_effectors/hmmer_CRN/P.*/*/*_Total_CRN_headers.txt | grep -w '10300'); do
+    Organism=$(echo "$CRN_headers" | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo "$CRN_headers" | rev | cut -f2 -d '/' | rev)
+    OutDir=$(basename $CRN_headers)
+    PhobiusHeadersAug=$(ls analysis/phobius/P.*/$Strain/"$Strain"_phobius_headers.txt)
+    PHobiusHeadersORF=$(ls analysis/phobius/P.*/$Strain/"$Strain"_phobius_headers_ORF.txt)
+    SigP_headers=
+    cat $CRN_headers $PhobiusHeadersAug $PhobiusHeadersORF | sed 's/\.t.//g' | sort | uniq -d > $OutDir/CRN_phobius.txt
+    cat $CRN_headers $SigP_headers | sed 's/\.t.//g' | sort | uniq -d > $OutDir/CRN_sigP.txt
+    cat $OutDir/CRN_phobius.txt $OutDir/CRN_sigP.txt | wc -l
+  done
+```
 
 
 ## 4.3.b Expression of P.cactorum 10300 Crinkler genes
