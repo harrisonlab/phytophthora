@@ -173,24 +173,24 @@ done
 Contigs shorter than 500bp were removed from the assembly
 
 ```bash
-  for Contigs in $(ls assembly/spades_pacbio/*/*/contigs.fasta); do
-    AssemblyDir=$(dirname $Contigs)
-    mkdir $AssemblyDir/filtered_contigs
-    FilterDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
-    $FilterDir/filter_abyss_contigs.py $Contigs 500 > $AssemblyDir/filtered_contigs/contigs_min_500bp.fasta
-  done
+for Contigs in $(ls assembly/spades_pacbio/*/*/contigs.fasta); do
+AssemblyDir=$(dirname $Contigs)
+mkdir $AssemblyDir/filtered_contigs
+FilterDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
+$FilterDir/filter_abyss_contigs.py $Contigs 500 > $AssemblyDir/filtered_contigs/contigs_min_500bp.fasta
+done
 ```
 
 Quast
 
 ```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/spades_pacbio/*/*/filtered_contigs/contigs_min_500bp.fasta); do
-    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
-    OutDir=assembly/spades_pacbio/$Organism/$Strain/filtered_contigs
-    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-  done
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+for Assembly in $(ls assembly/spades_pacbio/*/*/filtered_contigs/contigs_min_500bp.fasta); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+OutDir=assembly/spades_pacbio/$Organism/$Strain/filtered_contigs
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
 ```
 
 
@@ -198,10 +198,12 @@ Quast
 ## Merging pacbio and hybrid assemblies
 
 ```bash
-  for PacBioAssembly in $(ls assembly/canu/*/*/polished/pilon.fasta); do
+  # for PacBioAssembly in $(ls assembly/canu/*/*/polished/pilon.fasta); do
+  for PacBioAssembly in $(ls assembly/canu/P.cactorum/414*/414_canu.contigs.fasta | grep '_4'); do
     Organism=$(echo $PacBioAssembly | rev | cut -f4 -d '/' | rev)
     Strain=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
-    HybridAssembly=$(ls assembly/spades_pacbio/$Organism/$Strain/contigs.fasta)
+    # HybridAssembly=$(ls assembly/spades_pacbio/$Organism/$Strain/contigs.fasta)
+    HybridAssembly=$(ls assembly/spades_pacbio/P.cactorum/414_4/contigs.fasta)
     OutDir=assembly/merged_canu_spades/$Organism/$Strain
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/quickmerge
     qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir
