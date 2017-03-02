@@ -105,7 +105,7 @@ This allowed estimation of sequencing depth and total genome size
 
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -e '_2' -e '_3'); do
+  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -e '_2' -e '_3' -e '_4'); do
     Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
     OutDir=$(dirname $Assembly)
@@ -199,21 +199,24 @@ done
 
 ```bash
   # for PacBioAssembly in $(ls assembly/canu/*/*/polished/pilon.fasta); do
+    # Organism=$(echo $PacBioAssembly | rev | cut -f4 -d '/' | rev)
+    # Strain=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
   for PacBioAssembly in $(ls assembly/canu/P.cactorum/414*/414_canu.contigs.fasta | grep '_4'); do
-    Organism=$(echo $PacBioAssembly | rev | cut -f4 -d '/' | rev)
-    Strain=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $PacBioAssembly | rev | cut -f2 -d '/' | rev)
     # HybridAssembly=$(ls assembly/spades_pacbio/$Organism/$Strain/contigs.fasta)
     HybridAssembly=$(ls assembly/spades_pacbio/P.cactorum/414_4/contigs.fasta)
     OutDir=assembly/merged_canu_spades/$Organism/$Strain
+    AnchorLength=500000
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/quickmerge
-    qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir
+    qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir $AnchorLength
   done
 ```
 
 This merged assembly was polished using Pilon
 
 ```bash
-  for Assembly in $(ls assembly/merged_canu_spades/*/*/merged.fasta); do
+  for Assembly in $(ls assembly/merged_canu_spades/*/*/merged.fasta | grep '_4'); do
     Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
     IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
@@ -229,10 +232,13 @@ Contigs were renamed in accordance with ncbi recomendations.
 
 ```bash
   touch tmp.csv
-  for Assembly in $(ls assembly/merged_canu_spades/*/*/polished/pilon.fasta); do
-    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
-    OutDir=assembly/merged_canu_spades/$Organism/$Strain/filtered_contigs
+  # for Assembly in $(ls assembly/merged_canu_spades/*/*/polished/pilon.fasta); do
+  #   Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+  #   Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+  for Assembly in $(ls assembly/merged_canu_spades/*/*/merged.fasta | grep '_4'); do
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    OutDir=$(dirname $Assembly)
     ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
     $ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file tmp.csv
   done
@@ -243,9 +249,12 @@ Quast
 
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/merged_canu_spades/*/*/filtered_contigs/contigs_min_500bp_renamed.fasta); do
+  # for Assembly in $(ls assembly/merged_canu_spades/*/*/filtered_contigs/contigs_min_500bp_renamed.fasta); do
+  #   Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+  #   Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
+  for Assembly in $(ls assembly/merged_canu_spades/*/*/merged.fasta | grep '_4'); do
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
     OutDir=assembly/merged_canu_spades/$Organism/$Strain/filtered_contigs
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir
   done
