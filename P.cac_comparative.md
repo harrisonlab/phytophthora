@@ -260,7 +260,7 @@ Assembly was performed with:
 ## Spades Assembly
 
 ```bash
-for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -e '404' -e '414' -e '10300' -e '411'); do
+for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -e '404' -e '414' -e '10300' -e '411' | grep 'PC13_15'); do
 # for StrainPath in $(ls -d qc_dna/paired/P.idaei/*); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
@@ -339,7 +339,7 @@ Contigs were renamed in accordance with ncbi recomendations.
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
   touch tmp.csv
-  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep 'P.idaei'); do
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -v 'P.fragariae'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
     OutDir=assembly/spades/$Organism/$Strain/filtered_contigs
@@ -371,11 +371,11 @@ Repeat masking was performed and used the following programs:
 The best assemblies were used to perform repeatmasking
 
 ```bash
-	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-	for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum'); do
-		qsub $ProgDir/rep_modeling.sh $BestAss
-		qsub $ProgDir/transposonPSI.sh $BestAss
-	done
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+  for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum'); do
+    qsub $ProgDir/rep_modeling.sh $BestAss
+    qsub $ProgDir/transposonPSI.sh $BestAss
+  done
 ```
 
 The number of bases masked by transposonPSI and Repeatmasker were summarised
