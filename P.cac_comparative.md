@@ -371,18 +371,21 @@ Repeat masking was performed and used the following programs:
 The best assemblies were used to perform repeatmasking
 
 ```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-  for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum'); do
-    qsub $ProgDir/rep_modeling.sh $BestAss
-    qsub $ProgDir/transposonPSI.sh $BestAss
-  done
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum'); do
+Strain=$(echo $BestAss | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $BestAss | rev | cut -f4 -d '/' | rev)
+OutDir=repeat_masked/$Organism/"$Strain"/filtered_contigs_repmask
+qsub $ProgDir/rep_modeling.sh $BestAss $OutDir
+qsub $ProgDir/transposonPSI.sh $BestAss $OutDir
+done
 ```
 
 The number of bases masked by transposonPSI and Repeatmasker were summarised
 using the following commands:
 
 ```bash
-for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -e 'P.cactorum' -e 'P.idaei'); do
+for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -e 'P.cactorum' -e 'P.idaei' | grep -v '12420'); do
 Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
 RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
