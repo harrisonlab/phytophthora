@@ -773,6 +773,13 @@ single file for each strain. This was done with the following commands:
 	# cat gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa | grep '>' | tr -d '>' | cut -f1 -d ' ' > $Headers
 	# $ProgDir/gene_list_to_gff.pl $Headers $ExtractedGff SigP Name Augustus > $SigPGff
 ```
+
+headers of secreted proteins were extracted using:
+
+```bash
+cat gene_pred/sigP/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' > gene_pred/sigP/P.cactorum/10300/10300_aug_sp_headers.txt
+```
+
 The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
 
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
