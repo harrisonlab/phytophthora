@@ -29,6 +29,24 @@ for P.cactorum data:
   rm Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage.tar.gz
   rm -r Richard_Harrison_NEMR.RH.ENQ-933.C.02_extra_coverage
 ```
+
+Pacbio coverage was determined using:
+
+```bash
+Data quality was visualised once again following trimming:
+
+```bash
+for RawData in $(ls raw_dna/pacbio/P.cactorum/414/extracted/*q.gz); do
+echo $RawData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $RawData;
+GenomeSz=65
+OutDir=$(dirname $RawData)
+qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
+done
+```
+
+```
 <!--
 for P. fragariae data (commands for tom to run)
 
@@ -79,6 +97,15 @@ This allowed estimation of sequencing depth and total genome size
 ```
 
 ```bash
+Run1=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
+GenomeSz="75m"
+Strain=$(echo $Run1 | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Run1 | rev | cut -f4 -d '/' | rev)
+Prefix="$Strain"_canu
+OutDir=assembly/canu/$Organism/"$Strain"_run1only
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
+qsub $ProgDir/submit_canu.sh $Run1 $GenomeSz $Prefix $OutDir
+
   Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
   GenomeSz="75m"
   Strain=$(echo $Run2 | rev | cut -f3 -d '/' | rev)
@@ -286,6 +313,36 @@ Quast
 
 # Preliminary analysis
 
+## Checking MiSeq coverage against P414 contigs
+
+```bash
+for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old'); do
+Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+# IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+IlluminaDir=$(ls -d qc_dna/paired/$Organism/414)
+echo $Strain
+echo $Organism
+TrimF1_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n1 | tail -n1);
+TrimR1_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n1 | tail -n1);
+TrimF2_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n2 | tail -n1);
+TrimR2_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n2 | tail -n1);
+TrimF3_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n3 | tail -n1);
+TrimR3_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n3 | tail -n1);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+# OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_414
+InDir=$(dirname $Assembly)
+OutDir=$InDir/aligned_MiSeq
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
+qsub $ProgDir/bowtie/sub_bowtie_3lib.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
+done
+```
+
 ## Checking PacBio coverage against P414 contigs
 
 The accuracy of PacBio assembly pipelines is currently unknown. To help identify
@@ -295,7 +352,8 @@ regions with low coverage flagged using a python script flag_low_coverage.py.
 These low coverage regions were visually inspected using IGV.
 
 ```bash
-  Assembly=$(ls assembly/merged_canu_spades/P.cactorum/414/filtered_contigs/contigs_min_500bp_renamed.fasta)
+# for Assembly in $(ls assembly/merged_canu_spades/P.cactorum/414/filtered_contigs/contigs_min_500bp_renamed.fasta); do
+for Assembly in $(ls assembly/canu/P.cactorum/*/filtered_contigs/contigs_min_500bp_renamed.fasta); do
   Reads=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq)
   OutDir=analysis/genome_alignment/bwa/P.cactorum/414/vs_414
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/bwa
@@ -308,6 +366,7 @@ These low coverage regions were visually inspected using IGV.
   # Threshold=5
   # FlaggedRegions=$OutDir/414_flagged_regions.txt
   # $ProgDir/flag_low_coverage.py --genomecov $CoverageTxt --min $Threshold > $FlaggedRegions
+  done
 ```
 
 # Repeatmasking
