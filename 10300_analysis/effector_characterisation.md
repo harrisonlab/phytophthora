@@ -903,18 +903,36 @@ Fasta sequences for CRNs were extracted from each isolate
 
 The number of secreted Crinklers were identified:
 
+ <!-- * Headers for secreted breaker and ORF proteins were extracted
+
+```bash
+cat gene_pred/sigP/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' > gene_pred/sigP/P.cactorum/10300/10300_aug_sp_headers.txt
+cat gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_names.txt | cut -f1 > gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_headers.txt
+```
+
 ```bash
   for CRN_headers in $(ls analysis/CRN_effectors/hmmer_CRN/P.*/*/*_Total_CRN_headers.txt | grep -w '10300'); do
     Organism=$(echo "$CRN_headers" | rev | cut -f3 -d '/' | rev)
     Strain=$(echo "$CRN_headers" | rev | cut -f2 -d '/' | rev)
-    OutDir=$(basename $CRN_headers)
+    OutDir=$(dirname $CRN_headers)
     PhobiusHeadersAug=$(ls analysis/phobius/P.*/$Strain/"$Strain"_phobius_headers.txt)
-    PHobiusHeadersORF=$(ls analysis/phobius/P.*/$Strain/"$Strain"_phobius_headers_ORF.txt)
-    SigP_headers=
+    PhobiusHeadersORF=$(ls analysis/phobius/P.*/$Strain/"$Strain"_phobius_headers_ORF.txt)
+    SigP_headersAug=$(ls gene_pred/sigP/P.*/$Strain/"$Strain"_aug_sp_headers.txt)
+    SigP_headersORF=$(ls gene_pred/ORF_sigP/P.*/$Strain/"$Strain"_ORF_sp_headers.txt)
     cat $CRN_headers $PhobiusHeadersAug $PhobiusHeadersORF | sed 's/\.t.//g' | sort | uniq -d > $OutDir/CRN_phobius.txt
-    cat $CRN_headers $SigP_headers | sed 's/\.t.//g' | sort | uniq -d > $OutDir/CRN_sigP.txt
-    cat $OutDir/CRN_phobius.txt $OutDir/CRN_sigP.txt | wc -l
+    cat $CRN_headers $SigP_headersAug $PhobiusHeadersORF | sed 's/\.t.//g' | sort | uniq -d > $OutDir/CRN_sigP.txt
+    cat $OutDir/CRN_phobius.txt $OutDir/CRN_sigP.txt | sort | uniq | wc -l
   done
+``` -->
+
+```bash
+cat analysis/gene_tables/P.cactorum/10300/10300_combined_gene_table.tsv | cut -f1,7,8 | grep "Yes.Yes" | cut -f1 > tmp.txt
+echo "Number of secreted crinklers"
+cat analysis/gene_tables/P.cactorum/10300/10300_combined_gene_table.tsv | grep -f tmp.txt | cut -f1,2,3 | grep 'Yes' | wc -l
+echo "Number predicted secreted by SigP"
+cat analysis/gene_tables/P.cactorum/10300/10300_combined_gene_table.tsv | grep -f tmp.txt | cut -f1,2 | grep 'Yes' | wc -l
+echo "Number predicted secreted by Phobius"
+cat analysis/gene_tables/P.cactorum/10300/10300_combined_gene_table.tsv | grep -f tmp.txt | cut -f1,3 | grep 'Yes' | wc -l
 ```
 
 
