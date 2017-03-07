@@ -32,7 +32,7 @@ for P.cactorum data:
 
 Pacbio coverage was determined using:
 
-```bash
+
 Data quality was visualised once again following trimming:
 
 ```bash
@@ -46,7 +46,6 @@ qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
 done
 ```
 
-```
 <!--
 for P. fragariae data (commands for tom to run)
 
@@ -123,8 +122,8 @@ qsub $ProgDir/submit_canu.sh $Run1 $GenomeSz $Prefix $OutDir
   GenomeSz="75m"
   Strain=$(echo $Run1 | rev | cut -f3 -d '/' | rev)
   Organism=$(echo $Run1 | rev | cut -f4 -d '/' | rev)
-  Prefix="$Strain"_canu2
-  OutDir=assembly/canu/$Organism/$Strain
+  Prefix="$Strain"_canu
+  OutDir=assembly/canu/$Organism/"$Strain"_modified_script
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
   qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
 ```
@@ -143,34 +142,28 @@ qsub $ProgDir/submit_canu.sh $Run1 $GenomeSz $Prefix $OutDir
 Assemblies were polished using Pilon
 
 ```bash
-Jobs=$(qstat | grep 'submit_can' | wc -l)
-while [ $Jobs -gt 0 ]; do
-printf "."
-sleep 5m
-Jobs=$(qstat | grep 'submit_can' | wc -l)
-done		
-for Assembly in $(ls assembly/canu/*/*/*_canu.contigs.fasta | grep -v 'old'); do
-Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
-IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
-echo $Strain
-echo $Organism
-TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
-TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
-TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
-TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
-TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
-TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
-echo $TrimF1_Read
-echo $TrimR1_Read
-echo $TrimF2_Read
-echo $TrimR2_Read
-echo $TrimF3_Read
-echo $TrimR3_Read
-OutDir=assembly/canu/$Organism/$Strain/polished
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
-qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
-done
+  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+    echo $Strain
+    echo $Organism
+    TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+    TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+    TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+    TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+    TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+    TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+    echo $TrimF1_Read
+    echo $TrimR1_Read
+    echo $TrimF2_Read
+    echo $TrimR2_Read
+    echo $TrimF3_Read
+    echo $TrimR3_Read
+    OutDir=assembly/canu/$Organism/$Strain/polished
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
+    qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
+  done
 ```
 
 ```bash
