@@ -339,7 +339,7 @@ Contigs were renamed in accordance with ncbi recomendations.
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
   touch tmp.csv
-  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -v 'P.fragariae'); do
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -v 'P.fragariae' | grep -e 'PC13_15' -e '404'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
     OutDir=assembly/spades/$Organism/$Strain/filtered_contigs
@@ -350,7 +350,7 @@ Contigs were renamed in accordance with ncbi recomendations.
 
 
 ```bash
-  for Assembly in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum'); do
+  for Assembly in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum' | grep -e 'PC13_15' -e '404'); do
     Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
@@ -372,7 +372,7 @@ The best assemblies were used to perform repeatmasking
 
 ```bash
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum'); do
+for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum' | grep -e 'PC13_15' -e '404'); do
 Strain=$(echo $BestAss | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $BestAss | rev | cut -f4 -d '/' | rev)
 OutDir=repeat_masked/$Organism/"$Strain"/filtered_contigs_repmask
@@ -452,12 +452,26 @@ Gene prediction followed three steps:
 # Pre-gene prediction
 
 Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
+
 ```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-  cd /home/groups/harrisonlab/project_files/idris
   for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v 'P.cactorum'); do
-    echo $Genome;
-    qsub $ProgDir/sub_cegma.sh $Genome dna;
+    Strain=$(echo $Genome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Genome | rev | cut -f4 -d '/' | rev)
+    OutDir=gene_pred/cegma/$Organism/$Strain
+    Prefix="$Strain"_dna
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+    qsub $ProgDir/sub_cegma.sh $Genome $Prefix $OutDir
+  done
+```
+
+```bash
+  for Genome in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa); do
+    Strain=$(echo $Genome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Genome | rev | cut -f4 -d '/' | rev)
+    OutDir=gene_pred/cegma/$Organism/$Strain
+    Prefix="$Strain"
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
+    qsub $ProgDir/sub_cegma.sh $Genome $Prefix $OutDir
   done
 ```
 
