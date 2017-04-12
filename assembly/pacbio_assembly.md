@@ -131,7 +131,7 @@ qsub $ProgDir/submit_canu.sh $Run1 $GenomeSz $Prefix $OutDir
 
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old'); do
+  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
     Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
     OutDir=$(dirname $Assembly)
@@ -454,13 +454,14 @@ approach.
 Gene prediction was performed using Braker1.
 
 First, RNAseq data was aligned to Fusarium genomes.
+
+
+
+#### Aligning published RNAseq data
+
 * qc of RNA seq data was performed as part of sequencing the 10300 genome:
 
-
-#### Aligning
-
-
-```bash
+<!-- ```bash
   for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
@@ -473,7 +474,110 @@ First, RNAseq data was aligned to Fusarium genomes.
       qsub $ProgDir/tophat_alignment_unpaired.sh $Assembly $RNA $OutDir
     done
   done
+``` -->
+```bash
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+    echo "$Organism - $Strain"
+    for RNA in $(ls qc_rna/raw_rna/genbank/*/*/*_trim.fq.gz); do
+      Timepoint=$(echo $RNA | rev | cut -f1 -d '/' | rev | sed 's/_trim.*//g')
+      echo "$Timepoint"
+      OutDir=alignment/$Organism/"$Strain"_star/$Timepoint
+      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+      qsub $ProgDir/sub_star_unpaired.sh $Assembly $RNA $OutDir
+    done
+  done
 ```
+
+
+### Aligning in house RNAseq data
+
+make symbolic links to timecourse data
+
+```bash
+# Create symbolic links for all F read files
+for File in $(ls /home/groups/harrisonlab/raw_data/raw_seq/fragaria/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07/*/*.gz | grep 'R1.fastq.gz'); do
+  # echo $File;
+  Sample=$(echo $File | rev | cut -d '/' -f2 | rev)
+  echo "$Sample"
+  OutDir=qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07/$Sample/F
+  mkdir -p "$OutDir"
+  cp -s $File $OutDir/.
+done
+# Create symbolic links for all R read files
+for File in $(ls /home/groups/harrisonlab/raw_data/raw_seq/fragaria/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07/*/*.gz | grep 'R2.fastq.gz'); do
+  # echo $File;
+  Sample=$(echo $File | rev | cut -d '/' -f2 | rev)
+  echo "$Sample"
+  OutDir=qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07/$Sample/R
+  mkdir -p "$OutDir"
+  cp -s $File $OutDir/.
+done
+
+```
+
+
+Perform qc of RNAseq timecourse data
+```bash
+  for FilePath in $(ls -d raw_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07/*); do
+    echo $FilePath
+    FileNum=$(ls $FilePath/F/*.gz | wc -l)
+    for num in $(seq 1 $FileNum); do
+      FileF=$(ls $FilePath/F/*.gz | head -n $num | tail -n1)
+      FileR=$(ls $FilePath/R/*.gz | head -n $num | tail -n1)
+      echo $FileF
+      echo $FileR
+      Jobs=$(qstat | grep 'rna_qc' | grep 'qw' | wc -l)
+      while [ $Jobs -gt 16 ]; do
+        sleep 5m
+        printf "."
+        Jobs=$(qstat | grep 'rna_qc' | grep 'qw' | wc -l)
+      done		
+      printf "\n"
+      IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+      qsub $ProgDir/rna_qc_fastq-mcf.sh $FileF $FileR $IlluminaAdapters RNA
+    done
+  done
+```
+
+Data quality was visualised using fastqc:
+```bash
+	for RawData in $(ls qc_rna/paired/F.oxysporum_fsp_cepae/*/*/*.fq.gz); do
+		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+		echo $RawData;
+		qsub $ProgDir/run_fastqc.sh $RawData
+	done
+```
+
+#### Aligning
+
+Insert sizes of the RNA seq library were unknown until a draft alignment could
+be made. To do this tophat and cufflinks were run, aligning the reads against a
+single genome. The fragment length and stdev were printed to stdout while
+cufflinks was running.
+
+```bash
+	for Assembly in $(ls repeat_masked/*/*/*/*_contigs_unmasked.fa | grep 'FOP2'); do
+		Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+		Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+		echo "$Organism - $Strain"
+		for RNADir in $(ls -d qc_rna/paired/F.oxysporum_fsp_cepae/*); do
+			Timepoint=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
+			echo "$Timepoint"
+			FileF=$(ls $RNADir/F/*_trim.fq.gz)
+			FileR=$(ls $RNADir/R/*_trim.fq.gz)
+			OutDir=alignment/$Organism/$Strain/$Timepoint
+			ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+			qsub $ProgDir/tophat_alignment.sh $Assembly $FileF $FileR $OutDir
+		done
+	done
+```
+Alignments were concatenated prior to running cufflinks:
+Cufflinks was run to produce the fragment length and stdev statistics:
+
+
 
 <!--
 #### Braker prediction
