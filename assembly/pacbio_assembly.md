@@ -483,7 +483,8 @@ First, RNAseq data was aligned to Fusarium genomes.
     for RNA in $(ls qc_rna/raw_rna/genbank/*/*/*_trim.fq.gz); do
       Timepoint=$(echo $RNA | rev | cut -f1 -d '/' | rev | sed 's/_trim.*//g')
       echo "$Timepoint"
-      OutDir=alignment/star/$Organism/"$Strain"/$Timepoint
+      Prefix="$Tiimepoint"
+      OutDir=alignment/star/$Organism/"$Strain"/$Timepoint/$Prefix
       ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
       qsub $ProgDir/sub_star_unpaired.sh $Assembly $RNA $OutDir
     done
@@ -541,7 +542,7 @@ Perform qc of RNAseq timecourse data
   done
 ```
 
-Data quality was visualised using fastqc:
+<!-- Data quality was visualised using fastqc:
 ```bash
 for RawData in $(ls qc_rna/paired/*/*/*/*.fq.gz); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
@@ -556,7 +557,7 @@ printf "\n"
 echo $RawData;
 qsub $ProgDir/run_fastqc.sh $RawData
 done
-```
+``` -->
 
 #### Aligning
 
@@ -595,26 +596,46 @@ cufflinks was running.
   done
 ```
 
+Alignment stats were collected:
+
+```bash
+for File in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentLog.final.out); do
+Sample=$(echo $File | rev | cut -f2 -d '/' | rev);
+ReadNumU=$(cat $File | grep 'Uniquely' | grep 'number' | cut -f2);
+ReadPercU=$(cat $File | grep 'Uniquely' | grep '%' | cut -f2);
+ReadNumM=$(cat $File | grep 'multiple' | grep 'Number' | cut -f2);
+ReadPercM=$(cat $File | grep 'multiple' | grep '%' | cut -f2);
+echo -e "$Sample""\t""$ReadNumU""\t""$ReadPercU""\t""$ReadNumM""\t""$ReadPercM";  
+done
+```
+
+
 Alignments were concatenated prior to gene prediction
 
 ```bash
 
+BamFiles=$(ls alignment/star/P.cactorum/414_v2/Sample_*/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
+OutDir=alignment/star/P.cactorum/414_v2/concatenated
+mkdir -p $OutDir
+samtools merge -f $OutDir/12_24hrs_concatenated.bam $BamFiles
+
+BamFiles=$(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
+OutDir=alignment/star/P.cactorum/414_v2/concatenated
+mkdir -p $OutDir
+samtools merge -f $OutDir/12_24hrs_published_concatenated.bam $BamFiles
 ```
 
-<!--
+
+
 #### Braker prediction
 
 ```bash
-    for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414'); do
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
     	Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     	Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     	echo "$Organism - $Strain"
-    	mkdir -p alignment/$Organism/$Strain/concatenated
-    	samtools merge -f alignment/$Organism/$Strain/concatenated/concatenated.bam \
-      alignment/$Organism/$Strain/SRR1206032/accepted_hits.bam \
-    	alignment/$Organism/$Strain/SRR1206033/accepted_hits.bam
+    	AcceptedHits=$(ls alignment/star/$Organism/$Strain/concatenated/12_24hrs_published_concatenated.bam)
     	OutDir=gene_pred/braker/$Organism/"$Strain"_braker_pacbio
-    	AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
     	GeneModelName="$Organism"_"$Strain"_braker_pacbio
     	rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker_pacbio
     	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
@@ -634,18 +655,18 @@ Note - cufflinks doesn't always predict direction of a transcript and
 therefore features can not be restricted by strand when they are intersected.
 
 ```bash
-	for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414'); do
-		Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-		Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-		echo "$Organism - $Strain"
-		OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
-		mkdir -p $OutDir
-		AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-		qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
-	done
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+    echo "$Organism - $Strain"
+    OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
+    mkdir -p $OutDir
+    AcceptedHits=$(ls alignment/star/$Organism/$Strain/concatenated/12_24hrs_published_concatenated.bam)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+    qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
+  done
 ```
-
+<!--
 Secondly, genes were predicted using CodingQuary:
 
 ```bash
@@ -719,7 +740,7 @@ The final number of genes per isolate was observed using:
     echo "";
   done
 ```
-
+!-->
 
 ## Gene prediction 2 - atg.pl prediction of ORFs
 
@@ -729,12 +750,15 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-	for Genome in $(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa); do
-  	qsub $ProgDir/run_ORF_finder.sh $Genome
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+    echo "$Organism - $Strain"
+  	qsub $ProgDir/run_ORF_finder.sh $Assembly
   done
 ```
 
-
+<!--
 The Gff files from the the ORF finder are not in true Gff3 format. These were
 corrected using the following commands:
 
