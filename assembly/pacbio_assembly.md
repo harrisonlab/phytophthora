@@ -410,11 +410,11 @@ Repeat masking was performed and used the following programs:
 The best assemblies were used to perform repeatmasking
 
 ```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-  for BestAss in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -w -e '414_v2'); do
-    qsub $ProgDir/rep_modeling.sh $BestAss
-    qsub $ProgDir/transposonPSI.sh $BestAss
-  done
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+for BestAss in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -w -e '414_v2' | grep -v 'polished'); do
+qsub $ProgDir/rep_modeling.sh $BestAss
+qsub $ProgDir/transposonPSI.sh $BestAss
+done
 ```
 
 The number of bases masked by transposonPSI and Repeatmasker were summarised
@@ -1994,4 +1994,38 @@ The total number of crinklers is:
 176
 The number of sequences extracted is
 176
+```
+
+
+# Quantifying expression of predicted genes
+
+A gff file containing the combined Braker and CodingQuary genes as well as the
+additional CRN and RxLR genes predicted by ORF analysis was made.
+
+```bash
+GeneGff=$(ls gene_pred/final_genes/P.cactorum/414_v2/final/final_genes_appended.gff3)
+GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/414_v2/414_v2_ORFsUniq_RxLR_EER_motif_hmm.gff)
+GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_ORFsUniq_CRN_hmmer.bed)
+Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa )
+OutDir=gene_pred/annotation/P.cactorum/414_v2
+mkdir -p $OutDir
+cat $GeneGff > $OutDir/414_v2_genes_incl_ORFeffectors.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/414_v2_genes_incl_ORFeffectors.gff3
+$ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/414_v2_genes_incl_ORFeffectors.gff3
+```
+
+Quantification of these genes was performed using featureCounts program as part
+of the Subreads package.
+
+```bash
+Gff=gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3
+for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
+  OutDir=$(dirname $BamFile)
+  OutDir=$OutDir/featureCounts
+  Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev)
+  echo $Prefix
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+  qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
+done
 ```
