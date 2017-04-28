@@ -2029,3 +2029,172 @@ for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.so
   qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
 done
 ```
+
+A file was created with columns fererring to experimental treatments:
+
+```bash
+OutDir=alignment/star/P.cactorum/414_v2/DeSeq
+mkdir -p $OutDir
+# make file in excel and copy accross
+cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" > $OutDir/P.cactorum_RNAseq_design_parsed.txt
+for File in $(ls alignment/star/P.cactorum/414_v2/*/*/featureCounts/*_featurecounts.txt); do
+  echo $File;
+  cp $CurDir/$File $OutDir/.;
+done
+for File in $(ls $OutDir/*_featurecounts.txt); do
+  Prefix=$(echo $File | rev | cut -f1 -d '/' | rev | sed 's/_featurecounts.txt//g' | sed "s/_totRNA_S.*_L/_L/g")
+  sed -ie "s/star_aligmentAligned.sortedByCoord.out.bam/$Prefix/g" $File
+done
+
+```
+
+```R
+#install.packages("pheatmap", Sys.getenv("R_LIBS_USER"), repos = "http://cran.case.edu" )
+
+#install and load libraries
+require("pheatmap")             
+require(data.table)
+
+#load tables into a "list of lists"
+qq <- lapply(list.files("alignment/star/P.cactorum/414_v2/DeSeq","PRO.*_featurecounts.txt$",full.names=T,recursive=T),function(x) fread(x))
+
+# ensure the samples column is the same name as the treament you want to use:
+qq[7]
+
+#mm <- qq%>%Reduce(function(dtf1,dtf2) inner_join(dtf1,dtf2,by=c("Geneid","Chr","Start","End","Strand","Length")), .)
+
+#merge the "list of lists" into a single table
+m <- Reduce(function(...) merge(..., all = T,by=c("Geneid","Chr","Start","End","Strand","Length")), qq)
+
+#convert data.table to data.frame for use with DESeq2
+countData <- data.frame(m[,c(1,7:(ncol(m))),with=F])
+rownames(countData) <- countData[,1]
+countData <- countData[,-1]
+
+#output countData
+write.table(countData,"alignment/star/P.cactorum/414_v2/DeSeq/countData.txt",sep="\t",na="",quote=F)
+#output gene details
+write.table(m[,1:6,with=F],"alignment/star/P.cactorum/414_v2/DeSeq/genes.txt",sep="\t",quote=F,row.names=F)
+# colnames(countData) <- sub("X","",colnames(countData)) countData <- countData[,colData$Sample]
+```
+
+Running DeSeq2
+
+```R
+#source("http://bioconductor.org/biocLite.R")
+#biocLite("DESeq2")
+require(DESeq2)
+
+colData <- read.table("alignment/star/P.cactorum/414_v2/DeSeq/P.cactorum_RNAseq_design_parsed.txt",header=T,sep="\t")
+countData <- read.table("alignment/star/P.cactorum/414_v2/DeSeq/countData.txt",header=T,sep="\t")
+# colData$Group <- paste0(colData$Isolate,colData$Plant.Line,colData$Rep,colData$Flowcell,colData$Timepoint)
+colData$Group <- paste0(colData$Isolate,colData$Plant.Line,colData$Timepoint)
+
+design <- ~Group
+
+dds <- 	DESeqDataSetFromMatrix(countData,colData,design)
+sizeFactors(dds) <- sizeFactors(estimateSizeFactors(dds, type = c("iterate")))
+dds <- DESeq(dds, fitType="local")
+
+
+#  #Run DESeq2 removing an outlier
+#
+#  library(DESeq2)
+#  colData <- read.table("colData",header=T,sep="\t")
+#  countData <- read.table("countData2",header=T,sep="\t")
+#
+#  colData$Group <- paste0(colData$Strain,colData$Light,colData$Time)
+#  #Eliminate Frq08_DD24_rep3 sample from colData and countData
+#  colData <- colData[!(colData$Sample=="Frq08_DD24_rep3"),]      
+#  countData <- subset(countData, select=-Frq08_DD24_rep3)
+#
+#  design <- ~Group
+#  dds <-  DESeqDataSetFromMatrix(countData,colData,design)
+#  sizeFactors(dds) <- sizeFactors(estimateSizeFactors(dds))
+#  dds <- DESeq(dds, fitType="local")
+#
+```
+
+Sample Distances
+
+```R
+
+
+vst<-varianceStabilizingTransformation(dds)
+
+pdf("alignment/star/P.cactorum/414_v2/DeSeq/heatmap_vst.pdf", width=12,height=12)
+sampleDists<-dist(t(assay(vst)))
+library("RColorBrewer")
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- paste(vst$Group)
+colnames(sampleDistMatrix) <- paste(vst$Group)
+colours <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+heatmap( sampleDistMatrix, trace="none", col=colours, margins=c(7,7),srtCol=45)
+dev.off()
+
+# Sample distances measured with rlog transformation:
+
+rld <- rlog( dds )
+
+pdf("alignment/star/P.cactorum/414_v2/DeSeq/heatmap_rld.pdf")
+sampleDists <- dist( t( assay(rld) ) )
+library("RColorBrewer")
+sampleDistMatrix <- as.matrix( sampleDists )
+rownames(sampleDistMatrix) <- paste(rld$Group)
+colnames(sampleDistMatrix) <- paste(rld$Group)
+colours = colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+heatmap( sampleDistMatrix, trace="none", col=colours, margins=c(7,7),srtCol=45)
+dev.off()
+```
+
+PCA plots
+
+```R
+#vst<-varianceStabilizingTransformation(dds)
+pdf("alignment/star/P.cactorum/414_v2/DeSeq/PCA_vst.pdf")
+plotPCA(vst,intgroup=c("Isolate", "Plant.Line", "Timepoint"))
+dev.off()
+
+#Plot using rlog transformation:
+pdf("alignment/star/P.cactorum/414_v2/DeSeq/PCA_rld.pdf")
+plotPCA(rld,intgroup=c("Isolate", "Plant.Line", "Timepoint"))
+dev.off()
+
+pdf("alignment/star/P.cactorum/414_v2/DeSeq/PCA_additional.pdf")
+
+dev.off()
+
+#Plot using rlog transformation, showing sample names:
+
+library("ggplot2")
+install.packages("ggrepel", Sys.getenv("R_LIBS_USER"), repos = "http://cran.case.edu")
+library("ggrepel")
+
+data <- plotPCA(rld, intgroup="Group", returnData=TRUE)
+percentVar <- round(100 * attr(data, "percentVar"))
+
+pca_plot<- ggplot(data, aes(PC1, PC2, color=Group)) +
+ geom_point(size=3) +
+ xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+ ylab(paste0("PC2: ",percentVar[2],"% variance")) + geom_text_repel(aes(label=colnames(rld)))
+ coord_fixed()
+
+ggsave("alignment/star/P.cactorum/414_v2/DeSeq/PCA_sample_names.pdf", pca_plot, dpi=300, height=10, width=12)
+```
+
+Analysis of gene expression
+
+```R
+#Example:
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","Frq08l6h","Frq08d6h"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+```
