@@ -934,6 +934,38 @@ done
   done
 ```
 
+For P. cactorum
+
+```bash
+for GeneGff in $(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3 | grep '414_v2'); do
+  Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
+  Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
+  Assembly=$(ls repeat_masked/$Organism/$Strain/*/*_contigs_unmasked.fa)
+  InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
+  SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vJul2016_tophit_parsed.tbl)
+  OutDir=gene_pred/annotation/$Organism/$Strain
+  mkdir -p $OutDir
+	GeneFasta=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.pep.fasta)
+	SigP2=$(ls gene_pred/final_sigP/$Organism/$Strain/*_aug_sp.aa)
+	SigP4=$(ls gene_pred/final_signalp-4.1/$Organism/$Strain/*_aug_sp.aa)
+	PhobiusTxt=$(ls analysis/phobius/$Organism/$Strain/*_phobius.txt)
+	RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/*_RxLR_EER_regex.fa | grep -v 'ORF')
+	RxLR_Hmm=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/*_RxLR_hmmer.fa | grep -v 'ORF')
+	RxLR_WY=$(ls analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/*_WY_hmmer_headers.txt | grep -v 'ORF')
+  RxLR_total=$(ls analysis/RxLR_effectors/combined_evidence/$Organism/$Strain/*_final_RxLR_EER.fa)
+	CRN_LFLAK=$(ls analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/*_pub_CRN_LFLAK_hmm.fa | grep -v 'ORF')
+	CRN_DWL=$(ls analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/*_pub_CRN_DWL_hmm.fa | grep -v 'ORF')
+  CRN_total=$(ls analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/*_final_CRN.fa)
+#	OrthoName=Pcac
+#	OrthoFile=$(ls analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt)
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
+	# $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL > $OutDir/10300_gene_table.tsv
+  DEG_Files=$(ls alignment/star/P.cactorum/414_v2/DeSeq/*_vs_*.txt  | grep -v -e 'up' -e 'down' | sed -e "s/$/ /g" | tr -d "\n")
+	$ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --RxLR_total $RxLR_total --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --CRN_total $CRN_total --DEG_files $DEG_Files  > $OutDir/414_v2_gene_table_incl_exp.tsv
+done
+
+```
+
 
 #Genomic analysis
 
@@ -1029,6 +1061,7 @@ mkdir -p $OutDir
 phobius.pl $Proteome > $OutDir/"$Strain"_phobius.txt
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
 $ProgDir/phobius_parser.py --inp_fasta $Proteome --phobius_txt $OutDir/"$Strain"_phobius.txt --out_fasta $OutDir/"$Strain"_phobius.fa
+cat $OutDir/"$Strain"_phobius.fa | grep '>' | cut -f1 -d ' ' | sed 's/>//g' > $OutDir/"$Strain"_phobius_headers.txt
 done
  ```
 
@@ -1286,6 +1319,35 @@ done > tmp.txt
   the number of SigP-RxLR genes are:	336
   the number of SigP-RxLR-EER genes are:	148
 ```
+
+
+### E) From gene models - Hmm evidence of WY domains
+Hmm models for the WY domain contained in many RxLRs were used to search predicted proteins. These were run with the following commands:
+
+
+```bash
+for Secretome in $(ls gene_pred/combined_sigP/*/*/*_all_secreted.fa | grep '414_v2'); do
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmModel=$(ls /home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm)
+Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
+OutDir=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain
+mkdir -p $OutDir
+HmmResults="$Strain"_WY_hmmer.txt
+hmmsearch -T 0 $HmmModel $Secretome > $OutDir/$HmmResults
+echo "$Organism $Strain"
+cat $OutDir/$HmmResults | grep 'Initial search space'
+cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+HmmFasta="$Strain"_WY_hmmer.fa
+$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Secretome > $OutDir/$HmmFasta
+Headers="$Strain"_WY_hmmer_headers.txt
+cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
+done
+```
+
+P.cactorum 414_v2
+Initial search space (Z):              11279  [actual number of targets]
+Domain search space  (domZ):             407  [number of targets reported over threshold]
 
 
 ### G) From Secreted gene models - Hmm evidence of RxLR effectors
@@ -2013,6 +2075,11 @@ cat $GeneGff > $OutDir/414_v2_genes_incl_ORFeffectors.gff3
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/414_v2_genes_incl_ORFeffectors.gff3
 $ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/414_v2_genes_incl_ORFeffectors.gff3
+# Make gene models from gff files.
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+$ProgDir/gff2fasta.pl $Assembly $OutDir/414_v2_genes_incl_ORFeffectors.gff3 $OutDir/414_v2_genes_incl_ORFeffectors
+
 ```
 
 Quantification of these genes was performed using featureCounts program as part
@@ -2030,7 +2097,7 @@ for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.so
 done
 ```
 
-A file was created with columns fererring to experimental treatments:
+A file was created with columns referring to experimental treatments:
 
 ```bash
 OutDir=alignment/star/P.cactorum/414_v2/DeSeq
@@ -2085,14 +2152,17 @@ Running DeSeq2
 #biocLite("DESeq2")
 require(DESeq2)
 
-colData <- read.table("alignment/star/P.cactorum/414_v2/DeSeq/P.cactorum_RNAseq_design_parsed.txt",header=T,sep="\t")
-countData <- read.table("alignment/star/P.cactorum/414_v2/DeSeq/countData.txt",header=T,sep="\t")
+unorderedColData <- read.table("alignment/star/P.cactorum/414_v2/DeSeq/P.cactorum_RNAseq_design_parsed.txt",header=T,sep="\t")
+colData <- data.frame(unorderedColData[ order(unorderedColData$Sample.name),])
+unorderedData <- read.table("alignment/star/P.cactorum/414_v2/DeSeq/countData.txt",header=T,sep="\t")
+countData <- data.frame(unorderedData[ , order(colnames(unorderedData))])
 # colData$Group <- paste0(colData$Isolate,colData$Plant.Line,colData$Rep,colData$Flowcell,colData$Timepoint)
 colData$Group <- paste0(colData$Isolate,colData$Plant.Line,colData$Timepoint)
 
 design <- ~Group
+#design <- colData$Group
 
-dds <- 	DESeqDataSetFromMatrix(countData,colData,design)
+dds <-     DESeqDataSetFromMatrix(countData,colData,design)
 sizeFactors(dds) <- sizeFactors(estimateSizeFactors(dds, type = c("iterate")))
 dds <- DESeq(dds, fitType="local")
 
@@ -2184,10 +2254,11 @@ ggsave("alignment/star/P.cactorum/414_v2/DeSeq/PCA_sample_names.pdf", pca_plot, 
 
 Analysis of gene expression
 
+--Emily0 hours","P414Emily48 hours
+
 ```R
-#Example:
 alpha <- 0.05
-res= results(dds, alpha=alpha,contrast=c("Group","Frq08l6h","Frq08d6h"))
+res= results(dds, alpha=alpha,contrast=c("Group","--Emily0 hours","P414Emily48 hours"))
 sig.res <- subset(res,padj<=alpha)
 sig.res <- sig.res[order(sig.res$padj),]
 #Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
@@ -2197,4 +2268,155 @@ sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
 # No threshold
 sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
 sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/--Emily0h_vs_P414Emily48.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Emily0h_vs_P414Emily48_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Emily0h_vs_P414Emily48_down.txt",sep="\t",na="",quote=F)
+```
+
+"--Fenella0 hours","P414Fenella48 hours"
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","--Fenella0 hours","P414Fenella48 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.upregulated <- sig.res[order(sig.res$log2FoldChange, decreasing = TRUE),]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/--Fenella0h_vs_P414Fenella48.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Fenella0h_vs_P414Fenella48_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Fenella0h_vs_P414Fenella48_down.txt",sep="\t",na="",quote=F)
+```
+
+--Emily0 hours","P414Emily12 hours
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","--Emily0 hours","P414Emily12 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/--Emily0h_vs_P414Emily12.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Emily0h_vs_P414Emily12_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Emily0h_vs_P414Emily12_down.txt",sep="\t",na="",quote=F)
+```
+
+"--Fenella0 hours","P414Fenella12 hours"
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","--Fenella0 hours","P414Fenella12 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.upregulated <- sig.res[order(sig.res$log2FoldChange, decreasing = TRUE),]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/--Fenella0h_vs_P414Fenella12.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Fenella0h_vs_P414Fenella12_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/--Fenella0h_vs_P414Fenella12_down.txt",sep="\t",na="",quote=F)
+```
+
+
+"P414Emily12 hours","P414Emily48 hours"
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","P414Emily12 hours","P414Emily48 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/P414Emily12h_vs_P414Emily48.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Emily12h_vs_P414Emily48_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Emily12h_vs_P414Emily48_down.txt",sep="\t",na="",quote=F)
+```
+
+"P414Fenella12 hours,"P414Fenella48 hours"
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","P414Fenella12 hours","P414Fenella48 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.upregulated <- sig.res[order(sig.res$log2FoldChange, decreasing = TRUE),]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Fenella48.txt",sep="\t",na="",quote=F)
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Fenella48.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Fenella48_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Fenella48_down.txt",sep="\t",na="",quote=F)
+```
+
+"P414Fenella48 hours","P414Emily48 hours"
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","P414Fenella48 hours","P414Emily48 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.upregulated <- sig.res[order(sig.res$log2FoldChange, decreasing = TRUE),]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella48h_vs_P414Emily48.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella48h_vs_P414Emily48_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella48h_vs_P414Emily48_down.txt",sep="\t",na="",quote=F)
+```
+
+"P414Fenella12 hours","P414Emily12 hours"
+
+```R
+alpha <- 0.05
+res= results(dds, alpha=alpha,contrast=c("Group","P414Fenella12 hours","P414Emily12 hours"))
+sig.res <- subset(res,padj<=alpha)
+sig.res <- sig.res[order(sig.res$padj),]
+#Settings used: upregulated: min. 2x fold change, ie. log2foldchange min 1.
+#               downregulated: min. 0.5x fold change, ie. log2foldchange max -1.
+sig.res.upregulated <- sig.res[sig.res$log2FoldChange >=1, ]
+sig.res.upregulated <- sig.res[order(sig.res$log2FoldChange, decreasing = TRUE),]
+sig.res.downregulated <- sig.res[sig.res$log2FoldChange <=-1, ]
+# No threshold
+sig.res.upregulated2 <- sig.res[sig.res$log2FoldChange >0, ]
+sig.res.downregulated2 <- sig.res[sig.res$log2FoldChange <0, ]
+
+write.table(sig.res,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Emily12.txt",sep="\t",na="",quote=F)
+write.table(sig.res.upregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Emily12_up.txt",sep="\t",na="",quote=F)
+write.table(sig.res.downregulated,"alignment/star/P.cactorum/414_v2/DeSeq/P414Fenella12h_vs_P414Emily12_down.txt",sep="\t",na="",quote=F)
 ```
