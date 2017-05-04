@@ -522,10 +522,37 @@ Quality of genome assemblies was assessed by looking for the gene space in the a
 
 This was first performed on the 10300 unmasked assembly:
 
-```bash
+<!-- ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
 	Genome=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
 	qsub $ProgDir/sub_cegma.sh $Genome dna
+``` -->
+
+Checking using busco
+
+```bash
+for Assembly in $(ls repeat_masked/*/*/*/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae' | grep -e '10300_abyss_53_repmask' -e 'T30-4' -e '310' -e 'LT1534' -e '67593'); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+  Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+  echo "$Organism - $Strain"
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+  # BuscoDB="Fungal"
+  BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+  OutDir=gene_pred/busco/$Organism/$Strain/assembly
+  qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
+  done
 ```
 
 ## Gene prediction 1 - Braker1 gene model training and prediction
@@ -611,6 +638,37 @@ corrected using the following commands:
 		qsub $ProgDir/augustus_pipe.sh $Genome $ConcatRna $GeneModel $OutDir
 	done
 ``` -->
+
+
+# Assessing gene space in predicted transcriptomes
+
+
+Checking using busco
+
+```bash
+for Assembly in $(ls gene_pred/braker/*/*/*/final_genes_Braker.gene.fasta | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae' | grep -e '10300' -e 'T30-4' -e '310' -e 'LT1534' -e '67593'); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+  Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+  echo "$Organism - $Strain"
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+  # BuscoDB="Fungal"
+  BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+  OutDir=gene_pred/busco/$Organism/$Strain/genes
+  qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls gene_pred/busco/*/*/genes/*/short_summary_*.txt | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
+  done
+```
 
 
 # Functional annotation
@@ -1319,10 +1377,53 @@ Total number of RxLRs shared between prediciton sources:
 
 ## 5. BLAST Searches
 
+## 5.1 Identifying homologs to previously characterised effectors
+
+
+```bash
+Pcac_ass=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+Pinf_ass=assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.fa
+Ppar_ass=assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta
+Pcap_ass=assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta
+Psoj_ass=assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.fasta
+for Assembly in $Pcac_ass $Pinf_ass $Ppar_ass $Pcap_ass $Psoj_ass; do
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Query=$(ls analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+	qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+done
+```
+
+Once blast searches had completed, the BLAST hits were converted to GFF
+annotations:
+
+```bash
+  for BlastHits in $(ls analysis/blast_homology/*/T30-4/*_appended_oomycete_effector_cds.fasta_homologs.csv); do
+    Organism=$(echo $BlastHits | rev | cut -f3 -d '/' | rev)  
+    Strain=$(echo $BlastHits | rev | cut -f2 -d '/' | rev)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    HitsGff=analysis/blast_homology/$Organism/$Strain/"$Strain"_appended_oomycete_effector_cds.fasta_homologs.gff
+    Column2=Avr_homolog
+    NumHits=1
+    $ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+  done
+```
+
+
+```bash
+
+for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/final_genes_Braker.cds.fasta ); do
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Query=$(ls analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+	qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+done
+```
+
+
 ## 5.1 Identifying RxLR homologs
 
 nucleotide sequence of previously characterised RxLR genes were used to perform
 BLAST searches against assemlies.
+
 
 ### 5.1.a Blasting for Chen et al P. cactorum RxLRs:
 
@@ -1412,8 +1513,94 @@ genome to identify consensus between these gene models and Braker1 gene models.
   done
 ```
 
+# 6. Quantifying 10300 gene expression
 
-# 6 Consolidating data
+A preliminary timecourse of infection was performed in Norway. This led to low levels
+of P. cacotrum RNAseq reportedly being retrieved. Netherless, this could be used for
+evidence of effector expression
+
+Raseq data was downloaded to the location:
+
+ ```bash
+ls raw_rna/norway/P.cactorum/10300/160415_7001448.B.Project_Lysoe-RNA2-2016-02-01.tar
+cd raw_rna/norway/P.cactorum/10300
+tar -xvf 160415_7001448.B.Project_Lysoe-RNA2-2016-02-01.tar
+ ```
+```bash
+ # Create symbolic links for all F read files
+ for File in $(ls raw_rna/norway/*/*/*/*/*_R1_001.fastq.gz); do
+   # echo $File;
+   Sample=$(echo $File | rev | cut -d '/' -f2 | rev)
+   echo "$Sample"
+   OutDir=raw_rna/paired/160415_7001448.B.Project_Lysoe-RNA2-2016-02-01/$Sample/F
+   mkdir -p "$OutDir"
+   cp -s $PWD/$File $OutDir/.
+ done
+ # Create symbolic links for all R read files
+ for File in $(ls raw_rna/norway/*/*/*/*/*_R2_001.fastq.gz); do
+   # echo $File;
+	 Sample=$(echo $File | rev | cut -d '/' -f2 | rev)
+   echo "$Sample"
+   OutDir=raw_rna/paired/160415_7001448.B.Project_Lysoe-RNA2-2016-02-01/$Sample/R
+   mkdir -p "$OutDir"
+   cp -s $PWD/$File $OutDir/.
+ done
+ ```
+
+
+ Perform qc of RNAseq timecourse data
+ ```bash
+for FilePath in $(ls -d raw_rna/paired/160415_7001448.B.Project_Lysoe-RNA2-2016-02-01/*); do
+echo $FilePath
+FileNum=$(ls $FilePath/F/*.gz | wc -l)
+for num in $(seq 1 $FileNum); do
+FileF=$(ls $FilePath/F/*.gz | head -n $num | tail -n1)
+FileR=$(ls $FilePath/R/*.gz | head -n $num | tail -n1)
+echo $FileF
+echo $FileR
+Jobs=$(qstat | grep 'rna_qc' | grep 'qw' | wc -l)
+while [ $Jobs -gt 16 ]; do
+sleep 5m
+printf "."
+Jobs=$(qstat | grep 'rna_qc' | grep 'qw' | wc -l)
+done		
+printf "\n"
+IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $FileF $FileR $IlluminaAdapters RNA
+done
+done
+ ```
+
+```bash
+
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+for FileF in $(ls qc_rna/paired/*/*/*/*_R1_001.fastq.gz); do
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+done
+printf "\n"
+FileR=$(echo $FileF | sed 's/R1/R2/g')
+echo $FileF
+echo $FileR
+Timepoint=$(echo $FileF| rev | cut -d '/' -f2 | rev)
+echo "$Timepoint"
+OutDir=alignment/star/$Organism/$Strain/$Timepoint
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
+done
+done
+
+```
+
+
+# 7 Consolidating data
 
 key files were grouped together into a single location. This directory was can
 be shared with collaborators for further analysis.
