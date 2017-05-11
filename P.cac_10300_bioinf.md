@@ -1519,6 +1519,34 @@ A preliminary timecourse of infection was performed in Norway. This led to low l
 of P. cacotrum RNAseq reportedly being retrieved. Netherless, this could be used for
 evidence of effector expression
 
+
+## Making a combined file of Braker, Coding quary genes as well as additional ORF effector candidates
+
+
+A gff file containing the combined Braker and CodingQuary genes as well as the
+additional CRN and RxLR genes predicted by ORF analysis was made.
+
+```bash
+GeneGff=$(ls gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff)
+GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORFsUniq_RxLR_EER_motif_hmm.gff)
+GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed)
+Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked.fa)
+OutDir=gene_pred/annotation/P.cactorum/10300
+mkdir -p $OutDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
+$ProgDir/aug_gff_add_exon.py --inp_gff $GeneGff > $OutDir/10300_genes_incl_ORFeffectors.gff3
+# cat $GeneGff > $OutDir/10300_genes_incl_ORFeffectors.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
+$ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
+# Make gene models from gff files.
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked.fa)
+$ProgDir/gff2fasta.pl $Assembly $OutDir/10300_genes_incl_ORFeffectors.gff3 $OutDir/10300_genes_incl_ORFeffectors
+```
+
+## Downloading, qc and alignment
+
 Raseq data was downloaded to the location:
 
  ```bash
@@ -1573,12 +1601,11 @@ done
  ```
 
 ```bash
-
 for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
-for FileF in $(ls qc_rna/paired/*/*/*/*_R1_001.fastq.gz); do
+for FileF in $(ls qc_rna/paired/*/*/F/*_R1_001_trim.fq.gz); do
 Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
 while [ $Jobs -gt 1 ]; do
 sleep 1m
@@ -1586,18 +1613,69 @@ printf "."
 Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
 done
 printf "\n"
-FileR=$(echo $FileF | sed 's/R1/R2/g')
+FileR=$(echo $FileF | sed 's&/F/&/R/&g'| sed 's/R1/R2/g')
 echo $FileF
 echo $FileR
-Timepoint=$(echo $FileF| rev | cut -d '/' -f2 | rev)
+Timepoint=$(echo $FileF| rev | cut -d '/' -f3 | rev)
 echo "$Timepoint"
 OutDir=alignment/star/$Organism/$Strain/$Timepoint
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
 done
 done
-
 ```
+
+## Quantification of gene models
+
+Quantification of these genes was performed using featureCounts program as part
+of the Subreads package.
+
+```bash
+  Gff=gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3
+  # for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
+  for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/pcac_*/star_aligmentAligned.sortedByCoord.out.bam); do
+    OutDir=$(dirname $BamFile)
+    OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment
+    Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev | sed 's/pcac_//g')
+    Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
+    while [ $Jobs -gt 1 ]; do
+      sleep 1m
+      printf "."
+      Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
+    done
+    printf "\n"
+    echo $Prefix
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+    qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
+  done
+```
+
+A file was created with columns referring to experimental treatments:
+
+```bash
+  OutDir=alignment/star/P.cactorum/414_v2/DeSeq
+  mkdir -p $OutDir
+  # make file in excel and copy accross
+  # Parse the file if it was made in windows:
+  #cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" > $OutDir/P.cactorum_RNAseq_design_parsed.txt
+  # Parse the file and remove technical replicate information:
+  cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" | sed 's/_L...//g' | cut -f1-4,6- | uniq | grep -v '\-\-' > $OutDir/P.cactorum_RNAseq_design_parsed.txt
+
+  # Edit header lines of feature coutn files to ensure they have the treament name rather than file name
+  OutDir=alignment/star/P.cactorum/414_v2/DeSeq
+  for File in $(ls alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment/*_featurecounts.txt); do
+    echo $File;
+    cp $File $OutDir/.;
+  done
+  for File in $(ls $OutDir/*_featurecounts.txt); do
+    Prefix=$(echo $File | rev | cut -f1 -d '/' | rev | sed 's/_featurecounts.txt//g' | sed "s/_totRNA_S.*_L/_L/g")
+    sed -ie "s/star_aligmentAligned.sortedByCoord.out.bam/$Prefix/g" $File
+  done
+```
+
+DeSeq commands as used in R are documented in:
+RNAseq/P414/DESeq_analysis.md
+
 
 
 # 7 Consolidating data
