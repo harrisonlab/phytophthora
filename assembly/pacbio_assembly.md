@@ -1062,6 +1062,108 @@ done
   3689
 ```
 
+
+Some proteins that are incorporated into the cell membrane require secretion.
+Therefore proteins with a transmembrane domain are not likely to represent
+cytoplasmic or apoplastic effectors.
+
+Proteins containing a transmembrane domain were identified:
+
+```bash
+for Proteome in $(ls gene_pred/final_genes/*/*/*/final_genes_combined.pep.fasta | grep '414_v2'); do
+Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/transmembrane_helices
+qsub $ProgDir/submit_TMHMM.sh $Proteome
+done
+```
+
+Those proteins with transmembrane domains were removed from lists of Signal
+peptide containing proteins
+
+```bash
+  for File in $(ls gene_pred/trans_mem/*/*/*_TM_genes_neg.txt | grep '414_v2'); do
+    Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+    echo "$Organism - $Strain"
+    NonTmHeaders=$(echo "$File" | sed 's/neg.txt/neg_headers.txt/g')
+    cat $File | cut -f1 > $NonTmHeaders
+    SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp.aa | grep -v 'neg')
+    OutDir=$(dirname $SigP)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    $ProgDir/extract_from_fasta.py --fasta $SigP --headers $NonTmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem.aa
+    echo "Number of SigP proteins:"
+    cat $SigP | grep '>' | wc -l
+    echo "Number without transmembrane domains:"
+    cat $OutDir/"$Strain"_final_sp_no_trans_mem.aa | grep '>' | wc -l
+    echo "Number of gene models:"
+    cat $OutDir/"$Strain"_final_sp_no_trans_mem.aa | grep '>' | cut -f1 -d't' | sort | uniq |wc -l
+
+    # A text file was also made containing headers of proteins testing +ve
+    PosFile=$(ls gene_pred/trans_mem/$Organism/$Strain/"$Strain"_TM_genes_pos.txt)
+    TmHeaders=$(echo $PosFile | sed 's/.txt/_headers.txt/g')
+    cat $PosFile | cut -f1 > $TmHeaders
+
+  done
+```
+
+Proteins containing GPI anchors were also removed using GPIsom
+
+
+These proteins were identified through submitting the combined protein file to
+the webserver at: http://gpi.unibe.ch
+
+An output directory was made to download the file to:
+
+```bash
+  for Proteome in $(ls gene_pred/final_genes/*/*/*/final_genes_combined.pep.fasta | grep '414_v2'); do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    OutDir=gene_pred/trans_mem/$Organism/$Strain/GPIsom
+    mkdir -p $OutDir
+  done
+```
+
+Results were pasted into the file:
+
+```bash
+  nano gene_pred/trans_mem/P.cactorum/414_v2/GPIsom/GPI_pos.fa
+```
+
+Those proteins with GPI anchors were removed from lists of Signal
+peptide containing proteins
+
+```bash
+  for File in $(ls gene_pred/trans_mem/*/*/GPIsom/GPI_pos.fa | grep '414_v2'); do
+    Strain=$(echo $File | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $File | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    TmHeaders=$(echo "$File" | sed 's/.fa/.txt/g')
+    cat $File | grep '>' | cut -f1 -d ' ' | sed 's/>//g' > $TmHeaders
+    SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp_no_trans_mem.aa)
+    SigPHeaders=gene_pred/final_sigP/$Organism/$Strain/"$Strain"_sp_no_trans_mem_headers.txt
+    cat $SigP | grep '>' | cut -f1 | sed 's/>//g'> $SigPHeaders
+    GoodHeaders=$(echo "$File" | sed 's/_pos.fa/_neg.txt/g')
+    cat $SigPHeaders | grep -v -f $TmHeaders > $GoodHeaders
+    OutDir=$(dirname $SigP)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    # cat $SigP | grep -v -A1 -f $TmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa
+    $ProgDir/extract_from_fasta.py --fasta $SigP --headers $GoodHeaders  > $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa
+    echo "Number of SigP proteins:"
+    cat $SigP | grep '>' | wc -l
+    echo "Number with GPI anchors in entire proteome:"
+    cat $TmHeaders | wc -l
+    echo "Number without GPI anchors:"
+    cat $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa | grep '>' | wc -l
+    echo "Number of gene models:"
+    cat $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa | grep '>' | cut -f1 -d't' | sort | uniq |wc -l
+  done
+```
+
+
+
+
 ### C.i) From Augustus gene models - Effector-like structure identification using EffectorP
 
 Required programs:
@@ -2040,6 +2142,10 @@ The number of sequences extracted is
 
 # Quantifying expression of predicted genes
 
+
+## Making a combined file of Braker, Coding quary genes as well as additional ORF effector candidates
+
+
 A gff file containing the combined Braker and CodingQuary genes as well as the
 additional CRN and RxLR genes predicted by ORF analysis was made.
 
@@ -2058,44 +2164,65 @@ $ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/414_v2_genes_incl_O
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa)
 $ProgDir/gff2fasta.pl $Assembly $OutDir/414_v2_genes_incl_ORFeffectors.gff3 $OutDir/414_v2_genes_incl_ORFeffectors
-
 ```
+
+
+## Quantification of gene models
+
+
+Maria performed alignment of RNAseq data vs the P.cac genome, removing any reads
+that aligned to the F. annanassa transcriptome.
+
+
 
 Quantification of these genes was performed using featureCounts program as part
 of the Subreads package.
 
 ```bash
-Gff=gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3
-for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
-  OutDir=$(dirname $BamFile)
-  OutDir=$OutDir/featureCounts
-  Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev)
-  echo $Prefix
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-  qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
-done
+  Gff=gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3
+  # for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
+  for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/pcac_*/star_aligmentAligned.sortedByCoord.out.bam); do
+    OutDir=$(dirname $BamFile)
+    OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment
+    Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev | sed 's/pcac_//g')
+    Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
+    while [ $Jobs -gt 1 ]; do
+      sleep 1m
+      printf "."
+      Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
+    done
+    printf "\n"
+    echo $Prefix
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+    qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
+  done
 ```
 
 A file was created with columns referring to experimental treatments:
 
 ```bash
-OutDir=alignment/star/P.cactorum/414_v2/DeSeq
-mkdir -p $OutDir
-# make file in excel and copy accross
-cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" > $OutDir/P.cactorum_RNAseq_design_parsed.txt
-for File in $(ls alignment/star/P.cactorum/414_v2/*/*/featureCounts/*_featurecounts.txt); do
-  echo $File;
-  cp $CurDir/$File $OutDir/.;
-done
-for File in $(ls $OutDir/*_featurecounts.txt); do
-  Prefix=$(echo $File | rev | cut -f1 -d '/' | rev | sed 's/_featurecounts.txt//g' | sed "s/_totRNA_S.*_L/_L/g")
-  sed -ie "s/star_aligmentAligned.sortedByCoord.out.bam/$Prefix/g" $File
-done
+  OutDir=alignment/star/P.cactorum/414_v2/DeSeq
+  mkdir -p $OutDir
+  # make file in excel and copy accross
+  # Parse the file if it was made in windows:
+  #cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" > $OutDir/P.cactorum_RNAseq_design_parsed.txt
+  # Parse the file and remove technical replicate information:
+  cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" | sed 's/_L...//g' | cut -f1-4,6- | uniq | grep -v '\-\-' > $OutDir/P.cactorum_RNAseq_design_parsed.txt
+
+  # Edit header lines of feature coutn files to ensure they have the treament name rather than file name
+  OutDir=alignment/star/P.cactorum/414_v2/DeSeq
+  for File in $(ls alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment/*_featurecounts.txt); do
+    echo $File;
+    cp $File $OutDir/.;
+  done
+  for File in $(ls $OutDir/*_featurecounts.txt); do
+    Prefix=$(echo $File | rev | cut -f1 -d '/' | rev | sed 's/_featurecounts.txt//g' | sed "s/_totRNA_S.*_L/_L/g")
+    sed -ie "s/star_aligmentAligned.sortedByCoord.out.bam/$Prefix/g" $File
+  done
 ```
 
 DeSeq commands as used in R are documented in:
-
-RNAseq/
+RNAseq/P414/DESeq_analysis.md
 
 
 # Building summary tables of all data
@@ -2116,6 +2243,8 @@ for GeneGff in $(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORF
   GeneFasta=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.cds.fasta)
 	SigP2=$(ls gene_pred/final_sigP/$Organism/$Strain/*_aug_sp.aa)
 	SigP4=$(ls gene_pred/final_signalp-4.1/$Organism/$Strain/*_aug_sp.aa)
+  TMHMM_headers=$(ls gene_pred/trans_mem/$Organism/$Strain/*_TM_genes_pos_headers.txt)
+  GPI_headers=$(ls gene_pred/trans_mem/$Organism/$Strain/GPIsom/GPI_pos.txt)
 	PhobiusTxt=$(ls analysis/phobius/$Organism/$Strain/*_phobius_headers.txt)
 	#RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/*_RxLR_EER_regex.fa | grep -v 'ORF')
 	#RxLR_Hmm=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/*_RxLR_hmmer.fa | grep -v 'ORF')
@@ -2130,8 +2259,8 @@ for GeneGff in $(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORF
   DEG_Files=$(ls alignment/star/P.cactorum/414_v2/DeSeq/*_vs_*.txt  | grep -v -e 'up' -e 'down' | sed -e "s/$/ /g" | tr -d "\n")
 	# $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --RxLR_total $RxLR_total --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --CRN_total $CRN_total --DEG_files $DEG_Files  > $OutDir/414_v2_gene_table_incl_exp.tsv
   # NormCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/normalised_counts.txt)
-  NormCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/raw_counts.txt)
-  $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --normalised_counts $NormCount --InterPro $InterPro --Swissprot $SwissProt > $OutDir/414_v2_gene_table_incl_exp.tsv
+  RawCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/raw_counts.txt)
+  FPKM=$(ls alignment/star/P.cactorum/414_v2/DeSeq/fpkm_counts.txt)
+  $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --trans_mem $TMHMM_headers --GPI_anchor $GPI_headers --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --raw_counts $RawCount --fpkm $FPKM --InterPro $InterPro --Swissprot $SwissProt > $OutDir/414_v2_gene_table_incl_exp.tsv
 done
-
 ```
