@@ -1534,7 +1534,13 @@ Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contig
 OutDir=gene_pred/annotation/P.cactorum/10300
 mkdir -p $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/augustus
-$ProgDir/aug_gff_add_exon.py --inp_gff $GeneGff > $OutDir/10300_genes_incl_ORFeffectors.gff3
+$ProgDir/aug_gff_add_exon.py --inp_gff $GeneGff  \
+	| sed 's/\(\tCDS\t.*\)transcript_id "\(.*\)"; gene_id.*/\1ID=\2.CDS; Parent=\2/g' \
+	| sed 's/\(\exon\t.*\)transcript_id "\(.*\)"; gene_id.*/\1ID=\2.exon; Parent=\2/g' \
+	| sed 's/transcript_id "/ID=/g' | sed 's/";/;/g' | sed 's/ gene_id "/Parent=/g' \
+	| sed -r "s/\tg/\tID=g/g" | sed 's/ID=gene/gene/g' | sed -r "s/;$//g" \
+	| sed "s/\ttranscript\t.*ID=\(.*\).t.*$/\0;Parent=\1/" \
+	> $OutDir/10300_genes_incl_ORFeffectors.gff3
 # cat $GeneGff > $OutDir/10300_genes_incl_ORFeffectors.gff3
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
@@ -1543,6 +1549,7 @@ $ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/10300_genes_incl_OR
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked.fa)
 $ProgDir/gff2fasta.pl $Assembly $OutDir/10300_genes_incl_ORFeffectors.gff3 $OutDir/10300_genes_incl_ORFeffectors
+# Note - these fasta files have not been validated - do not use
 ```
 
 ## Downloading, qc and alignment
@@ -1553,7 +1560,7 @@ Raseq data was downloaded to the location:
 ls raw_rna/norway/P.cactorum/10300/160415_7001448.B.Project_Lysoe-RNA2-2016-02-01.tar
 cd raw_rna/norway/P.cactorum/10300
 tar -xvf 160415_7001448.B.Project_Lysoe-RNA2-2016-02-01.tar
- ```
+```
 ```bash
  # Create symbolic links for all F read files
  for File in $(ls raw_rna/norway/*/*/*/*/*_R1_001.fastq.gz); do
@@ -1631,12 +1638,10 @@ Quantification of these genes was performed using featureCounts program as part
 of the Subreads package.
 
 ```bash
-  Gff=gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3
-  # for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
-  for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/pcac_*/star_aligmentAligned.sortedByCoord.out.bam); do
+  Gff=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3
+  for BamFile in $(ls alignment/star/P.cactorum/10300/Sample_*/star_aligmentAligned.sortedByCoord.out.bam); do
     OutDir=$(dirname $BamFile)
-    OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment
-    Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev | sed 's/pcac_//g')
+    Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev)
     Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
     while [ $Jobs -gt 1 ]; do
       sleep 1m
@@ -1653,28 +1658,46 @@ of the Subreads package.
 A file was created with columns referring to experimental treatments:
 
 ```bash
-  OutDir=alignment/star/P.cactorum/414_v2/DeSeq
-  mkdir -p $OutDir
-  # make file in excel and copy accross
-  # Parse the file if it was made in windows:
-  #cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" > $OutDir/P.cactorum_RNAseq_design_parsed.txt
-  # Parse the file and remove technical replicate information:
-  cat $OutDir/P.cactorum_RNAseq_design.txt | tr -d '\r' | sed 's/Timepoint/Timepoint\n/g' | sed "s/hours/hours\n/g" | sed 's/_L...//g' | cut -f1-4,6- | uniq | grep -v '\-\-' > $OutDir/P.cactorum_RNAseq_design_parsed.txt
 
-  # Edit header lines of feature coutn files to ensure they have the treament name rather than file name
-  OutDir=alignment/star/P.cactorum/414_v2/DeSeq
-  for File in $(ls alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment/*_featurecounts.txt); do
+OutDir=alignment/star/P.cactorum/10300/DeSeq
+mkdir -p $OutDir
+printf "Sample.name\tTimepoint\tIsolate\n" > $OutDir/P.cac_10300_RNAseq_design.txt
+# for File in $(ls alignment/star/P.cactorum/10300/Sample_*/Sample_*_featurecounts.txt); do
+# Sample=$(echo $File | rev | cut -f2 -d '/' | rev)
+# i=$(echo $Sample | sed 's/Sample_//g')
+for i in $(seq 1 18); do
+if [ $i == '1' ] || [ $i == '2' ] || [ $i == '3' ] || [ $i == '7' ] || [ $i == '8' ] || [ $i == '9' ] || [ $i == '10' ]; then
+Timepoint='24_hpi'
+elif [ $i == '4' ] || [ $i == '5' ] || [ $i == '6' ] || [ $i == '11' ] || [ $i == '12' ] || [ $i == '13' ] || [ $i == '14' ] || [ $i == '15' ]; then
+	Timepoint='72_hpi'
+elif [ $i == '16' ] || [ $i == '17' ] || [ $i == '18' ]; then
+	Timepoint='V8_media'
+fi
+if [ $i == '1' ] || [ $i == '2' ] || [ $i == '3' ] || [ $i == '4' ] || [ $i == '5' ] || [ $i == '6' ]; then
+Infection='mock'
+else
+Infection='Pcac'
+fi
+printf "Sample_$i\t$Timepoint\t$Infection\n"
+done >> $OutDir/P.cac_10300_RNAseq_design.txt
+
+cat $OutDir/P.cac_10300_RNAseq_design.txt | grep -e "Sample.name" -e "Sample_13" -e "Sample_14" -e "Sample_15" -e "Sample_16" -e "Sample_17" -e "Sample_18" > $OutDir/P.cac_10300_RNAseq_design_parsed.txt
+
+  # Edit header lines of feature coutn files to ensure they have the treatment name rather than file name
+  OutDir=alignment/star/P.cactorum/10300/DeSeq
+	mkdir -p $OutDir
+  for File in $(ls alignment/star/P.cactorum/10300/Sample*/*_featurecounts.txt); do
     echo $File;
     cp $File $OutDir/.;
   done
   for File in $(ls $OutDir/*_featurecounts.txt); do
-    Prefix=$(echo $File | rev | cut -f1 -d '/' | rev | sed 's/_featurecounts.txt//g' | sed "s/_totRNA_S.*_L/_L/g")
+    Prefix=$(echo $File | rev | cut -f1 -d '/' | rev | sed 's/_featurecounts.txt//g')
     sed -ie "s/star_aligmentAligned.sortedByCoord.out.bam/$Prefix/g" $File
   done
 ```
 
 DeSeq commands as used in R are documented in:
-RNAseq/P414/DESeq_analysis.md
+RNAseq/10300/DESeq_analysis.md
 
 
 
