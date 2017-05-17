@@ -439,7 +439,7 @@ SubmissionID=$(cat $LocusTags | grep "$BioSample" | cut -f1 -d' ' | head -n1)
 # ncbi_tbl_corrector script options:
 # num=$(($num+1))
 # SubmissionID="FXC0$num"
-LabID="ArmitageEMR"
+LabID="NIAB-EMR"
 # Final submisison file name:
 FinalName="$Organism"_"$Strain"_Armitage_2016
 
@@ -459,7 +459,7 @@ mkdir -p $OutDir/tbl2asn/round1
 tbl2asn -p $OutDir/gag/round1/. -t $OutDir/gag/round1/genome.sbt -r $OutDir/tbl2asn/round1 -M n -X E -Z $OutDir/gag/round1/discrep.txt -j "[organism=$OrganismOfficial] [strain=$StrainOfficial]"
 
 mkdir -p $OutDir/gag/edited
-$ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $SubmissionID --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --rename_genes "vAg" --remove_product_locus_tags "True" --out_tbl $OutDir/gag/edited/genome.tbl
+$ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $SubmissionID --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --rename_genes "g" --remove_product_locus_tags "True" --out_tbl $OutDir/gag/edited/genome.tbl
 printf "StructuredCommentPrefix\t##Genome-Annotation-Data-START##
 Annotation Provider\tHarrison Lab NIAB-EMR
 Annotation Date\tSEP-2016
