@@ -745,6 +745,10 @@ commands:
     -num_threads 16 \
     -num_alignments 10
   done
+
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/swissprot
+	$ProgDir/swissprot_parser.py --blast_tbl gene_pred/swissprot/P.cactorum/10300/swissprot_v2015_10_hits.tbl --blast_db_fasta /home/groups/harrisonlab/uniprot/swissprot_2015_Sept/uniprot_sprot.fasta > gene_pred/swissprot/P.cactorum/10300/swissprot_vSep2015_tophit_parsed.tbl
+
 ```
 
 
@@ -1700,6 +1704,33 @@ DeSeq commands as used in R are documented in:
 RNAseq/10300/DESeq_analysis.md
 
 
+```bash
+	Organism=P.cactorum
+	Strain=10300
+	OutDir=analysis/gene_tables/$Organism/$Strain
+	mkdir -p $OutDir
+	# GeneGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+	GeneGff=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3
+	# GeneFasta=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+	GeneFasta=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.pep.fasta
+	SigP2=gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa
+	PhobiusTxt=analysis/phobius/P.cactorum/10300/10300_phobius_headers.txt
+	RxLR_Motif=analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_Aug_RxLR_EER_regex.fa
+	RxLR_Hmm=analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.fa
+	RxLR_WY=analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.fa
+	CRN_LFLAK=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_LFLAK_hmm.fa
+	CRN_DWL=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_DWL_hmm.fa
+	RawCounts=alignment/star/P.cactorum/10300/DeSeq/V8_raw_counts.txt
+	Fpkm=alignment/star/P.cactorum/10300/DeSeq/V8_fpkm_norm_counts.txt
+	InterPro=gene_pred/interproscan/10300/P.cactorum/P.cactorum_interproscan.tsv
+	Swissprot=gene_pred/swissprot/P.cactorum/10300/swissprot_vSep2015_tophit_parsed.tbl
+	OrthoName=Pcac
+	OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
+	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+	$ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --raw_counts $RawCounts --fpkm $Fpkm --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
+```
+
+
 
 # 7 Consolidating data
 
@@ -2098,6 +2129,7 @@ For P. cactorum
 	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 	$ProgDir/gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL > $OutDir/10300_gene_table.tsv
 ```
+
 
 For P. infestans
 
