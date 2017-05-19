@@ -38,8 +38,8 @@ for line in gene_lines:
         Gene_split_line = split_line
     elif 'transcript' in split_line[2]:
         Col9 = split_line[8]
-        Name = Col9.split(";")[2]
-        ID = Name.replace('Name=', '')
+        Name = Col9.split(";")[-1]
+        ID = Name.split('=')[1]
         Transcript_split_line = split_line
         Gene_split_line[8] = 'ID=' + ID
         Transcript_split_line[8] = 'ID=' + ID + '.t1;Parent=' + ID
