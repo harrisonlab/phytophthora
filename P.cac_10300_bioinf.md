@@ -1546,9 +1546,13 @@ $ProgDir/aug_gff_add_exon.py --inp_gff $GeneGff  \
 	| sed "s/\ttranscript\t.*ID=\(.*\).t.*$/\0;Parent=\1/" \
 	> $OutDir/10300_genes_incl_ORFeffectors.gff3
 # cat $GeneGff > $OutDir/10300_genes_incl_ORFeffectors.gff3
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+$ProgDir/gff_name2id.py --gff $GffOrfRxLR > $OutDir/ORF_RxLR_parsed.gff3
+$ProgDir/gff_name2id.py --gff $GffOrfCRN > $OutDir/ORF_CRN_parsed.gff3
+
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
-$ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
+$ProgDir/add_ORF_features.pl $OutDir/ORF_RxLR_parsed.gff3 $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
+$ProgDir/add_ORF_features.pl $OutDir/ORF_CRN_parsed.gff3 $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
 # Make gene models from gff files.
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked.fa)
@@ -1705,29 +1709,45 @@ RNAseq/10300/DESeq_analysis.md
 
 
 ```bash
-	Organism=P.cactorum
-	Strain=10300
-	OutDir=analysis/gene_tables/$Organism/$Strain
-	mkdir -p $OutDir
-	# GeneGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
-	GeneGff=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3
-	# GeneFasta=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
-	GeneFasta=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.pep.fasta
-	SigP2=gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa
-	PhobiusTxt=analysis/phobius/P.cactorum/10300/10300_phobius_headers.txt
-	RxLR_Motif=analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_Aug_RxLR_EER_regex.fa
-	RxLR_Hmm=analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.fa
-	RxLR_WY=analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.fa
-	CRN_LFLAK=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_LFLAK_hmm.fa
-	CRN_DWL=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_DWL_hmm.fa
-	RawCounts=alignment/star/P.cactorum/10300/DeSeq/V8_raw_counts.txt
-	Fpkm=alignment/star/P.cactorum/10300/DeSeq/V8_fpkm_norm_counts.txt
-	InterPro=gene_pred/interproscan/10300/P.cactorum/P.cactorum_interproscan.tsv
-	Swissprot=gene_pred/swissprot/P.cactorum/10300/swissprot_vSep2015_tophit_parsed.tbl
-	OrthoName=Pcac
-	OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
-	ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
-	$ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --raw_counts $RawCounts --fpkm $Fpkm --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
+Organism=P.cactorum
+Strain=10300
+OutDir=analysis/gene_tables/$Organism/$Strain
+mkdir -p $OutDir
+
+cat gene_pred/braker_sigP/P.cactorum/10300/10300_aug_sp.aa gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp.aa > $OutDir/10300_combined_sp.aa
+
+cat analysis/phobius/P.cactorum/10300/10300_phobius_headers.txt analysis/phobius/P.cactorum/10300/10300_phobius_headers_ORF.txt > $OutDir/10300_phobius_headers_combined.txt
+
+cat analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_Aug_RxLR_EER_regex.fa analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_ORF_RxLR_EER_regex.fa > $OutDir/10300_combined_RxLR_EER_regex.fa
+
+cat analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.fa analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_ORF_RxLR_hmmer.fa > $OutDir/10300_combined_RxLR_hmmer.fa
+
+cat analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.fa analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_ORF_WY_hmmer.fa > $OutDir/10300_combined_WY_hmmer.fa
+
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_LFLAK_unmerged_hmmer.fa > $OutDir/10300_combined_CRN_LFLAK_hmm.fa
+
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_DWL_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_DWL_unmerged_hmmer.fa > $OutDir/10300_combined_CRN_DWL_hmm.fa
+
+
+# GeneGff=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus_extracted.gff
+GeneGff=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3
+# GeneFasta=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+GeneFasta=gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.pep.fasta
+SigP2=$OutDir/10300_combined_sp.aa
+PhobiusTxt=$OutDir/10300_phobius_headers_combined.txt
+RxLR_Motif=$OutDir/10300_combined_RxLR_EER_regex.fa
+RxLR_Hmm=$OutDir/10300_combined_RxLR_hmmer.fa
+RxLR_WY=$OutDir/10300_combined_WY_hmmer.fa
+CRN_LFLAK=$OutDir/10300_combined_CRN_LFLAK_hmm.fa
+CRN_DWL=$OutDir/10300_combined_CRN_DWL_hmm.fa
+RawCounts=alignment/star/P.cactorum/10300/DeSeq/V8_raw_counts.txt
+Fpkm=alignment/star/P.cactorum/10300/DeSeq/V8_fpkm_norm_counts.txt
+InterPro=gene_pred/interproscan/10300/P.cactorum/P.cactorum_interproscan.tsv
+Swissprot=gene_pred/swissprot/P.cactorum/10300/swissprot_vSep2015_tophit_parsed.tbl
+OrthoName=Pcac
+OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+$ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --raw_counts $RawCounts --fpkm $Fpkm --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
 ```
 
 
