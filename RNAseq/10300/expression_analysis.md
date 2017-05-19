@@ -330,6 +330,7 @@ install.packages("ggrepel", Sys.getenv("R_LIBS_USER"), repos = "http://cran.case
 install.packages("gplots)
 #source("http://bioconductor.org/biocLite.R")
 #biocLite("DESeq2")
+install.packages(naturalsort)
 
 
 # Load libraries
@@ -474,16 +475,16 @@ dev.off()
 
 #Plot using rlog transformation, showing sample names:
 
-data <- plotPCA(rld, intgroup="Group", returnData=TRUE)
-percentVar <- round(100 * attr(data, "percentVar"))
+#data <- plotPCA(rld, intgroup="Group", returnData=TRUE)
+#percentVar <- round(100 * attr(data, "percentVar"))
 
-pca_plot<- ggplot(data, aes(PC1, PC2, color=Group)) +
- geom_point(size=3) +
- xlab(paste0("PC1: ",percentVar[1],"% variance")) +
- ylab(paste0("PC2: ",percentVar[2],"% variance")) + geom_text_repel(aes(label=colnames(rld)))
- coord_fixed()
+#pca_plot<- ggplot(data, aes(PC1, PC2, color=Group)) +
+# geom_point(size=3) +
+# xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+# ylab(paste0("PC2: ",percentVar[2],"% variance")) + geom_text_repel(aes(label=colnames(rld)))
+# coord_fixed()
 
-ggsave("alignment/star/P.cactorum/10300/DeSeq/V8_PCA_sample_names.pdf", pca_plot, dpi=300, height=10, width=12)
+#ggsave("alignment/star/P.cactorum/10300/DeSeq/V8_PCA_sample_names.pdf", pca_plot, dpi=300, height=10, width=12)
 
 
 #===============================================================================
