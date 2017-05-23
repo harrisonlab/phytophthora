@@ -779,8 +779,8 @@ cat $FinalDir/final_genes_Braker.cdna.fasta $FinalDir/final_genes_CodingQuary.cd
 cat $FinalDir/final_genes_Braker.gene.fasta $FinalDir/final_genes_CodingQuary.gene.fasta > $FinalDir/final_genes_combined.gene.fasta
 cat $FinalDir/final_genes_Braker.upstream3000.fasta $FinalDir/final_genes_CodingQuary.upstream3000.fasta > $FinalDir/final_genes_combined.upstream3000.fasta
 
-GffBraker=$FinalDir/final_genes_CodingQuary.gff3
-GffQuary=$FinalDir/final_genes_Braker.gff3
+GffBraker=$FinalDir/final_genes_Braker.gff3
+GffQuary=$FinalDir/final_genes_CodingQuary.gff3
 GffAppended=$FinalDir/final_genes_appended.gff3
 cat $GffBraker $GffQuary > $GffAppended
 done
@@ -2140,10 +2140,10 @@ The number of sequences extracted is
 ```
 
 
-# Quantifying expression of predicted genes
 
 
-## Making a combined file of Braker, Coding quary genes as well as additional ORF effector candidates
+
+# Making a combined file of Braker, Coding quary genes as well as additional ORF effector candidates
 
 
 A gff file containing the combined Braker and CodingQuary genes as well as the
@@ -2166,6 +2166,94 @@ Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_co
 $ProgDir/gff2fasta.pl $Assembly $OutDir/414_v2_genes_incl_ORFeffectors.gff3 $OutDir/414_v2_genes_incl_ORFeffectors
 ```
 
+
+In preperation for submission to ncbi, gene models were renamed and duplicate gene features were identified and removed - CUFF_969_2_184 was identified as a duplicated gene
+
+
+```bash
+GffAppended=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3)
+OutDir=gene_pred/final_ncbi/P.cactorum/414_v2
+mkdir -p $OutDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+$ProgDir/remove_dup_features.py --inp_gff $GffAppended
+cat $GffAppended | grep -v -w 'CUFF_969_2_184' > $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3
+
+GffRenamed=$OutDir/414_v2_genes_incl_ORFeffectors_renamed.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+$ProgDir/gff_rename_genes.py --inp_gff $GffAppended > $GffRenamed
+
+Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa )
+$ProgDir/gff2fasta.pl $Assembly $GffRenamed $OutDir/414_v2_genes_incl_ORFeffectors_renamed
+
+# The proteins fasta file contains * instead of Xs for stop codons, these should
+# be changed
+sed -i 's/\*/X/g' $OutDir/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta
+```
+
+```
+Duplicate gene found:	contig_10	987580	987943
+contig_10	CodingQuarry_v2.0	gene	987580	987943	.	+	.	ID=CUFF_969_1_183
+contig_10	CodingQuarry_v2.0	gene	987580	987943	.	+	.	ID=CUFF_969_2_184
+```
+
+
+# Re-running Functional annotation
+
+## A) Interproscan
+
+Interproscan was used to give gene models functional annotations.
+Annotation was run using the commands below:
+
+Note: This is a long-running script. As such, these commands were run using
+'screen' to allow jobs to be submitted and monitored in the background.
+This allows the session to be disconnected and reconnected over time.
+
+Screen ouput detailing the progress of submission of interporscan jobs
+was redirected to a temporary output file named interproscan_submission.log .
+
+```bash
+	screen -a
+	cd /home/groups/harrisonlab/project_files/idris
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	for Genes in $(ls gene_pred/final_ncbi/*/*/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+	echo $Genes
+	$ProgDir/sub_interproscan.sh $Genes
+	done 2>&1 | tee -a interproscan_submisison.log
+```
+
+Following interproscan annotation split files were combined using the following
+commands:
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+  for Proteome in $(ls gene_pred/final_ncbi/*/*/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+echo $Strain
+InterProRaw=gene_pred/interproscan/$Organism/$Strain/raw
+$ProgDir/append_interpro.sh $Proteome $InterProRaw
+done
+```
+
+
+## B) SwissProt
+
+```bash
+  for Proteome in $(ls gene_pred/final_ncbi/*/*/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    OutDir=gene_pred/swissprot/$Organism/$Strain
+    SwissDbDir=../../uniprot/swissprot
+    SwissDbName=uniprot_sprot
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/swissprot
+    qsub $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName
+  done
+```
+
+
+
+# Quantifying expression of predicted genes
 
 ## Quantification of gene models
 
