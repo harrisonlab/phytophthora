@@ -2212,10 +2212,12 @@ Screen ouput detailing the progress of submission of interporscan jobs
 was redirected to a temporary output file named interproscan_submission.log .
 
 ```bash
+  mkdir -p gene_pred/final_genes/P.cactorum/414_v2/final_ncbi
+  gene_pred/final_ncbi/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors_* gene_pred/final_genes/P.cactorum/414_v2/final_ncbi/.
 	screen -a
 	cd /home/groups/harrisonlab/project_files/idris
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
-	for Genes in $(ls gene_pred/final_ncbi/*/*/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+	for Genes in $(ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
 	echo $Genes
 	$ProgDir/sub_interproscan.sh $Genes
 	done 2>&1 | tee -a interproscan_submisison.log
@@ -2226,7 +2228,7 @@ commands:
 
 ```bash
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
-  for Proteome in $(ls gene_pred/final_ncbi/*/*/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+  for Proteome in $(ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
 Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
@@ -2240,7 +2242,7 @@ done
 ## B) SwissProt
 
 ```bash
-  for Proteome in $(ls gene_pred/final_ncbi/*/*/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+  for Proteome in $(ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     OutDir=gene_pred/swissprot/$Organism/$Strain
@@ -2267,7 +2269,7 @@ Quantification of these genes was performed using featureCounts program as part
 of the Subreads package.
 
 ```bash
-  Gff=gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3
+  Gff=$(ls ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3 | grep '414_v2')
   # for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
   for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/pcac_*/star_aligmentAligned.sortedByCoord.out.bam); do
     OutDir=$(dirname $BamFile)
