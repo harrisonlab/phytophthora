@@ -97,6 +97,79 @@ and annotation.
   mkdir -p raw_dna/paired/$Species/$Strain/R
   cp $RawDatDir/12-420_S1_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/"$Strain"_"$Date"_F.fastq.gz
   cp $RawDatDir/12-420_S1_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/"$Strain"_"$Date"_R.fastq.gz
+
+  # For missing data run for isolates 4032, 4040 and PC13/15
+  #  RawDatDir=/home/miseq_data/2016/RAW/160311_M04465_0006_000000000-AKT5J/Data/Intensities/BaseCalls
+  # Date=160311
+
+
+
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160404_M004465_0008-ALVUT
+  mkdir -p raw_dna/paired/P.cactorum/2003_3/F
+  mkdir -p raw_dna/paired/P.cactorum/2003_3/R
+  mkdir -p raw_dna/paired/P.idaei/SCRP370/F
+  mkdir -p raw_dna/paired/P.idaei/SCRP370/R
+  cp $RawDat/Pc20033_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_3/F/.
+  cp $RawDat/Pc20033_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_3/R/.
+  cp $RawDat/SCRP370_S3_L001_R1_001.fastq.gz  raw_dna/paired/P.idaei/SCRP370/F/.
+  cp $RawDat/SCRP370_S3_L001_R2_001.fastq.gz  raw_dna/paired/P.idaei/SCRP370/R/.
+
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160412_M04465_0010-AMLCU
+  mkdir -p raw_dna/paired/P.rubi/SCRP249/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP249/R
+  mkdir -p raw_dna/paired/P.rubi/SCRP324/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP324/R
+  mkdir -p raw_dna/paired/P.rubi/SCRP333/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP333/R
+  cp $RawDat/SCRP249_S1_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP249/F/.
+  cp $RawDat/SCRP249_S1_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP249/R/.
+  cp $RawDat/SCRP324_S2_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP324/F/.
+  cp $RawDat/SCRP324_S2_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP324/R/.
+  cp $RawDat/SCRP333_S3_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/F/.
+  cp $RawDat/SCRP333_S3_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/R/.
+
+  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160415_M004465_00011-AMLCL
+  mkdir -p raw_dna/paired/P.cactorum/2003_4/F
+  mkdir -p raw_dna/paired/P.cactorum/2003_4/R
+  mkdir -p raw_dna/paired/P.cactorum/PC13_15/F
+  mkdir -p raw_dna/paired/P.cactorum/PC13_15/R
+  mkdir -p raw_dna/paired/P.rubi/SCRP376/F
+  mkdir -p raw_dna/paired/P.rubi/SCRP376/R
+  cp $RawDat/20033_S4_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/F/.
+  cp $RawDat/20033_S4_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/R/.
+  cp $RawDat/PC1315_S5_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
+  cp $RawDat/PC1315_S5_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
+  cp $RawDat/SCRP376_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/SCRP376/F/.
+  cp $RawDat/SCRP376_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/SCRP376/R/.
+
+  RawDat=/home/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160223_M04465_0003_000000000-AJ4TR/Data/Intensities/BaseCalls
+  mkdir -p raw_dna/paired/P.cactorum/415/F
+  mkdir -p raw_dna/paired/P.cactorum/415/R
+  mkdir -p raw_dna/paired/P.cactorum/416/F
+  mkdir -p raw_dna/paired/P.cactorum/416/R
+  mkdir -p raw_dna/paired/P.cactorum/R36_14/F
+  mkdir -p raw_dna/paired/P.cactorum/R36_14/R
+  cp $RawDat/P415_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/415/F/.
+  cp $RawDat/P415_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/415/R/.
+  cp $RawDat/P416_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/416/F/.
+  cp $RawDat/P416_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/416/R/.
+  cp $RawDat/R3614_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/R36_14/F/.
+  cp $RawDat/R3614_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/R36_14/R/.
+
+
+  RawDat=/home/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160311_M04465_0006_000000000-AKT5J/Data/Intensities/BaseCalls
+  mkdir -p raw_dna/paired/P.cactorum/4032/F
+  mkdir -p raw_dna/paired/P.cactorum/4032/R
+  mkdir -p raw_dna/paired/P.cactorum/4040/F
+  mkdir -p raw_dna/paired/P.cactorum/4040/R
+  mkdir -p raw_dna/paired/P.cactorum/PC13_15/F
+  mkdir -p raw_dna/paired/P.cactorum/PC13_15/R
+  cp $RawDat/Pcact-4032_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/4032/F/.
+  cp $RawDat/Pcact-4032_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/4032/R/.
+  cp $RawDat/Pcact-4040_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/4040/F/.
+  cp $RawDat/Pcact-4040_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/4040/R/.
+  cp $RawDat/Pcact-PC1315_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
+  cp $RawDat/Pcact-PC1315_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
 ```
 
 #Data qc
@@ -107,8 +180,8 @@ Data quality was visualised using fastqc:
 
 
 ```bash
-  for RawData in $(ls raw_dna/paired/P.*/*/*/*.fastq.gz | grep '170210'); do
-  # for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300'); do
+  # for RawData in $(ls raw_dna/paired/P.*/*/*/*.fastq.gz | grep '170210'); do
+  for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300'); do
     echo $RawData;
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
@@ -119,21 +192,38 @@ Data quality was visualised using fastqc:
 Trimming was performed on data to trim adapters from sequences and remove poor quality data.
 This was done with fastq-mcf
 
+Firstly, those strains with more than one run were identified:
 
 ```bash
-  for StrainPath in $(ls -d raw_dna/paired/*/* | grep -v -w -e '404' -e '414'); do
-  # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
-    echo $StrainPath
-    Read_F=$(ls $StrainPath/F/*.fastq.gz)
-    Read_R=$(ls $StrainPath/R/*.fastq.gz)
-    IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-    qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
-  done
+for Strain in $(ls -d raw_dna/paired/P.cactorum/*); do
+NumReads=$(ls $Strain/F/*.gz | wc -l);
+if [ $NumReads -gt 1 ]; then
+echo "$Strain";
+echo "$NumReads";
+fi;
+done
 ```
 
-Trimming was then performed for strains with multiple runs of data
+```bash
+for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -v -w -e '404' -e '414' -e '415' -e '416' -e 'PC13_15'); do
+# for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
+Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
+done		
+echo $StrainPath
+Read_F=$(ls $StrainPath/F/*.fastq.gz)
+Read_R=$(ls $StrainPath/R/*.fastq.gz)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+done
+```
 
+Trimming was then performed for strains with two runs of data
+<!--
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 	IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
@@ -166,6 +256,57 @@ Trimming was then performed for strains with multiple runs of data
   ReadsF=$(ls $StrainPath/F/404_170210_F.fastq.gz)
   ReadsR=$(ls $StrainPath/R/404_170210_R.fastq.gz)
   qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
+``` -->
+
+```bash
+for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15'); do
+Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
+done		
+echo $StrainPath
+Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n1 | tail -n1)
+Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n1 | tail -n1)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n2 | tail -n1)
+Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n2 | tail -n1)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+done
+```
+
+for three sets of data:
+
+```bash
+for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -w -e '404' -e '414'); do
+Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
+done		
+echo $StrainPath
+Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n1 | tail -n1)
+Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n1 | tail -n1)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n2 | tail -n1)
+Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n2 | tail -n1)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n3 | tail -n1)
+Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n3 | tail -n1)
+IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
+done
 ```
 
 Data quality was visualised once again following trimming:
