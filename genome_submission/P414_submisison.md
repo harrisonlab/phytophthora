@@ -161,13 +161,13 @@ InterProTab=$(ls gene_pred/interproscan/P.cactorum/414_v2/414_v2_interproscan.ts
 SwissProtBlast=$(ls gene_pred/swissprot/P.cactorum/414_v2/swissprot_vJul2016_tophit_parsed.tbl)
 SwissProtFasta=$(ls /home/groups/harrisonlab/uniprot/swissprot/uniprot_sprot.fasta)
 # GffFile=$(ls gene_pred/final_genes/P.cactorum/414_v2/final/final_genes_appended.gff3)
-GffFile=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3)
+GffFile=$(ls gene_pred/final_genes/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3)
 # tbl2asn options:
 Organism="Phytophthora cactorum"
 Strain="P414"
 # ncbi_tbl_corrector script options:
 SubmissionID="Pcac1"
-LabID="ArmitageEMR"
+LabID="NIAB-EMR"
 # GeneSource='ab initio prediction:Braker:1.9, CodingQuary:2.0'
 # IDSource='similar to AA sequence:SwissProt:2016_07'
 # IDSource='similar to AA sequence:UniProtKB/Swiss-Prot'
@@ -270,7 +270,7 @@ them as incomplete ('unknown_UTR').
 
 ```bash
   mkdir -p $OutDir/gag/edited
-  $ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $SubmissionID --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --rename_genes "vAg" --remove_product_locus_tags "True" --out_tbl $OutDir/gag/edited/genome.tbl
+  $ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $SubmissionID --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --remove_product_locus_tags "True" --out_tbl $OutDir/gag/edited/genome.tbl
 ```
 
 
@@ -480,8 +480,9 @@ cp $OutDir/tbl2asn/final/genome.sqn $OutDir/tbl2asn/final/$FinalName.sqn
 done
 ```
 
+<!--
 ```bash
-for File in $(ls genome_submission/F.*/*_ncbi/tbl2asn/final/errorsummary.val | grep -v 'N139'); do
+for File in $(ls genome_submission/*/*_ncbi/tbl2asn/final/errorsummary.val | grep -v 'N139'); do
 Organism=$(echo $File | rev | cut -f5 -d '/' | rev);
 Strain=$(echo $File | rev | cut -f4 -d '/' | rev);
 echo "$Organism - $Strain";
@@ -491,3 +492,4 @@ cat genome_submission/$Organism/$Strain/tbl2asn/round1/genome.val | grep 'Duplic
 echo "";
 done > genome_submission/FoC_Fo_Fp_isolate_errors.txt
 ```
+-->
