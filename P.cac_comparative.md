@@ -205,7 +205,7 @@ done
 ```
 
 ```bash
-for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -v -w -e '404' -e '414' -e '415' -e '416' -e 'PC13_15'); do
+for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15'); do
 # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
 Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
 while [ $Jobs -gt 1 ]; do
@@ -342,13 +342,16 @@ Find predicted coverage for these isolates:
   15_7	59.71
   2003_3	34.72
   2003_4	34.57
-  P404	69.52
-  P414	76.49
-  P415	42.77
-  P416	52.26
+  4032	53.14
+  404	69.52
+  4040	67.21
+  414	76.49
+  415	86.64
+  416	106.94
   62471	72.21
   P295	39.29
-  PC13_15	45.69
+  PC13_15	77.83
+  R36_14	56.09
 ```
 
 <!--
@@ -400,57 +403,65 @@ Assembly was performed with:
 
 ## Spades Assembly
 
+Assembly was submitted for genomes with a single run of data
+
 ```bash
-for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -e '404' -e '414' -e '10300' -e '411' | grep 'PC13_15'); do
-# for StrainPath in $(ls -d qc_dna/paired/P.idaei/*); do
+for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15'); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
 Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
-F_Read=$(ls $StrainPath/F/*.fq.gz)
-R_Read=$(ls $StrainPath/R/*.fq.gz)
+F_Read=$(ls $StrainPath/F/*_trim.fq.gz)
+R_Read=$(ls $StrainPath/R/*_trim.fq.gz)
 OutDir=assembly/spades/$Organism/$Strain
-Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+Jobs=$(qstat | grep  -e 'subSpades' -e 'submit_SPA'  | grep 'qw' | wc -l)
 while [ $Jobs -gt 1 ]; do
 sleep 5m
 printf "."
-Jobs=$(qstat | grep 'submit_SPA' | grep 'qw' | wc -l)
+Jobs=$(qstat | grep  -e 'subSpades' -e 'submit_SPA'  | grep 'qw' | wc -l)
 done		
 printf "\n"
 echo $F_Read
 echo $R_Read
 qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct
-# qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct 10
 done
 ```
 
-<!--
-```bash
-  for StrainPath in $(ls -d qc_dna/paired/P.*/414); do  
-    echo $StrainPath
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
-    Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
-    Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
-    echo $Strain
-    echo $Organism
-    TrimF1_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n1 | tail -n1);
-    TrimR1_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n1 | tail -n1);
-    TrimF2_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n2 | tail -n1);
-    TrimR2_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n2 | tail -n1);
-    TrimF3_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n3 | tail -n1);
-    TrimR3_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n3 | tail -n1);
-    echo $TrimF1_Read
-    echo $TrimR1_Read
-    echo $TrimF2_Read
-    echo $TrimR2_Read
-    echo $TrimF3_Read
-    echo $TrimR3_Read
-    OutDir=assembly/spades/$Organism/$Strain
-    qsub $ProgDir/subSpades_3lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
-  done
-``` -->
+For isolates with two runs of data:
 
 ```bash
-  for StrainPath in $(ls -d qc_dna/paired/P.*/404); do  
+for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15'); do
+    echo $StrainPath
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+    Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+    Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+    echo $Strain
+    echo $Organism
+    TrimF1_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n1 | tail -n1);
+    TrimR1_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n1 | tail -n1);
+    TrimF2_Read=$(ls $StrainPath/F/*_trim.fq.gz | head -n2 | tail -n1);
+    TrimR2_Read=$(ls $StrainPath/R/*_trim.fq.gz | head -n2 | tail -n1);
+    echo $TrimF1_Read
+    echo $TrimR1_Read
+    echo $TrimF2_Read
+    echo $TrimR2_Read
+    OutDir=assembly/spades/$Organism/$Strain
+    Jobs=$(qstat | grep -e 'subSpades' -e 'submit_SPA' | grep 'qw' | wc -l)
+    while [ $Jobs -gt 1 ]; do
+    sleep 5m
+    printf "."
+    Jobs=$(qstat | grep -e 'subSpades' -e 'submit_SPA' | grep 'qw' | wc -l)
+    done		
+    printf "\n"
+    qsub $ProgDir/subSpades_2lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $OutDir correct
+  done
+```
+
+
+
+for isolates with three runs of data:
+
+```bash
+for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '404' -e '414'); do
     echo $StrainPath
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
@@ -470,7 +481,14 @@ done
     echo $TrimF3_Read
     echo $TrimR3_Read
     OutDir=assembly/spades/$Organism/$Strain
-    qsub $ProgDir/subSpades_3lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
+    Jobs=$(qstat | grep -e 'subSpades' -e 'submit_SPA' | grep 'qw' | wc -l)
+    while [ $Jobs -gt 1 ]; do
+    sleep 5m
+    printf "."
+    Jobs=$(qstat | grep -e 'subSpades' -e 'submit_SPA' | grep 'qw' | wc -l)
+    done		
+    printf "\n"
+    qsub $ProgDir/subSpades_3lib_HiMem.sh $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir correct
   done
 ```
 
