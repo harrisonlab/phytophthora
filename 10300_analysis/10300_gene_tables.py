@@ -423,12 +423,9 @@ for line in transcript_lines:
     for treatment in set(count_treatment_list):
         dict_key = "_".join([transcript_id, treatment])
         expression_values = raw_read_count_dict[dict_key]
-        # print expression_values
         mean_count = np.mean(expression_values)
-        mean_count = np.round_(mean_count, decimals=0)
+        mean_count = np.round_(mean_count, decimals=1)
         mean_count_cols.append(mean_count.astype(str))
-        # print "\t".join(["bananas", transcript_id, dict_key])
-    # print mean_count_cols
     mean_fpkm_cols = []
     for treatment in set(fpkm_treatment_list):
         dict_key = "_".join([transcript_id, treatment])
@@ -437,7 +434,7 @@ for line in transcript_lines:
         # print expression_values
         mean_fpkm = np.mean(expression_values)
         # print mean_fpkm
-        mean_fpkm = np.round_(mean_fpkm, decimals=0)
+        mean_fpkm = np.round_(mean_fpkm, decimals=1)
         mean_fpkm_cols.append(mean_fpkm.astype(str))
         # print mean_fpkm_cols
 
