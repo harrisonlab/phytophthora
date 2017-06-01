@@ -2180,7 +2180,7 @@ cat $GffAppended | grep -v -w 'CUFF_969_2_184' > $OutDir/414_v2_genes_incl_ORFef
 
 GffRenamed=$OutDir/414_v2_genes_incl_ORFeffectors_renamed.gff3
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
-$ProgDir/gff_rename_genes.py --inp_gff $GffAppended > $GffRenamed
+$ProgDir/gff_rename_genes.py --inp_gff $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3 > $GffRenamed
 
 Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa )
 $ProgDir/gff2fasta.pl $Assembly $GffRenamed $OutDir/414_v2_genes_incl_ORFeffectors_renamed
@@ -2252,7 +2252,6 @@ done
     qsub $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName
   done
 ```
-
 
 
 # Quantifying expression of predicted genes
