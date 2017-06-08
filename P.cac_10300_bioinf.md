@@ -1724,7 +1724,15 @@ cat analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_Aug_RxLR_hmmer.fa 
 
 cat analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_Aug_WY_hmmer.fa analysis/RxLR_effectors/hmmer_WY/P.cactorum/10300/10300_ORF_WY_hmmer.fa > $OutDir/10300_combined_WY_hmmer.fa
 
-cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_LFLAK_unmerged_hmmer.fa > $OutDir/10300_combined_CRN_LFLAK_hmm.fa
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed \
+	| grep -w 'transcript' | cut -f5 -d '=' | cut -f1 -d ';' \
+	> analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.txt
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_LFLAK_unmerged_hmmer.fa \
+	| grep -A1 -f analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.txt \
+	| grep -v '\-\-' \
+	> analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.fa
+
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.fa > $OutDir/10300_combined_CRN_LFLAK_hmm.fa
 
 cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_DWL_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_DWL_unmerged_hmmer.fa > $OutDir/10300_combined_CRN_DWL_hmm.fa
 
@@ -1748,7 +1756,38 @@ OrthoName=Pcac
 OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj/Pcac_Pinf_Ppar_Pcap_Psoj_orthogroups.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 $ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_file $OrthoFile --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --raw_counts $RawCounts --fpkm $Fpkm --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
+
+
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+$ProgDir/10300_sort_table.py --gene_table $OutDir/10300_gene_table_final.tsv > $OutDir/10300_gene_table_final_ranked.tsv
+echo "the number of expressed Crinklers are:"
+cat $OutDir/10300_gene_table_final_ranked.tsv | grep -w -f analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN_headers.txt | cut -f20 | grep -v "^0" | wc -l
+cat $OutDir/10300_gene_table_final_ranked.tsv | grep -w -f analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN_headers.txt | head -n 27 > $OutDir/10300_expressed_CRN.tsv
+cat $OutDir/10300_gene_table_final_ranked.tsv | grep -w -f analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN_headers.txt > $OutDir/10300_expressed_CRN_all.tsv
 ```
+
+
+# Crinkler orthology groups
+
+```bash
+cat /home/groups/harrisonlab/project_files/idris/analysis/CRN/P.cactorum/10300/crinkler_orthogroup_domains.txt | sed "s/^/orthogroup/g" | sed 's/orthogroupOrthogroup/Orthogroup/g' > analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/orthogroups_fasta/crinkler_orthogroup_domains.txt
+
+for File in $(ls analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/orthogroups_fasta/*.fa | grep 'orthogroup'); do
+Orthogroup=$(echo $File | rev | cut -f1 -d '/' | rev | cut -f1 -d '.')
+Domain=$(cat analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/orthogroups_fasta/crinkler_orthogroup_domains.txt | grep -w "$Orthogroup"| cut -f2)
+for Line in $(cat $File | grep '>' | sed 's/>//g'); do
+	printf "$Domain\t$Orthogroup\t$Line\n"
+done
+# echo $Orthogroup;
+done > analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/orthogroups_fasta/crinkler_orthogroup_domains_genes.txt
+```
+
+```bash
+/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis/10300_CRN_rank.py --exp_rank analysis/gene_tables/P.cactorum/10300/10300_expressed_CRN_all.tsv --domain analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/orthogroups_fasta/crinkler_orthogroup_domains_genes.txt > analysis/gene_tables/P.cactorum/10300/10300_expressed_CRN_all_domain.tsv
+
+```
+
+
 
 
 
