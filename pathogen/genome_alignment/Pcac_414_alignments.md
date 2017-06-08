@@ -4,8 +4,8 @@
 Alignment of reads from a single run:
 
 ```bash
-  Reference=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w '414')
-  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v '10300' | grep -v '404' | grep -v '414' | grep -v '411'); do
+  Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
+  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v '414' | grep -v '10300' | grep -v -w -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' | grep -e 'P295' -e '62471' -e '12420' -e '15_13'); do
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -20,10 +20,10 @@ Alignment of reads from a single run:
 ```
 
 Alignment of reads from multiple sequencing runs:
-
+<!--
 ```bash
   Reference=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w '414')
-  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -w -e '404' -e 414); do
+  for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v '414' | grep -v '10300' | grep -w -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' | grep -e 'P295' -e '62471' -e '12420' -e '15_13'); do
     echo $StrainPath
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -67,7 +67,7 @@ Alignment of reads from multiple sequencing runs:
     OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/1Kb_vs_414
     qsub $ProgDir/bowtie/sub_bowtie_2lib.sh $Reference $F1_Read $R1_Read $F2_Read $R2_Read $OutDir
   done
-```
+``` -->
 
 The multiple alignments of 10300 reads were aligned using the following commands:
 
