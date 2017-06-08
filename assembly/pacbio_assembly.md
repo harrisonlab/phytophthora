@@ -1412,6 +1412,8 @@ HmmFasta="$Strain"_WY_hmmer.fa
 $ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Secretome > $OutDir/$HmmFasta
 Headers="$Strain"_WY_hmmer_headers.txt
 cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
+echo "Total genes with WY domains"
+cat $OutDir/$Headers | sort | uniq | wc -l
 done
 ```
 
@@ -1740,7 +1742,7 @@ OutDir=analysis/RxLR_effectors/RxLR_EER_regex_finder/"$Organism"/"$Strain";
 mkdir -p $OutDir;
 printf "\nstrain: $Strain\tspecies: $Organism\n";
 printf "the number of SigP gene is:\t";
-cat $Secretome | grep '>' | wc -l;
+cat $Secretome | grep '>' | cut -f1 | sort | uniq | wc -l
 printf "the number of SigP-RxLR genes are:\t";
 $ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.fa;
 cat $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt
@@ -1777,6 +1779,11 @@ the number of SigP gene is:	65593
 the number of SigP-RxLR genes are:	1782
 the number of SigP-RxLR-EER genes are:	219
 Merged RxLR-EER regex proteins:	196
+```
+
+```bash
+echo "Number of secreted ORFs"
+cat gene_pred/ORF_signalp-4.1/P.cactorum/414_v2/414_v2_aug_sp.aa gene_pred/ORF_sigP/P.cactorum/414_v2/414_v2_aug_sp.aa | grep '>' | cut -f1 | sort | uniq | wc -l
 ```
 
 
@@ -2172,7 +2179,7 @@ In preperation for submission to ncbi, gene models were renamed and duplicate ge
 
 ```bash
 GffAppended=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3)
-OutDir=gene_pred/final_ncbi/P.cactorum/414_v2
+OutDir=gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi
 mkdir -p $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 $ProgDir/remove_dup_features.py --inp_gff $GffAppended
@@ -2212,12 +2219,12 @@ Screen ouput detailing the progress of submission of interporscan jobs
 was redirected to a temporary output file named interproscan_submission.log .
 
 ```bash
-  mkdir -p gene_pred/final_genes/P.cactorum/414_v2/final_ncbi
-  gene_pred/final_ncbi/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors_* gene_pred/final_genes/P.cactorum/414_v2/final_ncbi/.
+  # mkdir -p gene_pred/final_genes/P.cactorum/414_v2/final_ncbi
+  # gene_pred/final_ncbi/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors_* gene_pred/final_genes/P.cactorum/414_v2/final_ncbi/.
 	screen -a
 	cd /home/groups/harrisonlab/project_files/idris
 	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
-	for Genes in $(ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+	for Genes in $(ls gene_pred/final_ncbi/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
 	echo $Genes
 	$ProgDir/sub_interproscan.sh $Genes
 	done 2>&1 | tee -a interproscan_submisison.log
@@ -2228,7 +2235,7 @@ commands:
 
 ```bash
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
-  for Proteome in $(ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+for Proteome in $(ls gene_pred/final_ncbi/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
 Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
@@ -2242,7 +2249,7 @@ done
 ## B) SwissProt
 
 ```bash
-  for Proteome in $(ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
+  for Proteome in $(ls gene_pred/final_ncbi/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414_v2'); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     OutDir=gene_pred/swissprot/$Organism/$Strain
