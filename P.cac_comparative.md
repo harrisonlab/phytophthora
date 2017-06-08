@@ -133,14 +133,14 @@ and annotation.
   mkdir -p raw_dna/paired/P.cactorum/2003_4/R
   mkdir -p raw_dna/paired/P.cactorum/PC13_15/F
   mkdir -p raw_dna/paired/P.cactorum/PC13_15/R
-  mkdir -p raw_dna/paired/P.rubi/SCRP376/F
-  mkdir -p raw_dna/paired/P.rubi/SCRP376/R
+  mkdir -p raw_dna/paired/P.idaei/SCRP376/F
+  mkdir -p raw_dna/paired/P.idaei/SCRP376/R
   cp $RawDat/20033_S4_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/F/.
   cp $RawDat/20033_S4_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/R/.
   cp $RawDat/PC1315_S5_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
   cp $RawDat/PC1315_S5_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
-  cp $RawDat/SCRP376_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/SCRP376/F/.
-  cp $RawDat/SCRP376_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/SCRP376/R/.
+  cp $RawDat/SCRP376_S1_L001_R1_001.fastq.gz raw_dna/paired/P.idaei/SCRP376/F/.
+  cp $RawDat/SCRP376_S1_L001_R2_001.fastq.gz raw_dna/paired/P.idaei/SCRP376/R/.
 
   RawDat=/home/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160223_M04465_0003_000000000-AJ4TR/Data/Intensities/BaseCalls
   mkdir -p raw_dna/paired/P.cactorum/415/F
@@ -152,7 +152,7 @@ and annotation.
   cp $RawDat/P415_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/415/F/.
   cp $RawDat/P415_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/415/R/.
   cp $RawDat/P416_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/416/F/.
-  cp $RawDat/P416_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/416/R/.
+  cp $RawDat/P416_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/416/R/.
   cp $RawDat/R3614_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/R36_14/F/.
   cp $RawDat/R3614_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/R36_14/R/.
 
@@ -170,6 +170,7 @@ and annotation.
   cp $RawDat/Pcact-4040_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/4040/R/.
   cp $RawDat/Pcact-PC1315_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
   cp $RawDat/Pcact-PC1315_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
+
 ```
 
 #Data qc
@@ -195,7 +196,7 @@ This was done with fastq-mcf
 Firstly, those strains with more than one run were identified:
 
 ```bash
-for Strain in $(ls -d raw_dna/paired/P.cactorum/*); do
+for Strain in $(ls -d raw_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' ); do
 NumReads=$(ls $Strain/F/*.gz | wc -l);
 if [ $NumReads -gt 1 ]; then
 echo "$Strain";
@@ -205,7 +206,7 @@ done
 ```
 
 ```bash
-for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15'); do
+for StrainPath in $(ls -d raw_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P.idaei'); do
 # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
 Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
 while [ $Jobs -gt 1 ]; do
@@ -223,40 +224,6 @@ done
 ```
 
 Trimming was then performed for strains with two runs of data
-<!--
-```bash
-	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-	IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-	echo "414"
-	StrainPath=raw_dna/paired/P.cactorum/414
-	ReadsF=$(ls $StrainPath/F/414_run1_F.fastq.gz)
-	ReadsR=$(ls $StrainPath/R/414_run1_R.fastq.gz)
-	qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
-	StrainPath=raw_dna/paired/P.cactorum/414
-	ReadsF=$(ls $StrainPath/F/414_run2_F.fastq.gz)
-	ReadsR=$(ls $StrainPath/R/414_run2_R.fastq.gz)
-	qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
-	StrainPath=raw_dna/paired/P.cactorum/414
-  ReadsF=$(ls $StrainPath/F/414_170210_F.fastq.gz)
-  ReadsR=$(ls $StrainPath/R/414_170210_R.fastq.gz)
-  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
-
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
-  IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-  echo "404"
-  StrainPath=raw_dna/paired/P.cactorum/404
-  ReadsF=$(ls $StrainPath/F/130624_cactp404_S3_L001_R1_001.fastq.gz)
-  ReadsR=$(ls $StrainPath/R/130624_cactp404_S3_L001_R2_001.fastq.gz)
-  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
-  StrainPath=raw_dna/paired/P.cactorum/404
-  ReadsF=$(ls $StrainPath/F/cactp404_S3_L001_R1_001.fastq.gz)
-  ReadsR=$(ls $StrainPath/R/cactp404_S3_L001_R2_001.fastq.gz)
-  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
-  StrainPath=raw_dna/paired/P.cactorum/404
-  ReadsF=$(ls $StrainPath/F/404_170210_F.fastq.gz)
-  ReadsR=$(ls $StrainPath/R/404_170210_R.fastq.gz)
-  qsub $ProgDir/rna_qc_fastq-mcf.sh $ReadsF $ReadsR $IlluminaAdapters DNA
-``` -->
 
 ```bash
 for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15'); do
@@ -406,7 +373,7 @@ Assembly was performed with:
 Assembly was submitted for genomes with a single run of data
 
 ```bash
-for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15'); do
+for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P.idaei'); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
 Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -498,7 +465,7 @@ Contigs were renamed in accordance with ncbi recomendations.
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
   touch tmp.csv
-  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -v 'P.fragariae' | grep -e 'PC13_15' -e '404'); do
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep 'P.cactorum'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
     OutDir=assembly/spades/$Organism/$Strain/filtered_contigs
@@ -509,7 +476,7 @@ Contigs were renamed in accordance with ncbi recomendations.
 
 
 ```bash
-  for Assembly in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum' | grep -e 'PC13_15' -e '404'); do
+  for Assembly in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum'); do
     Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
@@ -519,7 +486,13 @@ Contigs were renamed in accordance with ncbi recomendations.
   done
 ```
 
-
+Assembly stats were summarised using:
+```bash
+  for File in $(ls assembly/spades/P.cactorum/*/filtered_contigs/report.tsv); do
+    echo "$File" | rev | cut -f3 -d '/' | rev ;
+    cat $File | cut -f2;
+  done
+```
 
 # Repeatmasking
 
@@ -611,9 +584,10 @@ Gene prediction followed three steps:
 # Pre-gene prediction
 
 Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
-
+<!--
 ```bash
-  for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v 'P.cactorum'); do
+  # for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v 'P.cactorum'); do
+  for Genome in $(ls assembly/spades/P.*/*/filtered_contigs_repmask/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum'); do
     Strain=$(echo $Genome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Genome | rev | cut -f4 -d '/' | rev)
     OutDir=gene_pred/cegma/$Organism/$Strain
@@ -644,6 +618,35 @@ Outputs were summarised using the commands:
 	done > gene_pred/cegma/cegma_results_dna_summary.txt
 
 	less gene_pred/cegma/cegma_results_dna_summary.txt
+``` -->
+
+Busco has replaced CEGMA and was run to check gene space in assemblies
+
+```bash
+for Assembly in $(ls assembly/spades/P.*/*/filtered_contigs/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum'); do
+# Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+# Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# BuscoDB="Fungal"
+BuscoDB="Eukaryotic"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e 'P.cactorum'); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
+  done
 ```
 
 #Gene prediction
