@@ -459,6 +459,23 @@ for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '404' -e '414'
   done
 ```
 
+Contigs were identified that had
+
+```bash
+
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | tail -n+2); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+Exclude_db="bact,virus,hsref"
+Good_db="phytoph"
+AssemblyDir=$(dirname $Assembly)
+OutDir=$AssemblyDir/../deconseq
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+done
+
+```
 
 Contigs were renamed in accordance with ncbi recomendations.
 
