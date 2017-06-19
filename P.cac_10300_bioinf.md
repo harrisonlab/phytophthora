@@ -146,17 +146,17 @@ kmer counting was performed using kmc
 This allowed estimation of sequencing depth and total genome size
 
 ```bash
-	for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do
-		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-		TrimF=$(ls $TrimPath/F/*.fq.gz)
-		TrimR=$(ls $TrimPath/R/*.fq.gz)
-		TrimMatePath=$(echo $TrimPath | sed 's/paired/mate-paired/g')
-		TrimMateF=$(ls $TrimMatePath/F/*.fq.gz)
-		TrimMateR=$(ls $TrimMatePath/R/*.fq.gz)
-		echo $TrimF $TrimMateF
-		echo $TrimR $TrimMateR
-		qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimMateF $TrimR $TrimMateR
-	done
+for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+TrimF=$(ls $TrimPath/F/*.fq.gz)
+TrimR=$(ls $TrimPath/R/*.fq.gz)
+TrimMatePath=$(echo $TrimPath | sed 's/paired/mate-paired/g')
+TrimMateF=$(ls $TrimMatePath/F/*.fq.gz)
+TrimMateR=$(ls $TrimMatePath/R/*.fq.gz)
+echo $TrimF $TrimMateF
+echo $TrimR $TrimMateR
+qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimMateF $TrimR $TrimMateR
+done
 ```
 
 
@@ -544,7 +544,7 @@ done
 ```
 
 ```bash
-  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
+  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e '10300' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
   Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
   Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
   Complete=$(cat $File | grep "(C)" | cut -f2)
@@ -553,6 +553,14 @@ done
   Total=$(cat $File | grep "Total" | cut -f2)
   echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
   done
+```
+
+```
+P.cactorum	10300	283	3	17	303
+P.capsici	LT1534	276	6	21	303
+P.infestans	T30-4	277	5	21	303
+P.parisitica	310	279	3	21	303
+P.sojae	67593	274	6	23	303
 ```
 
 ## Gene prediction 1 - Braker1 gene model training and prediction
@@ -640,7 +648,7 @@ corrected using the following commands:
 ``` -->
 
 
-# Assessing gene space in predicted transcriptomes
+<!-- # Assessing gene space in predicted transcriptomes
 
 
 Checking using busco
@@ -659,7 +667,7 @@ done
 ```
 
 ```bash
-  for File in $(ls gene_pred/busco/*/*/genes/*/short_summary_*.txt | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
+  for File in $(ls gene_pred/busco/*/*/genes/*/short_summary_*.txt | grep -e '10300' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
   Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
   Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
   Complete=$(cat $File | grep "(C)" | cut -f2)
@@ -668,7 +676,7 @@ done
   Total=$(cat $File | grep "Total" | cut -f2)
   echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
   done
-```
+``` -->
 
 
 # Functional annotation
@@ -1560,6 +1568,37 @@ $ProgDir/gff2fasta.pl $Assembly $OutDir/10300_genes_incl_ORFeffectors.gff3 $OutD
 # Note - these fasta files have not been validated - do not use
 ```
 
+## Assessing gene space in combined gene models
+
+
+Checking using busco
+
+```bash
+for Assembly in $(ls gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gene.fasta); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+  Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+  echo "$Organism - $Strain"
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+  BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+  OutDir=gene_pred/busco/$Organism/$Strain/genes
+  qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls gene_pred/busco/*/*/genes/*/short_summary_*.txt | grep -e '10300' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
+  done
+```
+
+
+
 ## Downloading, qc and alignment
 
 Raseq data was downloaded to the location:
@@ -1788,7 +1827,41 @@ done > analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN/orthogroups_fast
 ```
 
 
+# Determine lengths of intergenic regions
 
+```bash
+OutDir=analysis/intergenic_regions/P.cactorum/10300
+mkdir -p $OutDir
+
+# GeneGff=$(ls gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3)
+RxLR_list=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.txt)
+# cat $GeneGff | grep -w -f $RxLR_list > $OutDir/10300_RxLR.gff
+CRN_list=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN_headers.txt)
+# cat $GeneGff | grep -w -f $CRN_list > $OutDir/10300_CRN.gff
+# cat $GeneGff | grep -v -w -f $RxLR_list | grep -v -w -f $CRN_list > $OutDir/10300_non-effector.gff
+#
+# ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/intergenic_regions
+# $ProgDir/find_intergenic_regions.py --Gff $OutDir/10300_non-effector.gff > $OutDir/non-effector_intergenic_regions.txt
+# $ProgDir/find_intergenic_regions.py --Gff $OutDir/10300_RxLR.gff > $OutDir/RxLR_intergenic_regions.txt
+# $ProgDir/find_intergenic_regions.py --Gff $OutDir/10300_CRN.gff > $OutDir/CRN_intergenic_regions.txt
+
+GeneGff=$(ls gene_pred/annotation/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3)
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/intergenic_regions
+$ProgDir/find_intergenic_regions.py --Gff $GeneGff > $OutDir/10300_intergenic_regions.txt
+
+
+
+$ProgDir/plot_intergenic_regions.r --inp $OutDir/10300_intergenic_regions.txt --out $OutDir/10300_intergenic_density.pdf
+
+RxLR_list=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_Total_RxLR_EER_motif_hmm_headers.txt)
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $RxLR_list > $OutDir/10300_RxLR_intergenic_regions.txt
+$ProgDir/plot_intergenic_regions.r --inp $OutDir/10300_RxLR_intergenic_regions.txt --out $OutDir/10300_RxLR_intergenic_density.pdf
+
+CRN_list=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN_headers.txt)
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $CRN_list > $OutDir/10300_CRN_intergenic_regions.txt
+$ProgDir/plot_intergenic_regions.r --inp $OutDir/10300_CRN_intergenic_regions.txt --out $OutDir/10300_CRN_intergenic_density.pdf
+
+```
 
 
 # 7 Consolidating data
