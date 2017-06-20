@@ -1927,7 +1927,8 @@ models.
 for MergeDir in $(ls -d analysis/RxLR_effectors/combined_evidence/*/* | grep '414_v2'); do
 Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
 Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-AugGff=$(ls $MergeDir/"$Strain"_total_RxLR.gff)
+AugGff=$(ls gene_pred/final_genes/$Species/$Strain/final/final_genes_appended.gff3)
+AugRxLR=$(ls $MergeDir/"$Strain"_total_RxLR.gff)
 AugTxt=$(ls $MergeDir/"$Strain"_total_RxLR_headers.txt)
 AugFa=$(ls gene_pred/final_genes/"$Species"/"$Strain"/final/final_genes_combined.pep.fasta)
 
@@ -1938,14 +1939,20 @@ ORFsTxt=$(ls $MergeDir/"$Strain"_total_ORF_RxLR_headers.txt)
 ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_RxLR_EER_motif_hmm.gff
 AugInORFs=$MergeDir/"$Strain"_AugInORFs_RxLR_EER_motif_hmm.gff
 ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_RxLR_EER_motif_hmm.gff
+# RxLR ORFs may be located in predicted gene models not identified as RxLR
+# proteins - manual inspection suggests that many of the original gene models
+# appear have RNAseq data aligning accross their entire length
+ORFsUniqNoGenes=$MergeDir/"$Strain"_ORFsUniq_excl_genes_RxLR_EER_motif_hmm.gff
+# ORFsUniqInGenes=$MergeDir/"$Strain"_ORFsUniq_in_genes_RxLR_EER_motif_hmm.gff
 AugUniq=$MergeDir/"$Strain"_Aug_Uniq_RxLR_EER_motif_hmm.gff
 TotalRxLRsTxt=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm.txt
 TotalRxLRsGff=$MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm.gff
 
-bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
-bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
-bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
-bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
+bedtools intersect -wa -u -a $ORFGff -b $AugRxLR > $ORFsInAug
+bedtools intersect -wa -u -a $AugRxLR -b $ORFGff > $AugInORFs
+bedtools intersect -v -wa -a $ORFGff -b $AugRxLR > $ORFsUniq
+bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniqNoGenes
+bedtools intersect -v -wa -a $AugRxLR -b $ORFGff > $AugUniq
 
 echo "$Species - $Strain"
 echo "The number of ORF RxLRs overlapping Augustus RxLRs:"
@@ -1954,22 +1961,26 @@ echo "The number of Augustus RxLRs overlapping ORF RxLRs:"
 cat $AugInORFs | grep -w 'gene' | wc -l
 echo "The number of RxLRs unique to ORF models:"
 cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' | wc -l
-# cat $ORFsUniq | grep -w 'transcript' | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalRxLRsTxt
+echo "The number of RxLRs unique to ORF models and not intersecting nonRxLR gene models:"
+cat $ORFsUniqNoGenes | grep -w 'transcript' | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' | wc -l
 echo "The number of RxLRs unique to Augustus models:"
 cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | wc -l
 echo "The total number of putative RxLRs are:"
 cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $TotalRxLRsTxt
 cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalRxLRsTxt
-cat $ORFsUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f3 -d ';' | cut -f2 -d '=' >> $TotalRxLRsTxt
+# cat $ORFsUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f3 -d ';' | cut -f2 -d '=' >> $TotalRxLRsTxt
+cat $ORFsUniqNoGenes | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f3 -d ';' | cut -f2 -d '=' >> $TotalRxLRsTxt
 cat $TotalRxLRsTxt | wc -l
 
 # Later stages needed lists including ORF 'IDs' rather than names
 cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
 cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
-cat $ORFsUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
+# cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
+cat $ORFsUniqNoGenes | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
 
 
-cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalRxLRsTxt > $TotalRxLRsGff
+# cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalRxLRsTxt > $TotalRxLRsGff
+cat $AugInORFs $AugUniq $ORFsUniqNoGenes | grep -w -f $TotalRxLRsTxt > $TotalRxLRsGff
 
 RxLRsFa=$MergeDir/"$Strain"_final_RxLR_EER.fa
 ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
@@ -1992,12 +2003,12 @@ The number of Augustus RxLRs overlapping ORF RxLRs:
 159
 The number of RxLRs unique to ORF models:
 55
+The number of RxLRs unique to ORF models and not intersecting nonRxLR gene models:
+20
 The number of RxLRs unique to Augustus models:
 22
 The total number of putative RxLRs are:
-236
-The number of sequences extracted is
-236
+201
 ```
 
 
@@ -2081,21 +2092,27 @@ Extract crinklers from published gene models
   for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep '414_v2'); do
     Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
     Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-    AugGff=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
+    AugGff=$(ls gene_pred/final_genes/$Species/$Strain/final/final_genes_appended.gff3)
+    AugCRN=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
     AugFa=$(ls gene_pred/final_genes/"$Species"/"$Strain"/final/final_genes_combined.pep.fasta)
     ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
     ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
-    ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
-    AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
-    ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
+    ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.gff
+    AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.gff
+    ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.gff
+    # RxLR ORFs may be located in predicted gene models not identified as RxLR
+    # proteins - manual inspection suggests that many of the original gene models
+    # appear have RNAseq data aligning accross their entire length
+    ORFsUniqNoGenes=$MergeDir/"$Strain"_ORFsUniq_excl_genes_CRN_hmmer.gff
     AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
     TotalCRNsTxt=$MergeDir/"$Strain"_final_CRN.txt
     TotalCRNsGff=$MergeDir/"$Strain"_final_CRN.gff
     TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
-    bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
-    bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
-    bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
-    bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
+    bedtools intersect -wa -u -a $ORFGff -b $AugCRN > $ORFsInAug
+    bedtools intersect -wa -u -a $AugCRN -b $ORFGff > $AugInORFs
+    bedtools intersect -v -wa -a $ORFGff -b $AugCRN > $ORFsUniq
+    bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniqNoGenes
+    bedtools intersect -v -wa -a $AugCRN -b $ORFGff > $AugUniq
     echo "$Species - $Strain"
 
     echo "The number of ORF CRNs overlapping Augustus CRNs:"
@@ -2105,7 +2122,10 @@ Extract crinklers from published gene models
     cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | cut -f9 | cut -f1 -d ';' | cut -f2 -d '='  | sort | uniq > $TotalCRNsTxt
     echo "The number of CRNs unique to ORF models:"
     cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | sort | uniq | wc -l
-    cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | sort | uniq >> $TotalCRNsTxt    
+    # cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | sort | uniq >> $TotalCRNsTxt
+    echo "The number of RxLRs unique to ORF models and not intersecting non-CRN gene models:"
+    cat $ORFsUniqNoGenes | grep -w 'transcript' | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' | wc -l   
+    cat $ORFsUniqNoGenes | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | sort | uniq >> $TotalCRNsTxt
     echo "The number of CRNs unique to Augustus models:"
     cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | sort | uniq | wc -l
     cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' | sort | uniq >> $TotalCRNsTxt
@@ -2114,9 +2134,11 @@ Extract crinklers from published gene models
 
     cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | cut -f9 | cut -f1 -d ';' | cut -f2 -d '='  | sort | uniq > $MergeDir/"$Strain"_final_CRN_ID.txt
     cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' | sort | uniq >> $MergeDir/"$Strain"_final_CRN_ID.txt
-    cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f2 -d ';' | cut -f2 -d '=' | sort | uniq >> $MergeDir/"$Strain"_final_CRN_ID.txt
+    # cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f2 -d ';' | cut -f2 -d '=' | sort | uniq >> $MergeDir/"$Strain"_final_CRN_ID.txt
+    cat $ORFsUniqNoGenes | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f2 -d ';' | cut -f2 -d '=' | sort | uniq >> $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
 
-    cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+    # cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+    cat $AugInORFs $ORFsUniqNoGenes $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
 
     CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
     ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
@@ -2138,12 +2160,14 @@ The number of Augustus CRNs overlapping ORF CRNs:
 154
 The number of CRNs unique to ORF models:
 4
+The number of RxLRs unique to ORF models and not intersecting nonRxLR gene models:
+3
 The number of CRNs unique to Augustus models:
 18
 The total number of crinklers is:
-176
+175
 The number of sequences extracted is
-176
+175
 ```
 
 
