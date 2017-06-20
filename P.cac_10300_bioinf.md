@@ -1861,6 +1861,18 @@ CRN_list=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN_
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $CRN_list > $OutDir/10300_CRN_intergenic_regions.txt
 $ProgDir/plot_intergenic_regions.r --inp $OutDir/10300_CRN_intergenic_regions.txt --out $OutDir/10300_CRN_intergenic_density.pdf
 
+InterPro=$(ls gene_pred/interproscan/P.cactorum/10300/10300_interproscan.tsv)
+cat $OutDir/10300_CRN_intergenic_regions.txt | grep '+' > $OutDir/10300_CRN_intergenic_regions_+.txt
+cat $OutDir/10300_intergenic_regions.txt | grep -B1 -f $OutDir/10300_CRN_intergenic_regions_+.txt | awk 'NR%3==1' | cut -f1 > $OutDir/10300_CRN_intergenic_regions_+_fiveprime_neighbour.txt
+cat $InterPro | grep -w -f $OutDir/10300_CRN_intergenic_regions_+_fiveprime_neighbour.txt > $OutDir/10300_CRN_intergenic_regions_fiveprime_neighbour_annot.txt
+cat $OutDir/10300_CRN_intergenic_regions.txt | grep '-' > $OutDir/10300_CRN_intergenic_regions_+.txt
+cat $OutDir/10300_intergenic_regions.txt | grep -A1 -f $OutDir/10300_CRN_intergenic_regions_-.txt | awk 'NR%3==2' | cut -f1 > $OutDir/10300_CRN_intergenic_regions_-_fiveprime_neighbour.txt
+cat $InterPro | grep -w -f $OutDir/10300_CRN_intergenic_regions_-_fiveprime_neighbour.txt >> $OutDir/10300_CRN_intergenic_regions_fiveprime_neighbour_annot.txt
+
+
+cat $OutDir/10300_CRN_intergenic_regions.txt | grep '-' > $OutDir/10300_CRN_intergenic_regions_-.txt
+
+
 ```
 
 
