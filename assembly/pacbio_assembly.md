@@ -2138,7 +2138,7 @@ Extract crinklers from published gene models
     cat $ORFsUniqNoGenes | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f2 -d ';' | cut -f2 -d '=' | sort | uniq >> $MergeDir/"$Strain"_Total_RxLR_EER_motif_hmm_ID.txt
 
     # cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
-    cat $AugInORFs $ORFsUniqNoGenes $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+    cat $AugInORFs $AugUniq $ORFsUniqNoGenes | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
 
     CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
     ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
@@ -2182,8 +2182,8 @@ additional CRN and RxLR genes predicted by ORF analysis was made.
 
 ```bash
 GeneGff=$(ls gene_pred/final_genes/P.cactorum/414_v2/final/final_genes_appended.gff3)
-GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/414_v2/414_v2_ORFsUniq_RxLR_EER_motif_hmm.gff)
-GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_ORFsUniq_CRN_hmmer.bed)
+GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/414_v2/414_v2_ORFsUniq_excl_genes_RxLR_EER_motif_hmm.gff)
+GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_ORFsUniq_excl_genes_CRN_hmmer.gff)
 Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa )
 OutDir=gene_pred/annotation/P.cactorum/414_v2
 mkdir -p $OutDir
