@@ -129,14 +129,14 @@ and annotation.
   cp $RawDat/SCRP333_S3_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/R/.
 
   RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160415_M004465_00011-AMLCL
-  mkdir -p raw_dna/paired/P.cactorum/2003_4/F
-  mkdir -p raw_dna/paired/P.cactorum/2003_4/R
+  mkdir -p raw_dna/paired/P.cactorum/2003_3/F
+  mkdir -p raw_dna/paired/P.cactorum/2003_3/R
   mkdir -p raw_dna/paired/P.cactorum/PC13_15/F
   mkdir -p raw_dna/paired/P.cactorum/PC13_15/R
   mkdir -p raw_dna/paired/P.idaei/SCRP376/F
   mkdir -p raw_dna/paired/P.idaei/SCRP376/R
-  cp $RawDat/20033_S4_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/F/.
-  cp $RawDat/20033_S4_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_4/R/.
+  cp $RawDat/20033_S4_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/2003_3/F/.
+  cp $RawDat/20033_S4_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/2003_3/R/.
   cp $RawDat/PC1315_S5_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
   cp $RawDat/PC1315_S5_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
   cp $RawDat/SCRP376_S1_L001_R1_001.fastq.gz raw_dna/paired/P.idaei/SCRP376/F/.
@@ -182,7 +182,7 @@ Data quality was visualised using fastqc:
 
 ```bash
   # for RawData in $(ls raw_dna/paired/P.*/*/*/*.fastq.gz | grep '170210'); do
-  for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300'); do
+  for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300' | grep '2003_3'); do
     echo $RawData;
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
@@ -196,7 +196,7 @@ This was done with fastq-mcf
 Firstly, those strains with more than one run were identified:
 
 ```bash
-for Strain in $(ls -d raw_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' ); do
+for Strain in $(ls -d raw_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei'); do
 NumReads=$(ls $Strain/F/*.gz | wc -l);
 if [ $NumReads -gt 1 ]; then
 echo "$Strain";
@@ -206,7 +206,7 @@ done
 ```
 
 ```bash
-for StrainPath in $(ls -d raw_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P.idaei'); do
+for StrainPath in $(ls -d raw_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
 # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
 Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
 while [ $Jobs -gt 1 ]; do
@@ -226,7 +226,8 @@ done
 Trimming was then performed for strains with two runs of data
 
 ```bash
-for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15'); do
+for StrainPath in $(ls -d raw_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15' -e '2003_3'
+| grep '2003_3'); do
 Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
 while [ $Jobs -gt 1 ]; do
 sleep 1m
@@ -279,11 +280,12 @@ done
 Data quality was visualised once again following trimming:
 
 ```bash
-for RawData in $(ls qc_dna/paired/P.cactorum/*/*/*q.gz); do
+for RawData in $(ls qc_dna/paired/P.*/*/*/*q.gz  | grep 'P.idaei'); do
 echo $RawData;
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
-GenomeSz=65
+# GenomeSz=65
+GenomeSz=60
 OutDir=$(dirname $RawData)
 qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
 done
@@ -292,14 +294,14 @@ done
 Find predicted coverage for these isolates:
 
 ```bash
-  for StrainDir in $(ls -d qc_dna/paired/P.cactorum/* | grep -v -w -e '411' -e '10300_old'); do
-    Strain=$(basename $StrainDir)
-    printf "$Strain\t"
-    for File in $(ls qc_dna/paired/P.cactorum/"$Strain"/*/*.txt); do
-      echo $(basename $File);
-      cat $File | tail -n1 | rev | cut -f2 -d ' ' | rev;
-    done | grep -v '.txt' | awk '{ SUM += $1} END { print SUM }'
-  done
+for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei'); do
+Strain=$(basename $StrainDir)
+printf "$Strain\t"
+for File in $(ls qc_dna/paired/P.*/"$Strain"/*/*.txt); do
+echo $(basename $File);
+cat $File | tail -n1 | rev | cut -f2 -d ' ' | rev;
+done | grep -v '.txt' | awk '{ SUM += $1} END { print SUM }'
+done
 ```
 
 ```
@@ -307,8 +309,7 @@ Find predicted coverage for these isolates:
   12420	25.6
   15_13	55.63
   15_7	59.71
-  2003_3	34.72
-  2003_4	34.57
+  2003_3 69.29
   4032	53.14
   404	69.52
   4040	67.21
@@ -319,6 +320,9 @@ Find predicted coverage for these isolates:
   P295	39.29
   PC13_15	77.83
   R36_14	56.09
+  371	71.89
+  SCRP370	40.91
+  SCRP376	49.19
 ```
 
 <!--
@@ -373,7 +377,7 @@ Assembly was performed with:
 Assembly was submitted for genomes with a single run of data
 
 ```bash
-for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P.idaei'); do
+for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3'| grep -e 'P.cactorum' -e 'P.idaei'); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
 Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -396,7 +400,7 @@ done
 For isolates with two runs of data:
 
 ```bash
-for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15'); do
+for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e '2003_3'); do
     echo $StrainPath
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
@@ -459,11 +463,11 @@ for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '404' -e '414'
   done
 ```
 
-Contigs were identified that had
+Contigs were identified that had blast hits to non-phytophthora genomes
 
 ```bash
 
-for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | tail -n+2); do
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep '2003_3'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -474,30 +478,63 @@ OutDir=$AssemblyDir/../deconseq
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
 qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
 done
-
 ```
 
+Results were summarised using the commands:
+
+```bash
+for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
+  Name=$(echo $File | rev | cut -f3 -d '/' | rev);
+  Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
+  Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
+  Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
+  printf "$Name\t$Good\t$Both\t$Bad\n";
+done
+```
+```
+  12420	5429	83	29
+  15_13	5332	74	16
+  15_7	5363	82	20
+  2003_3	5558	68	31
+  2003_4	5993	101	34
+  4032	8260	91	51
+  404	20003	70	121
+  4040	5797	97	48
+  414	5921	69	43
+  415	5595	83	38
+  416	5376	93	41
+  62471	6978	100	48
+  P295	5093	57	39
+  PC13_15	5200	84	33
+  R36_14	5854	102	42
+  371	4679	27	5
+  SCRP370	5303	38	17
+  SCRP376	5228	70	17
+```
+<!--
 Contigs were renamed in accordance with ncbi recomendations.
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
   touch tmp.csv
-  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep 'P.cactorum'); do
+  for Assembly in $(ls assembly/spades/*/*/deconseq/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
     OutDir=assembly/spades/$Organism/$Strain/filtered_contigs
     $ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file tmp.csv
   done
   rm tmp.csv
 ```
+-->
 
 
 ```bash
-  for Assembly in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum'); do
+  for Assembly in $(ls assembly/spades/*/*/deconseq/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep '2003_3'); do
     Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
-    OutDir=assembly/spades/$Organism/$Strain/filtered_contigs;
+    # OutDir=assembly/spades/$Organism/$Strain/filtered_contigs;
+    OutDir=$(dirname $Assembly)
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
   done
@@ -521,7 +558,7 @@ The best assemblies were used to perform repeatmasking
 
 ```bash
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum' | grep -e 'PC13_15' -e '404'); do
+for BestAss in $(ls assembly/spades/P.*/*/*/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum' | grep -e '2003_3'); do
 Strain=$(echo $BestAss | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $BestAss | rev | cut -f4 -d '/' | rev)
 OutDir=repeat_masked/$Organism/"$Strain"/filtered_contigs_repmask
