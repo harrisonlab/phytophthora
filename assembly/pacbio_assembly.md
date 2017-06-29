@@ -771,6 +771,11 @@ $ProgDir/gene_list_to_gff.pl $AddGenesList $CodingQuaryGff CodingQuarry_v2.0 ID 
 $ProgDir/gene_list_to_gff.pl $AddGenesList $PGNGff PGNCodingQuarry_v2.0 ID CodingQuary >> $AddGenesGff
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 $ProgDir/add_CodingQuary_features.pl $AddGenesGff $Assembly > $FinalDir/final_genes_CodingQuary.gff3
+# -
+# This section is edited
+$ProgDir/add_CodingQuary_features.pl $AddGenesGff $Assembly > $AddDir/add_genes_CodingQuary_unspliced.gff3
+$ProgDir/correct_CodingQuary_splicing.py --inp_gff $AddDir/add_genes_CodingQuary_unspliced.gff3 > $FinalDir/final_genes_CodingQuary.gff3
+# -
 $ProgDir/gff2fasta.pl $Assembly $FinalDir/final_genes_CodingQuary.gff3 $FinalDir/final_genes_CodingQuary
 cp $BrakerGff $FinalDir/final_genes_Braker.gff3
 $ProgDir/gff2fasta.pl $Assembly $FinalDir/final_genes_Braker.gff3 $FinalDir/final_genes_Braker
@@ -804,7 +809,7 @@ gene_pred/final_genes/P.cactorum/414_v2/final
 29806
 ```
 
-
+<!--
 # Assessing gene space in predicted transcriptomes
 
 ```bash
@@ -833,7 +838,7 @@ gene_pred/final_genes/P.cactorum/414_v2/final
 
 ```
 P.cactorum	414_v2	277	4	22	303
-```
+``` -->
 
 ## Gene prediction 2 - atg.pl prediction of ORFs
 
@@ -863,7 +868,7 @@ corrected using the following commands:
   	$ProgDir/gff_corrector.pl $OrfGff > $OrfGffMod
   done
 ```
-
+<!--
 #Functional annotation
 
 ## A) Interproscan
@@ -933,7 +938,7 @@ done
     $ProgDir/build_annot_tab.py --genome $Assembly --genes_gff $GeneGff --InterPro $InterPro --Swissprot $SwissProt > $OutDir/"$Strain"_annotation.tsv
   done
 ```
-
+ -->
 
 #Genomic analysis
 
@@ -963,55 +968,55 @@ of approaches:
  the following commands:
 
  ```bash
-  for Proteome in $(ls gene_pred/final_genes/*/*/*/final_genes_combined.pep.fasta | grep '414_v2'); do
-    SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-    SplitDir=gene_pred/final_split/$Organism/$Strain
-    mkdir -p $SplitDir
-    BaseName="$Organism""_$Strain"_final
-    $SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
-    for File in $(ls $SplitDir/*_final_*); do
-      Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-      while [ $Jobs -gt 20 ]; do
-        sleep 1
-        printf "."
-        Jobs=$(qstat | grep 'pred_sigP' | wc -l)
-      done
-      printf "\n"
-      echo $File
-      qsub $ProgDir/pred_sigP.sh $File
-      qsub $ProgDir/pred_sigP.sh $File signalp-4.1
-    done
-  done
+for Proteome in $(ls gene_pred/final_genes/*/*/*/final_genes_combined.pep.fasta | grep '414_v2'); do
+SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+SplitDir=gene_pred/final_split/$Organism/$Strain
+mkdir -p $SplitDir
+BaseName="$Organism""_$Strain"_final
+$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+for File in $(ls $SplitDir/*_final_*); do
+Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+while [ $Jobs -gt 20 ]; do
+sleep 1
+printf "."
+Jobs=$(qstat | grep 'pred_sigP' | wc -l)
+done
+printf "\n"
+echo $File
+qsub $ProgDir/pred_sigP.sh $File
+qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+done
+done
  ```
 
  The batch files of predicted secreted proteins needed to be combined into a
  single file for each strain. This was done with the following commands:
 
  ```bash
-  for SplitDir in $(ls -d gene_pred/final_split/P.*/* | grep '414_v2'); do
-    Strain=$(echo $SplitDir | cut -d '/' -f4)
-    Organism=$(echo $SplitDir | cut -d '/' -f3)
-    echo "$Organism - $Strain"
-    InStringAA=''
-    InStringNeg=''
-    InStringTab=''
-    InStringTxt=''
-    for SigpDir in $(ls -d gene_pred/final_sig* | cut -f2 -d'/'); do
-      for GRP in $(ls -l $SplitDir/*_final_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
-        InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.aa";
-        InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp_neg.aa";  
-        InStringTab="$InStringTab gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.tab";
-        InStringTxt="$InStringTxt gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.txt";
-      done
-      cat $InStringAA > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa
-      cat $InStringNeg > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
-      tail -n +2 -q $InStringTab > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.tab
-      cat $InStringTxt > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.txt
-    done
-  done
+for SplitDir in $(ls -d gene_pred/final_split/P.*/* | grep '414_v2'); do
+Strain=$(echo $SplitDir | cut -d '/' -f4)
+Organism=$(echo $SplitDir | cut -d '/' -f3)
+echo "$Organism - $Strain"
+InStringAA=''
+InStringNeg=''
+InStringTab=''
+InStringTxt=''
+for SigpDir in $(ls -d gene_pred/final_sig* | cut -f2 -d'/'); do
+for GRP in $(ls -l $SplitDir/*_final_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
+InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.aa";
+InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp_neg.aa";  
+InStringTab="$InStringTab gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.tab";
+InStringTxt="$InStringTxt gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.txt";
+done
+cat $InStringAA > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.aa
+cat $InStringNeg > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_neg_sp.aa
+tail -n +2 -q $InStringTab > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.tab
+cat $InStringTxt > gene_pred/$SigpDir/$Organism/$Strain/"$Strain"_aug_sp.txt
+done
+done
 ```
 
 
@@ -1082,29 +1087,29 @@ Those proteins with transmembrane domains were removed from lists of Signal
 peptide containing proteins
 
 ```bash
-  for File in $(ls gene_pred/trans_mem/*/*/*_TM_genes_neg.txt | grep '414_v2'); do
-    Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
-    echo "$Organism - $Strain"
-    NonTmHeaders=$(echo "$File" | sed 's/neg.txt/neg_headers.txt/g')
-    cat $File | cut -f1 > $NonTmHeaders
-    SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp.aa | grep -v 'neg')
-    OutDir=$(dirname $SigP)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/extract_from_fasta.py --fasta $SigP --headers $NonTmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem.aa
-    echo "Number of SigP proteins:"
-    cat $SigP | grep '>' | wc -l
-    echo "Number without transmembrane domains:"
-    cat $OutDir/"$Strain"_final_sp_no_trans_mem.aa | grep '>' | wc -l
-    echo "Number of gene models:"
-    cat $OutDir/"$Strain"_final_sp_no_trans_mem.aa | grep '>' | cut -f1 -d't' | sort | uniq |wc -l
+for File in $(ls gene_pred/trans_mem/*/*/*_TM_genes_neg.txt | grep '414_v2'); do
+Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+NonTmHeaders=$(echo "$File" | sed 's/neg.txt/neg_headers.txt/g')
+cat $File | cut -f1 > $NonTmHeaders
+SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp.aa | grep -v 'neg')
+OutDir=$(dirname $SigP)
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_from_fasta.py --fasta $SigP --headers $NonTmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem.aa
+echo "Number of SigP proteins:"
+cat $SigP | grep '>' | wc -l
+echo "Number without transmembrane domains:"
+cat $OutDir/"$Strain"_final_sp_no_trans_mem.aa | grep '>' | wc -l
+echo "Number of gene models:"
+cat $OutDir/"$Strain"_final_sp_no_trans_mem.aa | grep '>' | cut -f1 -d't' | sort | uniq |wc -l
 
-    # A text file was also made containing headers of proteins testing +ve
-    PosFile=$(ls gene_pred/trans_mem/$Organism/$Strain/"$Strain"_TM_genes_pos.txt)
-    TmHeaders=$(echo $PosFile | sed 's/.txt/_headers.txt/g')
-    cat $PosFile | cut -f1 > $TmHeaders
+# A text file was also made containing headers of proteins testing +ve
+PosFile=$(ls gene_pred/trans_mem/$Organism/$Strain/"$Strain"_TM_genes_pos.txt)
+TmHeaders=$(echo $PosFile | sed 's/.txt/_headers.txt/g')
+cat $PosFile | cut -f1 > $TmHeaders
 
-  done
+done
 ```
 
 Proteins containing GPI anchors were also removed using GPIsom
@@ -1114,6 +1119,7 @@ These proteins were identified through submitting the combined protein file to
 the webserver at: http://gpi.unibe.ch
 
 An output directory was made to download the file to:
+"GPI anchored (C&N-term signal) (SignalP):"
 
 ```bash
   for Proteome in $(ls gene_pred/final_genes/*/*/*/final_genes_combined.pep.fasta | grep '414_v2'); do
@@ -1135,32 +1141,43 @@ Those proteins with GPI anchors were removed from lists of Signal
 peptide containing proteins
 
 ```bash
-  for File in $(ls gene_pred/trans_mem/*/*/GPIsom/GPI_pos.fa | grep '414_v2'); do
-    Strain=$(echo $File | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $File | rev | cut -f4 -d '/' | rev)
-    echo "$Organism - $Strain"
-    TmHeaders=$(echo "$File" | sed 's/.fa/.txt/g')
-    cat $File | grep '>' | cut -f1 -d ' ' | sed 's/>//g' > $TmHeaders
-    SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp_no_trans_mem.aa)
-    SigPHeaders=gene_pred/final_sigP/$Organism/$Strain/"$Strain"_sp_no_trans_mem_headers.txt
-    cat $SigP | grep '>' | cut -f1 | sed 's/>//g'> $SigPHeaders
-    GoodHeaders=$(echo "$File" | sed 's/_pos.fa/_neg.txt/g')
-    cat $SigPHeaders | grep -v -f $TmHeaders > $GoodHeaders
-    OutDir=$(dirname $SigP)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    # cat $SigP | grep -v -A1 -f $TmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa
-    $ProgDir/extract_from_fasta.py --fasta $SigP --headers $GoodHeaders  > $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa
-    echo "Number of SigP proteins:"
-    cat $SigP | grep '>' | wc -l
-    echo "Number with GPI anchors in entire proteome:"
-    cat $TmHeaders | wc -l
-    echo "Number without GPI anchors:"
-    cat $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa | grep '>' | wc -l
-    echo "Number of gene models:"
-    cat $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa | grep '>' | cut -f1 -d't' | sort | uniq |wc -l
-  done
+for File in $(ls gene_pred/trans_mem/*/*/GPIsom/GPI_pos.fa | grep '414_v2'); do
+Strain=$(echo $File | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $File | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+TmHeaders=$(echo "$File" | sed 's/.fa/.txt/g')
+cat $File | grep '>' | cut -f1 -d ' ' | sed 's/>//g' > $TmHeaders
+SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp_no_trans_mem.aa)
+SigPHeaders=gene_pred/final_sigP/$Organism/$Strain/"$Strain"_sp_no_trans_mem_headers.txt
+cat $SigP | grep '>' | cut -f1 | sed 's/>//g'> $SigPHeaders
+GoodHeaders=$(echo "$File" | sed 's/_pos.fa/_neg.txt/g')
+cat $SigPHeaders | grep -v -f $TmHeaders > $GoodHeaders
+OutDir=$(dirname $SigP)
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+# cat $SigP | grep -v -A1 -f $TmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa
+$ProgDir/extract_from_fasta.py --fasta $SigP --headers $GoodHeaders  > $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa
+echo "Number of SigP proteins:"
+cat $SigP | grep '>' | wc -l
+echo "Number with GPI anchors in entire proteome:"
+cat $TmHeaders | wc -l
+echo "Number without GPI anchors:"
+cat $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa | grep '>' | wc -l
+echo "Number of gene models:"
+cat $OutDir/"$Strain"_final_sp_no_trans_mem_no_GPI.aa | grep '>' | cut -f1 -d't' | sort | uniq |wc -l
+done
 ```
 
+```
+  P.cactorum - 414_v2
+  Number of SigP proteins:
+  1796
+  Number with GPI anchors in entire proteome:
+  560
+  Number without GPI anchors:
+  1540
+  Number of gene models:
+  1536
+```
 
 
 
@@ -1185,27 +1202,27 @@ Those genes that were predicted as secreted and tested positive by effectorP
 were identified:
 
 ```bash
-  for File in $(ls analysis/effectorP/*/*/*_EffectorP.txt | grep '414_v2'); do
-    Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
-    echo "$Organism - $Strain"
-    Headers=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_headers.txt/g')
-    cat $File | grep 'Effector' | cut -f1 > $Headers
-    printf "EffectorP headers:\t"
-    cat $Headers | wc -l
-    Secretome=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
-    OutFile=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.aa/g')
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/extract_from_fasta.py --fasta $Secretome --headers $Headers > $OutFile
-    OutFileHeaders=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted_headers.txt/g')
-    cat $OutFile | grep '>' | tr -d '>' > $OutFileHeaders
-    printf "Secreted effectorP headers:\t"
-    cat $OutFileHeaders | wc -l
-    Gff=$(ls gene_pred/final_genes/$Organism/$Strain/*/final_genes_appended.gff3)
-    EffectorP_Gff=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.gff/g')
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/extract_gff_for_sigP_hits.pl $OutFileHeaders $Gff effectorP ID > $EffectorP_Gff
-  done
+for File in $(ls analysis/effectorP/*/*/*_EffectorP.txt | grep '414_v2'); do
+Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+Headers=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_headers.txt/g')
+cat $File | grep 'Effector' | cut -f1 > $Headers
+printf "EffectorP headers:\t"
+cat $Headers | wc -l
+Secretome=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
+OutFile=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.aa/g')
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_from_fasta.py --fasta $Secretome --headers $Headers > $OutFile
+OutFileHeaders=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted_headers.txt/g')
+cat $OutFile | grep '>' | tr -d '>' > $OutFileHeaders
+printf "Secreted effectorP headers:\t"
+cat $OutFileHeaders | wc -l
+Gff=$(ls gene_pred/final_genes/$Organism/$Strain/*/final_genes_appended.gff3)
+EffectorP_Gff=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.gff/g')
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_gff_for_sigP_hits.pl $OutFileHeaders $Gff effectorP ID > $EffectorP_Gff
+done
 ```
 ```
 P.cactorum - 414_v2
@@ -2198,7 +2215,8 @@ $ProgDir/gff2fasta.pl $Assembly $OutDir/414_v2_genes_incl_ORFeffectors.gff3 $Out
 ```
 
 
-In preperation for submission to ncbi, gene models were renamed and duplicate gene features were identified and removed - CUFF_969_2_184 was identified as a duplicated gene
+In preperation for submission to ncbi, gene models were renamed and duplicate gene features were identified and removed
+<!-- - CUFF_969_2_184 was identified as a duplicated gene -->
 
 
 ```bash
@@ -2207,7 +2225,8 @@ OutDir=gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi
 mkdir -p $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 $ProgDir/remove_dup_features.py --inp_gff $GffAppended
-cat $GffAppended | grep -v -w 'CUFF_969_2_184' > $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3
+# cat $GffAppended | grep -v -w 'CUFF_969_2_184' > $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3
+cat $GffAppended > $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3
 
 GffRenamed=$OutDir/414_v2_genes_incl_ORFeffectors_renamed.gff3
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
@@ -2219,12 +2238,6 @@ $ProgDir/gff2fasta.pl $Assembly $GffRenamed $OutDir/414_v2_genes_incl_ORFeffecto
 # The proteins fasta file contains * instead of Xs for stop codons, these should
 # be changed
 sed -i 's/\*/X/g' $OutDir/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta
-```
-
-```
-Duplicate gene found:	contig_10	987580	987943
-contig_10	CodingQuarry_v2.0	gene	987580	987943	.	+	.	ID=CUFF_969_1_183
-contig_10	CodingQuarry_v2.0	gene	987580	987943	.	+	.	ID=CUFF_969_2_184
 ```
 
 
