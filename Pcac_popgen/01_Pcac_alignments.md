@@ -192,8 +192,167 @@ qsub $ProgDir/sub_SNP_calling_multithreaded.sh
 cd $CurDir
 ```
 
-```bash
+## Filter SNPs based on this region being present in all isolates
 
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-qsub $ProgDir/sub_SNP_calling_multithreaded.sh
+Only retain biallelic high-quality SNPS with no missing data (for any individual) for genetic analyses below (in some cases, may allow some missing data in order to retain more SNPs, or first remove poorly sequenced individuals with too much missing data and then filter the SNPs).
+
+```bash
+cp analysis/popgen/SNP_calling/414_v2_contigs_unmasked_temp.vcf analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf
+Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+qsub $ProgDir/sub_vcf_parser.sh $Vcf 40 30 10 30 1 Y
+# qsub $ProgDir/sub_vcf_parser.sh $Vcf
 ```
+
+```bash
+mv 414_v2_contigs_unmasked_filtered.vcf analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered.vcf
+```
+
+<!--
+In some organisms, may want to thin (subsample) SNPs in high linkage diseqilibrium down to
+1 SNP  per e.g. 10 kbp just for the population structure analyses.
+```bash
+vcftools=/home/sobczm/bin/vcftools/bin
+$vcftools/vcftools --vcf $input_vcf --thin 10000 --recode --out ${input_vcf%.vcf}_thinned
+```
+-->
+
+## Collect VCF stats
+
+General VCF stats (remember that vcftools needs to have the PERL library exported)
+
+```bash
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  export PERL5LIB="$VcfTools:$PERL5LIB"
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  Stats=$(echo $Vcf | sed 's/.vcf/.stat/g')
+  perl $VcfTools/vcf-stats $Vcf > $Stats
+  VcfFiltered=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered.vcf)
+  Stats=$(echo $VcfFiltered | sed 's/.vcf/.stat/g')
+  perl $VcfTools/vcf-stats $VcfFiltered > $Stats
+```
+
+Calculate the index for percentage of shared SNP alleles between the individuals.
+
+```bash
+  for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.vcf); do
+      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+      $ProgDir/similarity_percentage.py $Vcf
+  done
+```
+
+# Visualise the output as heatmap and clustering dendrogram
+```bash
+for Log in $(ls analysis/popgen/SNP_calling/*distance.log); do
+  ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  Rscript --vanilla $ProgDir/distance_matrix.R $Log
+  mv Rplots.pdf analysis/popgen/SNP_calling/.
+done
+```
+
+Remove monomorphic sites (minor allele count minimum 1). Argument --vcf is the filtered VCF file, and --out is the suffix to be used for the output file.
+
+```bash
+for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.vcf); do
+echo $Vcf
+Out=$(basename $Vcf .vcf)
+echo $Out
+VcfTools=/home/sobczm/bin/vcftools/bin
+$VcfTools/vcftools --vcf $Vcf --mac 1 --recode --out analysis/popgen/SNP_calling/$Out
+done
+```
+
+## Carry out PCA and plot the results
+
+This step could not be carried out due to problems installing dependancies
+<!--
+```bash
+for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.vcf); do
+    echo $Vcf
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    # Out=$(basename $Vcf)
+    Out=analysis/popgen/SNP_calling
+    echo $Out
+    Rscript --vanilla $ProgDir/pca.R $Vcf $Out/PCA.pdf
+done
+``` -->
+
+
+## Calculate an NJ tree
+
+based on all the SNPs. Outputs a basic diplay of the tree, plus a Newick file to be used for displaying the tree in FigTree and beautifying it.
+
+```bash
+for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.recode.vcf); do
+    echo $Vcf
+    Ploidy=2
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    $ProgDir/nj_tree.sh $Vcf $Ploidy
+    mv Rplots.pdf analysis/popgen/SNP_calling/NJ_tree.pdf
+done
+```
+
+```bash
+for VcfFiltered in $(ls analysis/popgen/SNP_calling/*_filtered.recode.vcf); do
+Stats=$(echo $VcfFiltered | sed 's/.vcf/.stat/g')
+VcfTools=/home/sobczm/bin/vcftools/bin
+perl $VcfTools/vcf-stats $VcfFiltered > $Stats
+done
+```
+
+
+# Identify SNPs in gene models:
+
+Create custom SnpEff genome database
+
+```bash
+SnpEff=/home/sobczm/bin/snpEff
+nano $SnpEff/snpEff.config
+```
+
+
+Add the following lines to the section with databases:
+
+```
+#---
+# EMR Databases
+#----
+# Fus2 genome
+Fus2v1.0.genome : Fus2
+# Bc16 genome
+Bc16v1.0.genome: BC-16
+# P414 genome
+P414v1.0.genome: 414
+```
+
+Collect input files
+
+```bash
+Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
+Gff=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3)
+SnpEff=/home/sobczm/bin/snpEff
+mkdir $SnpEff/data/P414v1.0
+cp $Reference $SnpEff/data/P414v1.0/sequences.fa
+cp $Gff $SnpEff/data/P414v1.0/genes.gff
+
+#Build database using GFF3 annotation
+java -jar $SnpEff/snpEff.jar build -gff3 -v P414v1.0
+```
+
+
+## Annotate VCF files
+```bash
+CurDir=/home/groups/harrisonlab/project_files/idris
+cd $CurDir
+for a in $(ls analysis/popgen/SNP_calling/*recode.vcf); do
+    echo $a
+    filename=$(basename "$a")
+    SnpEff=/home/sobczm/bin/snpEff
+    java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $a > ${filename%.vcf}_annotated.vcf
+    mv snpEff_genes.txt analysis/popgen/SNP_calling/snpEff_genes_${filename%.vcf}.txt
+    mv snpEff_summary.html analysis/popgen/SNP_calling/snpEff_summary_${filename%.vcf}.html
+    mv *.recode* analysis/popgen/SNP_calling/.
+done
+```
+<!--
+ -->
