@@ -27,7 +27,7 @@ for Busco in $(cat analysis/popgen/busco_phylogeny/all_buscos_*.txt); do
 echo $Busco
 OutDir=analysis/popgen/busco_phylogeny/$Busco
 mkdir -p $OutDir
-for Fasta in $(ls gene_pred/busco/*/*/assembly/run_contigs_min_500bp_renamed/single_copy_busco_sequences/$Busco*.fna | grep -v -w '414'); do
+for Fasta in $(ls gene_pred/busco/*/*/assembly/run_contigs_min_500bp*/single_copy_busco_sequences/$Busco*.fna | grep -v -w '414'); do
 Strain=$(echo $Fasta | rev | cut -f5 -d '/' | rev)
 Organism=$(echo $Fasta | rev | cut -f6 -d '/' | rev)
 FileName=$(basename $Fasta)
@@ -106,7 +106,7 @@ Copy the relevant trimmed alignment FASTA files into
 ##PartitionFinder (nucleotide sequence evolution model)
 
 ```bash
-cd analysis/popgen/busco_phylogeny
+cd analysis/popgen/busco_phylogeny/phylogeny
 
 config_template=/home/sobczm/bin/PartitionFinder1.1.1/partition_finder.cfg
 ct=$(basename "$config_template")
@@ -157,7 +157,7 @@ copy the fasta files and the partitionfinder config files to
 your local computer
 
 ```bash
-scp -r cluster:/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny/phylogeny/* .
+scp -r cluster:/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny/phylogeny .
 for Dir in $(ls -d *_appended_aligned); do
 /Users/armita/anaconda2/bin/python ../partitionfinder-2.1.1/PartitionFinder.py $Dir --no-ml-tree --force-restart
 done > log.txt
