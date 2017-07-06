@@ -463,27 +463,42 @@ for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '404' -e '414'
   done
 ```
 
+
+Assembly results were summarised using Quast:
+
+```bash
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs*/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'SCRP376'); do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
+    OutDir=$(dirname $Assembly)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
+  done
+```
+
 Contigs were identified that had blast hits to non-phytophthora genomes
 
 ```bash
-
-for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep '2003_3'); do
-Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
-echo "$Organism - $Strain"
-Exclude_db="bact,virus,hsref"
-Good_db="phytoph"
-AssemblyDir=$(dirname $Assembly)
-OutDir=$AssemblyDir/../deconseq
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
-qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
-done
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    # Exclude_db="bact,virus,hsref"
+    Exclude_db="paenibacillus"
+    Good_db="phytoph"
+    AssemblyDir=$(dirname $Assembly)
+    # OutDir=$AssemblyDir/../deconseq
+    OutDir=$AssemblyDir/../deconseq_Paen
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+    qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+  done
 ```
 
 Results were summarised using the commands:
 
 ```bash
-for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
+# for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
+for File in $(ls assembly/spades/P.*/*/deconseq_Paen/log.txt); do
   Name=$(echo $File | rev | cut -f3 -d '/' | rev);
   Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
   Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
@@ -491,7 +506,7 @@ for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
   printf "$Name\t$Good\t$Both\t$Bad\n";
 done
 ```
-```
+<!-- ```
   12420	5429	83	29
   15_13	5332	74	16
   15_7	5363	82	20
@@ -510,22 +525,105 @@ done
   371	4679	27	5
   SCRP370	5303	38	17
   SCRP376	5228	70	17
+``` -->
+
 ```
-<!--
-Contigs were renamed in accordance with ncbi recomendations.
+12420	5508	3	30
+15_13	5419	2	1
+15_7	5457	1	7
+2003_3	5473	5	111
+4032	6705	28	1669
+404	20143	2	49
+4040	5324	3	615
+414	5107	2	924
+415	5707	2	7
+416	5501	2	7
+62471	6156	24	946
+P295	5088	2	99
+PC13_15	5275	3	39
+R36_14	5957	3	38
+371	4709	1	1
+SCRP370	5355	2	1
+SCRP376	5313	1	1
+```
+
+Assembly stats were collected on filtered assemblies:
 
 ```bash
-  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
-  touch tmp.csv
-  for Assembly in $(ls assembly/spades/*/*/deconseq/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+  for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
-    OutDir=assembly/spades/$Organism/$Strain/filtered_contigs
-    $ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file tmp.csv
+    OutDir=$(dirname $Assembly)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
   done
-  rm tmp.csv
 ```
--->
+
+Assembly stats were summarised and compared to previous assembly results using:
+
+```bash
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/report.tsv); do  
+Strain=$(echo $Assembly | rev | cut -f3 -d '/'| rev);
+Size=$(cat $Assembly | grep 'Total length' | head -n1 | cut -f2);
+OldAssembly=$(ls assembly/spades/P.*/$Strain/filtered_contigs*/report.tsv)
+OldSize=$(cat $OldAssembly | grep 'Total length' | head -n1 | cut -f2);
+printf "$Strain\t$Size\t$OldSize\n";
+done
+```
+
+```
+  12420	60316949	66488881
+  15_13	60703463	60708976
+  15_7	60797060	60806527
+  2003_3	60813922	67797455
+  4032	61579887	70105079
+  404	75517056	82472226
+  4040	60660274	65177765
+  414	61118003	62710907
+  415	64738450	64884339
+  416	64534802	64802670
+  62471	61276828	62823426
+  P295	60709897	67293243
+  PC13_15	61140001	67857120
+  R36_14	61662091	68350251
+  371	60474213	60483665
+  SCRP370	60582725	60561664
+```
+
+A Bioproject and Biosample was made with NCBI genbank for submission of genomes.
+Following the creation of these submissions, the .fasta assembly was uploaded
+through the submission portal. A note was provided requesting that the assembly
+be run through the contamination screen to aid a more detailed resubmission in
+future. The returned FCSreport.txt was downloaded from the NCBI webportal and
+used to correct the assembly to NCBI standards.
+
+NCBI reports (FCSreport.txt) were manually downloaded to the following loactions:
+
+```bash
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+NCBI_report_dir=genome_submission/$Organism/$Strain/initial_submission
+mkdir -p $NCBI_report_dir
+done
+```
+
+
+These downloaded files were used to correct assemblies:
+
+```bash
+for Assembly in $(ls assembly/spades/*/*/deconseq/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v 'ncbi_edits'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+NCBI_report=$(ls genome_submission/$Organism/$Strain/initial_submission/Contamination*.txt)
+OutDir=assembly/spades/$Organism/$Strain/ncbi_edits
+mkdir -p $OutDir
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+$ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
+done
+```
+
 
 
 ```bash
@@ -677,7 +775,7 @@ Outputs were summarised using the commands:
 Busco has replaced CEGMA and was run to check gene space in assemblies
 
 ```bash
-for Assembly in $(ls assembly/spades/P.*/*/filtered_contigs/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum'); do
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
 # Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 # Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
@@ -692,7 +790,7 @@ done
 ```
 
 ```bash
-  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e 'P.cactorum'); do
+  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e 'P.cactorum' -e 'P.idaei'); do
   Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
   Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
   Complete=$(cat $File | grep "(C)" | cut -f2)
