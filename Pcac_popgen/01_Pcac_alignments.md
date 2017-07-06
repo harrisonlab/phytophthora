@@ -108,7 +108,7 @@ qsub $ProgDir/sub_pre_snp_calling.sh <INPUT SAM FILE> <SAMPLE_ID>
     CurDir=$PWD
     OutDir=$(dirname $Sam)
     cd $OutDir
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/snp
     qsub $ProgDir/sub_pre_snp_calling.sh $Sam $Strain
     cd $CurDir
   done
@@ -187,7 +187,7 @@ CurDir=$PWD
 OutDir=analysis/popgen/SNP_calling
 mkdir -p $OutDir
 cd $OutDir
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+ProgDir=/home/armita/git_repos/emr_repos/ProgDir/phytophthora/Pcac_popgen
 qsub $ProgDir/sub_SNP_calling_multithreaded.sh
 cd $CurDir
 ```
@@ -199,7 +199,7 @@ Only retain biallelic high-quality SNPS with no missing data (for any individual
 ```bash
 cp analysis/popgen/SNP_calling/414_v2_contigs_unmasked_temp.vcf analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf
 Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
-ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/snp
 qsub $ProgDir/sub_vcf_parser.sh $Vcf 40 30 10 30 1 Y
 # qsub $ProgDir/sub_vcf_parser.sh $Vcf
 ```
@@ -212,8 +212,8 @@ mv 414_v2_contigs_unmasked_filtered.vcf analysis/popgen/SNP_calling/414_v2_conti
 In some organisms, may want to thin (subsample) SNPs in high linkage diseqilibrium down to
 1 SNP  per e.g. 10 kbp just for the population structure analyses.
 ```bash
-vcftools=/home/sobczm/bin/vcftools/bin
-$vcftools/vcftools --vcf $input_vcf --thin 10000 --recode --out ${input_vcf%.vcf}_thinned
+VcfTools=/home/sobczm/bin/vcftools/bin
+$VcfTools/vcftools --vcf $input_vcf --thin 10000 --recode --out ${input_vcf%.vcf}_thinned
 ```
 -->
 
@@ -236,7 +236,7 @@ Calculate the index for percentage of shared SNP alleles between the individuals
 
 ```bash
   for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.vcf); do
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+      ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/snp
       $ProgDir/similarity_percentage.py $Vcf
   done
 ```
@@ -244,7 +244,7 @@ Calculate the index for percentage of shared SNP alleles between the individuals
 # Visualise the output as heatmap and clustering dendrogram
 ```bash
 for Log in $(ls analysis/popgen/SNP_calling/*distance.log); do
-  ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/snp
   Rscript --vanilla $ProgDir/distance_matrix.R $Log
   mv Rplots.pdf analysis/popgen/SNP_calling/.
 done
@@ -258,7 +258,7 @@ echo $Vcf
 Out=$(basename $Vcf .vcf)
 echo $Out
 VcfTools=/home/sobczm/bin/vcftools/bin
-$VcfTools/vcftools --vcf $Vcf --mac 1 --recode --out analysis/popgen/SNP_calling/$Out
+$VcfTools/VcfTools --vcf $Vcf --mac 1 --recode --out analysis/popgen/SNP_calling/$Out
 done
 ```
 
@@ -269,7 +269,7 @@ This step could not be carried out due to problems installing dependancies
 ```bash
 for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.vcf); do
     echo $Vcf
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/snp
     # Out=$(basename $Vcf)
     Out=analysis/popgen/SNP_calling
     echo $Out
@@ -286,7 +286,7 @@ based on all the SNPs. Outputs a basic diplay of the tree, plus a Newick file to
 for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered.recode.vcf); do
     echo $Vcf
     Ploidy=2
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/snp
     $ProgDir/nj_tree.sh $Vcf $Ploidy
     mv Rplots.pdf analysis/popgen/SNP_calling/NJ_tree.pdf
 done
@@ -354,5 +354,210 @@ for a in $(ls analysis/popgen/SNP_calling/*recode.vcf); do
     mv *.recode* analysis/popgen/SNP_calling/.
 done
 ```
-<!--
- -->
+
+
+
+# 3.1 P. idaei vs P. idaei
+
+```bash
+  Prefix=Pi_vs_Pi
+  OutDir=analysis/popgen/SNP_calling/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="12420 15_13 15_7 2003_3 4032 404 414 415 416 62471 P295 PC13_15 R36_14"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      filename=$(basename "$Vcf")
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+  done
+```
+
+# 3.2 P. cactorum ex. apple vs ex. apple
+
+```bash
+  Prefix=Pc_apple_vs_apple
+  OutDir=analysis/popgen/busco_phylogeny/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="12420 15_13 15_7 2003_3 4032 404 414 415 416 PC13_15 371 SCRP370 SCRP376"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      filename=$(basename "$Vcf")
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+  done
+```
+
+# 3.3 P. cactorum ex. strawberry vs ex. strawberry
+
+```bash
+  Prefix=Pc_strawberry_vs_strawberry
+  OutDir=analysis/popgen/busco_phylogeny/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="62471 P295 R36_14 371 SCRP370 SCRP376"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      filename=$(basename "$Vcf")
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+  done
+```
+
+
+# 3.4 P. idaei vs P. cactorum ex. apple
+
+```bash
+  Prefix=Pi_vs_Pc_ex_apple
+  OutDir=analysis/popgen/SNP_calling/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="12420 15_13 15_7 2003_3 4032 404 414 415 416 62471"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      filename=$(basename "$Vcf")
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+  done
+```
+
+# 3.5 P. idaei vs P. cactorum ex. strawberry
+
+```bash
+  Prefix=Pi_vs_Pc_ex_strawberry
+  OutDir=analysis/popgen/SNP_calling/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="62471 P295 R36_14"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      filename=$(basename "$Vcf")
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+  done
+```
+
+# 3.6 P. cactorum ex. apple vs ex. strawberry
+
+```bash
+  Prefix=Pc_apple_vs_strawberry
+  OutDir=analysis/popgen/busco_phylogeny/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="371 SCRP370 SCRP376"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      filename=$(basename "$Vcf")
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+  done
+```
