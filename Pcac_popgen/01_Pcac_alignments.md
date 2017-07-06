@@ -357,10 +357,10 @@ done
 
 
 
-# 3.1 P. idaei vs P. idaei
+# 3.1 P. idaei vs P414
 
 ```bash
-  Prefix=Pi_vs_Pi
+  Prefix=Pi_vs_P414
   OutDir=analysis/popgen/SNP_calling/$Prefix
   mkdir -p $OutDir
 
@@ -383,19 +383,37 @@ done
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
       echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
       filename=$(basename "$Vcf")
+      Prefix=$(echo $filename | sed 's/.vcf//g')
       SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
   done
 ```
 
-# 3.2 P. cactorum ex. apple vs ex. apple
+# 3.2 P. cactorum ex. apple vs P414
 
 ```bash
-  Prefix=Pc_apple_vs_apple
-  OutDir=analysis/popgen/busco_phylogeny/$Prefix
+  Prefix=Pc_apple_vs_P414
+  OutDir=analysis/popgen/SNP_calling/$Prefix
   mkdir -p $OutDir
 
   Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
@@ -417,19 +435,37 @@ done
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
       echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
       filename=$(basename "$Vcf")
+      Prefix=$(echo $filename | sed 's/.vcf//g')
       SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
   done
 ```
 
-# 3.3 P. cactorum ex. strawberry vs ex. strawberry
+# 3.3 P. cactorum ex. strawberry vs P414
 
 ```bash
-  Prefix=Pc_strawberry_vs_strawberry
-  OutDir=analysis/popgen/busco_phylogeny/$Prefix
+  Prefix=Pc_strawberry_vs_P414
+  OutDir=analysis/popgen/SNP_calling/$Prefix
   mkdir -p $OutDir
 
   Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
@@ -451,15 +487,86 @@ done
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
       echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
       filename=$(basename "$Vcf")
+      Prefix=$(echo $filename | sed 's/.vcf//g')
       SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > ${filename%.vcf}_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
   done
 ```
 
 
+# 3.4 P414 vs P414
+
+```bash
+  Prefix=P414_vs_P414
+  OutDir=analysis/popgen/SNP_calling/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+  ExludeList="12420 15_13 15_7 2003_3 4032 404 415 416 PC13_15 62471 P295 R36_14 371 SCRP370 SCRP376"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExludeList > $OutDir/$Prefix.vcf
+
+  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+  # $ProgDir/vcf_parser_haploid.py --i $OutDir/$Prefix.vcf
+  mq=40
+  qual=30
+  dp=10
+  gq=30
+  na=0.95
+  indel=Y
+  $VcfLib/vcffilter -f "QUAL > $qual & MQ > $mq" $OutDir/$Prefix.vcf | $VcfLib/vcffilter -g "DP > $dp & GQ > $gq" > $OutDir/temp.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/temp.vcf --mac 1 --recode --out $OutDir/"$Prefix"_filtered
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered.recode.vcf); do
+      echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/ProgDir/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
+      filename=$(basename "$Vcf")
+      Prefix=$(echo $filename | sed 's/.vcf//g')
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
+  done
+```
+
+<!--
 # 3.4 P. idaei vs P. cactorum ex. apple
 
 ```bash
@@ -532,7 +639,7 @@ done
 
 ```bash
   Prefix=Pc_apple_vs_strawberry
-  OutDir=analysis/popgen/busco_phylogeny/$Prefix
+  OutDir=analysis/popgen/SNP_calling/$Prefix
   mkdir -p $OutDir
 
   Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
@@ -560,4 +667,41 @@ done
       mv snpEff_genes.txt $OutDir/snpEff_genes_${filename%.vcf}.txt
       mv snpEff_summary.html $OutDir/snpEff_summary_${filename%.vcf}.html
   done
+```
+-->
+
+## Summarise SNP effects
+
+<!-- ```bash
+for File in $(ls analysis/popgen/SNP_calling/P*_vs_P414/snpEff_genes_P*_vs_P414_filtered.recode.txt); do
+Comparison=$(echo $File | rev | cut -f2 -d '/' | rev)
+HighEffect=$(cat $File | cut -f5 | tail -n+3 | awk '{s+=$1}END{print s}')
+LowEffect=$(cat $File | cut -f6 | tail -n+3 | awk '{s+=$1}END{print s}')
+Moderate=$(cat $File | cut -f7 | tail -n+3 | awk '{s+=$1}END{print s}')
+Synonamous=$(cat $File | cut -f24 | tail -n+3 | awk '{s+=$1}END{print s}')
+printf "$Comparison\t$HighEffect\t$LowEffect\t$Moderate\t$Synonamous\n"
+done
+``` -->
+
+```bash
+RxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/414_v2/414_v2_Total_RxLR_EER_motif_hmm_ID.txt)
+CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
+for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414 | grep 'apple'); do
+  Comparison=$(echo $Folder | rev | cut -f1 -d '/' | rev)
+  AllSnps=$(cat $Folder/*recode_annotated.vcf | grep -v '#' | wc -l)
+  GeneSnps=$(cat $Folder/*_gene.vcf | grep -v '#' | wc -l)
+  CdsSnps=$(cat $Folder/*_coding.vcf | grep -v '#' | wc -l)
+  NonsynSnps=$(cat $Folder/*_nonsyn.vcf | grep -v '#' | wc -l)
+  SynSnps=$(cat $Folder/*_syn.vcf | grep -v '#' | wc -l)
+  RxlrSynSnps=$(cat $Folder/*_nonsyn.vcf | grep -f $RxLR | wc -l)
+  CrnSynSnps=$(cat $Folder/*_nonsyn.vcf | grep -f $CRN | wc -l)
+  printf "$Comparison\t$AllSnps\t$GeneSnps\t$CdsSnps\t$NonsynSnps\t$SynSnps\t$RxlrSynSnps\t$CrnSynSnps\n"
+done
+```
+
+```
+P414_vs_P414	899	838	750	456	294	0	0
+Pc_apple_vs_P414	28026	10320	8982	5050	3932	26	28
+Pc_strawberry_vs_P414	5987	2485	2153	1344	809	7	6
+Pi_vs_P414	13850	5656	5018	3050	1968	10	28
 ```
