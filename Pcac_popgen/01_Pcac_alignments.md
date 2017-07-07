@@ -693,9 +693,9 @@ for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414 | grep 'apple'); do
   CdsSnps=$(cat $Folder/*_coding.vcf | grep -v '#' | wc -l)
   NonsynSnps=$(cat $Folder/*_nonsyn.vcf | grep -v '#' | wc -l)
   SynSnps=$(cat $Folder/*_syn.vcf | grep -v '#' | wc -l)
-  RxlrSynSnps=$(cat $Folder/*_nonsyn.vcf | grep -f $RxLR | wc -l)
-  CrnSynSnps=$(cat $Folder/*_nonsyn.vcf | grep -f $CRN | wc -l)
-  printf "$Comparison\t$AllSnps\t$GeneSnps\t$CdsSnps\t$NonsynSnps\t$SynSnps\t$RxlrSynSnps\t$CrnSynSnps\n"
+  RxlrNonSynSnps=$(cat $Folder/*_nonsyn.vcf | grep -f $RxLR | wc -l)
+  CrnNonSynSnps=$(cat $Folder/*_nonsyn.vcf | grep -f $CRN | wc -l)
+  printf "$Comparison\t$AllSnps\t$GeneSnps\t$CdsSnps\t$NonsynSnps\t$SynSnps\t$RxlrNonSynSnps\t$CrnNonSynSnps\n"
 done
 ```
 
