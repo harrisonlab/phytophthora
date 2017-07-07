@@ -136,8 +136,7 @@ $ProgDir/fasta2phylip.pl $f>$p
 mv $p $dir
 
 # Convert FASTA to NEXUS for the BEAST run
-$ProgDir/Fasta2Nexus.pl $f>$n
-mv $n NEXUS
+$ProgDir/Fasta2Nexus.pl $f>$dir/$n
 
 #Problems running PartitionFinder on the cluster. May have to be run locally on your Mac or Windows machine.
 # qsub $ProgDir/sub_partition_finder.sh $dir
@@ -157,9 +156,96 @@ copy the fasta files and the partitionfinder config files to
 your local computer
 
 ```bash
+cd Users/armita/Downloads
 scp -r cluster:/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny/phylogeny .
-for Dir in $(ls -d *_appended_aligned); do
-/Users/armita/anaconda2/bin/python ../partitionfinder-2.1.1/PartitionFinder.py $Dir --no-ml-tree --force-restart
-done > log.txt
+```
+
+Alignments were loaded into Geneious where they were visualised and manually sorted into
+three categories:
+* Good - All sequences present no trimming needed
+* Trim - All sequences present short regions may need trimming from the beginning / end of the alignment before use in phylogenetics
+* Bad - a region of one or more sequences is missing or the sequences / alignment is not appropriate for phylogenetics
+
+These alignments were then exported from Geneious into the following folders:
+
+```bash
+cd Users/armita/Downloads/phylogeny
+mkdir good_alignments
+mkdir trim_alignments
+mkdir bad_alignments
+```
+
+Alignments within the "good alignments" directory were taken forward for further
+analysis
+
+```bash
+  for Dir in $(ls -d *_alignments); do
+    for Alignment in $(ls $Dir/*_appended_aligned.phy); do
+      Prefix=$(echo $Alignment | cut -f2 -d '/' | sed 's/.phy//g')
+      echo $Prefix
+      cp $Prefix/$Prefix.NEXUS $Dir/$Prefix/.
+      cp -r $Prefix $Dir/.
+      /Users/armita/anaconda2/bin/python ../partitionfinder-2.1.1/PartitionFinder.py $Dir/$Prefix --no-ml-tree --force-restart
+    done
+  done > log.txt
+```
+
+
+Upload partition models back to the cluster:
+
+```bash
+ClusterDir=/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny/phylogeny
+scp -r bad_alignments cluster:$ClusterDir/.
+```
+
+
+## Preparing to run BEAST
+
+
+Using trimmed FASTA alignments and nucleotide substitution models identified with PartitionFinder:
+create an XML input file using BEAUTi, with StarBeast template.
+
+Prepare a 30 loci dataset, in addition to a 5 loci subset to compare convergence.
+
+Run after qlogin into a worker node (BEAST does not find BEAGLE libraries when using qsub -
+as the BEAST package is quite fiddly, may troubleshoot it later when necessary.
+
+StarBeast settings used here:
+* Substitution rate: default HKY
+* Strict clock
+* Species Tree Population Size: Linear with constant root
+* Yule prior on species tree
+* Chain length: 300 million (this may vary, change run convergence with Tracer during the run to establish the number of iterations required
+* Tracer: /home/sobczm/bin/beast/Tracer_v1.6/bin/tracer
+some runs may never converge)
+* Store every: 10000
+
+```bash
+
+cd /home/groups/harrisonlab/project_files/idris
+
+# Run Beauti
+NexusFiles=$(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/*.NEXUS | sed -e 's/^/ -nex /g' | tr -d '\n')
+OutFile=$(echo $Nexus | sed 's/.NEXUS/.xml/g')
+ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
+$ProgDir/beauti $NexusFiles
+#-exitaction writexml-exitaction writexml
+
+qlogin -pe smp 8
+InXML=/<input_xml_file_here_created_by_beauti>/
+ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin/beast
+$ProgDir/beast -threads -1 $InXML
+
+#After the run, check convergence with Tracer, summarise the final tree with TreeAnnotator
+for Tree in $(ls *.trees); do
+BurnIn=10 # percentage of states to be considered as burnin
+SumTree="${t%.trees}_summary.tree"
+ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
+$ProgDir/treeannotator -heights median -burnin $BurnIn $Tree $SumTree
+done
+
+#Visualise and beautify the final tree (suffix "summary") with FigTree
+FigTree=/home/sobczm/bin/FigTree_v1.4.2/bin/figtree
+$FigTree
 
 ```
