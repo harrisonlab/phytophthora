@@ -230,6 +230,7 @@ crn_5_sig
 
 obs_crn <- df3
 obs_crn$treatment <- rep("crn",nrow(obs_crn))
+obs_crn$total_IG = obs_crn$five_IG + obs_crn$three_IG
 obs_non_crn <- df1[! df1$ID %in% df3$ID, ]
 obs_non_crn$treatment <- rep("non",nrow(obs_non_crn))
 obs_df <- rbind(obs_non_crn, obs_crn)
