@@ -294,7 +294,7 @@ done
 Find predicted coverage for these isolates:
 
 ```bash
-for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei'); do
+for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep 'idaei'); do
 Strain=$(basename $StrainDir)
 printf "$Strain\t"
 for File in $(ls qc_dna/paired/P.*/"$Strain"/*/*.txt); do
@@ -589,6 +589,35 @@ done
   371	60474213	60483665
   SCRP370	60582725	60561664
 ```
+
+Numbers of busco genes in each assembly were identified:
+
+```bash
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+BuscoDB="Eukaryotic"
+# OutDir=gene_pred/busco/$Organism/$Strain/assembly
+OutDir=$(dirname $Assembly)
+qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls assembly/spades/*/*/deconseq_Paen/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt  | grep -e 'P.cactorum' -e 'P.idaei'); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
+  done
+```
+
+
 
 A Bioproject and Biosample was made with NCBI genbank for submission of genomes.
 Following the creation of these submissions, the .fasta assembly was uploaded
