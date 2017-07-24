@@ -224,22 +224,47 @@ some runs may never converge)
 
 cd /home/groups/harrisonlab/project_files/idris
 
+
+for File in $(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/analysis/best_scheme.txt); do
+Busco=$(echo $File | cut -f6 -d '/' | cut -f1 -d '_')
+Model=$(cat $File | grep -A1 'Best Model' | tail -n1 | cut -f2 -d '|')
+printf "$Busco\t$Model\n"
+done
+
+# Edit NEXUS files:
+for Nexus in $(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/*_appended_aligned.NEXUS); do
+  sed -i -r "s/^.*_P\./P./g" $Nexus
+  sed -i -r "s/_contig.*\t/\t/g" $Nexus
+  sed -i -r "s/_NODE.*\t/\t/g" $Nexus
+done
+
+# OUtputs of partitionfinder were used to set models
+# of DNA evolution in Beauti, as described on:
+# http://www.robertlanfear.com/partitionfinder/faq/#toc-beast
+# CHain length was modified from 10000000 to 500000000 as determined
+# by a first run of beast where tracer reported the estimated sasmple size to be below 100 (3) - increase by 50 fold.
+
 # Run Beauti
 NexusFiles=$(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/*.NEXUS | sed -e 's/^/ -nex /g' | tr -d '\n')
 OutFile=$(echo $Nexus | sed 's/.NEXUS/.xml/g')
 ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
-$ProgDir/beauti $NexusFiles
-#-exitaction writexml-exitaction writexml
+$ProgDir/beauti -template StarBeast.xml $NexusFiles
+
+
+
 
 qlogin -pe smp 8
-InXML=/<input_xml_file_here_created_by_beauti>/
-ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin/beast
-$ProgDir/beast -threads -1 $InXML
+InXML=analysis/popgen/busco_phylogeny/phylogeny/Pcac_beauti_starBEAST2.xml
+OutDir=$(dirname $InXML)"/BEAST4"
+mkdir -p $OutDir
+ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
+$ProgDir/beast -threads 8 -prefix $OutDir $InXML > $OutDir/log.txt
+# java -Djava.library.path="C:\Program Files (x86)\Common Files\libhmsbeagle-1.0" -jar "/BEAST175/lib/beast.jar"
 
 #After the run, check convergence with Tracer, summarise the final tree with TreeAnnotator
-for Tree in $(ls *.trees); do
+for Tree in $(ls $OutDir/*.trees); do
 BurnIn=10 # percentage of states to be considered as burnin
-SumTree="${t%.trees}_summary.tree"
+SumTree=$(echo $Tree | sed 's/.trees/_summary.tree/g')
 ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
 $ProgDir/treeannotator -heights median -burnin $BurnIn $Tree $SumTree
 done
