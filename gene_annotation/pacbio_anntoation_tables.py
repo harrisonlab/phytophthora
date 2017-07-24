@@ -41,7 +41,8 @@ ap.add_argument('--raw_counts',required=True,type=str,help='raw count data as ou
 ap.add_argument('--fpkm',required=True,type=str,help='normalised fpkm count data as output from DESeq')
 ap.add_argument('--InterPro',required=True,type=str,help='The Interproscan functional annotation .tsv file')
 ap.add_argument('--Swissprot',required=True,type=str,help='A parsed table of BLAST results against the Swissprot database. Note - must have been parsed with swissprot_parser.py')
-
+ap.add_argument('--SNP',required=True,nargs='+',type=str,help='A list of annotated .vcf with information on synonymous and non-synonymous SNPs in comparisons to the reference. Note - each of these files should be contained within a sepperate directory which is named on the comparison to be made.')
+ap.add_argument('--gene_conversion',required=True,type=str,help='Conversion of gene ids of effector genes prior to ncbi-renaming for RxLRs, secreted genes and CRNs.')
 
 conf = ap.parse_args()
 
@@ -120,6 +121,36 @@ with open(conf.InterPro) as f:
 
 with open(conf.Swissprot) as f:
     swissprot_lines = f.readlines()
+
+SNP_files = conf.SNP
+SNP_dict = defaultdict(list)
+for SNP_file in SNP_files:
+    comparison = SNP_file.split("/")[-2]
+    with open(SNP_file) as f:
+        filename = SNP_file
+        SNP_lines = f.readlines()
+        for line in SNP_lines:
+            if line.startswith('#'):
+                continue
+            else:
+                split_line = line.split()
+                SNP_info = split_line[7]
+                split_info = SNP_info.split("|")
+                effect = split_info[1]
+                # print effect
+                transcript_id = split_info[6]
+                if 'missense_variant' in effect:
+                    AA_change = split_info[10]
+                    SNP_dict[transcript_id].append("_".join([comparison, AA_change]))
+                elif 'nonsense_variant' in effect:
+                    AA_change = "stop"
+                    SNP_dict[transcript_id].append("_".join([comparison, AA_change]))
+                    # print effect
+
+
+with open(conf.gene_conversion) as f:
+    conversion_lines = f.readlines()
+
 
 #-----------------------------------------------------
 # Load protein sequence data into a dictionary
@@ -383,6 +414,21 @@ for line in swissprot_lines:
     swissprot_dict[gene_id].extend(swissprot_columns)
 
 
+#-----------------------------------------------------
+#
+# Build a dictionary of Swissprot annotations
+#-----------------------------------------------------
+
+conversion_dict = defaultdict(list)
+
+for line in conversion_lines:
+    line = line.rstrip("\n")
+    split_line = line.split("\t")
+    old_id = split_line[0]
+    new_id = split_line[2]
+    conversion_dict[new_id] = old_id
+    # print "-".join([new_id, old_id])
+
 
 #-----------------------------------------------------
 # Step 3
@@ -408,6 +454,7 @@ for DEG_file in DEG_files:
     header_line.append("LFC_" + file_name)
     header_line.append("P-val_" + file_name)
 header_line.append('prot_seq')
+header_line.append('Non-syn_SNP')
 print ("\t".join(header_line))
 
 transcript_lines = []
@@ -485,16 +532,19 @@ for line in transcript_lines:
         transcript_id = transcript_id.replace('ID=', '')
     else:
         transcript_id = split_line[8]
+    gene_id = transcript_id.split(".")[0]
+    old_gene = "".join(conversion_dict[gene_id])
+    old_id = transcript_id.replace(gene_id, old_gene)
 
-    if transcript_id in SigP2_set:
+    if old_id in SigP2_set:
         sigP2 = 'Yes'
-    if transcript_id in SigP4_set:
+    if old_id in SigP4_set:
         sigP4 = 'Yes'
-    if transcript_id in phobius_set:
+    if old_id in phobius_set:
         phobius = 'Yes'
-    if transcript_id in trans_mem_set:
+    if old_id in trans_mem_set:
         trans_mem = 'Yes'
-    if transcript_id in gpi_set:
+    if old_id in gpi_set:
         gpi = 'Yes'
     if any([sigP2 == 'Yes', sigP4 == 'Yes']) and all([trans_mem == '', gpi == '']):
         secreted = 'Yes'
@@ -507,13 +557,13 @@ for line in transcript_lines:
     # if transcript_id in RxLR_WY_set:
     #     WY_hmm = 'Yes'
     # gene_id = transcript_id.split('.')[0]
-    if transcript_id in RxLR_total_set:
+    if old_id in RxLR_total_set:
         RxLR_total = 'Yes'
     # if transcript_id in CRN_LFLAK_set:
     #     CRN_LFLAK = 'Yes'
     # if transcript_id in CRN_DWL_set:
     #     CRN_DWL = 'Yes'
-    if transcript_id in CRN_total_set:
+    if old_id in CRN_total_set:
         CRN_total = 'Yes'
     # if ortho_dict[transcript_id]:
     #     orthogroup = ortho_dict[transcript_id]
@@ -560,6 +610,13 @@ for line in transcript_lines:
     else:
         interpro_col = '.'
 
+    # Add in SNP info
+    if SNP_dict[transcript_id]:
+        # print(SNP_dict[transcript_id])
+        non_syn_col = "|".join(SNP_dict[transcript_id])
+    else:
+        non_syn_col = ""
+
     prot_seq = "".join(prot_dict[transcript_id])
     # outline = [transcript_id, sigP2, phobius ,RxLR_motif, RxLR_hmm, WY_hmm, CRN_LFLAK, CRN_DWL, orthogroup]
     outline = [transcript_id]
@@ -572,8 +629,11 @@ for line in transcript_lines:
     outline.extend(mean_count_cols)
     outline.extend(mean_fpkm_cols)
     outline.extend(DEG_out)
+    outline.append(non_syn_col)
     outline.append(prot_seq)
     outline.extend(swissprot_cols)
     outline.append(interpro_col)
+
+
     print "\t".join(outline)
     # print DEG_out
