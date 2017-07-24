@@ -87,7 +87,7 @@ library("RColorBrewer")
 install.packages("gplots)
 library("gplots", Sys.getenv("R_LIBS_USER"))
 library("ggplot2")
-install.packages("ggrepel", Sys.getenv("R_LIBS_USER"), repos = "http://cran.case.edu")
+# install.packages("ggrepel", Sys.getenv("R_LIBS_USER"), repos = "http://cran.case.edu")
 library("ggrepel")
 
 vst<-varianceStabilizingTransformation(dds)
@@ -335,7 +335,7 @@ write.table(norm_counts,"alignment/star/P.cactorum/414_v2/DeSeq/normalised_count
 
 library(Biostrings)
 library(naturalsort)
-mygenes <- readDNAStringSet("gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.cdna.fasta")
+mygenes <- readDNAStringSet("gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.cdna.fasta")
 t1 <- counts(dds)
 t1 <- mygenes[rownames(t1)]
 rowRanges(dds) <- GRanges(t1@ranges@NAMES,t1@ranges)
