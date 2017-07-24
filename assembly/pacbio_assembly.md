@@ -344,6 +344,41 @@ done
 P.cactorum	414_v2	278	2	23	303
 ```
 
+
+Contigs were identified that had blast hits to non-phytophthora genomes
+
+```bash
+for Assembly in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -e '414_v2' | grep -v 'polished'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+# Exclude_db="bact,virus,hsref"
+Exclude_db="paenibacillus"
+Good_db="phytoph"
+AssemblyDir=$(dirname $Assembly)
+OutDir=$AssemblyDir/../deconseq_Paen
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+done
+```
+
+Results were summarised using the commands:
+
+```bash
+# for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
+for File in $(ls assembly/merged_canu_spades/P.*/*/deconseq_Paen/log.txt | grep '414_v2'); do
+  Name=$(echo $File | rev | cut -f3 -d '/' | rev);
+  Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
+  Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
+  Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
+  printf "$Name\t$Good\t$Both\t$Bad\n";
+done
+```
+
+```
+  414_v2	186	0	0
+```
+
 # Preliminary analysis
 
 ## Checking MiSeq coverage against P414 contigs
@@ -1082,7 +1117,7 @@ ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/tran
 qsub $ProgDir/submit_TMHMM.sh $Proteome
 done
 ```
-
+<-
 Those proteins with transmembrane domains were removed from lists of Signal
 peptide containing proteins
 
@@ -2229,8 +2264,9 @@ $ProgDir/remove_dup_features.py --inp_gff $GffAppended
 cat $GffAppended > $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3
 
 GffRenamed=$OutDir/414_v2_genes_incl_ORFeffectors_renamed.gff3
+RenameLog=$OutDir/414_v2_genes_incl_ORFeffectors_renamed.log
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
-$ProgDir/gff_rename_genes.py --inp_gff $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3 > $GffRenamed
+$ProgDir/gff_rename_genes.py --inp_gff $OutDir/414_v2_genes_incl_ORFeffectors_filtered.gff3 --conversion_log $RenameLog > $GffRenamed
 
 Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_softmasked_repeatmasker_TPSI_appended.fa )
 $ProgDir/gff2fasta.pl $Assembly $GffRenamed $OutDir/414_v2_genes_incl_ORFeffectors_renamed
@@ -2312,12 +2348,12 @@ Quantification of these genes was performed using featureCounts program as part
 of the Subreads package.
 
 ```bash
-  Gff=$(ls ls gene_pred/final_genes/*/*/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3 | grep '414_v2')
+  Gff=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3 | grep '414_v2')
   # for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
-  for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/pcac_*/star_aligmentAligned.sortedByCoord.out.bam); do
+  for BamFile in $(ls ../../../..//sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
     OutDir=$(dirname $BamFile)
     OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment
-    Prefix=$(echo $BamFile | rev | cut -f2 -d '/' | rev | sed 's/pcac_//g')
+    Prefix=$(echo $BamFile | rev | cut -f3 -d '/' | rev | sed 's/vesca_//g')
     Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
     while [ $Jobs -gt 1 ]; do
       sleep 1m
@@ -2364,16 +2400,16 @@ RNAseq/P414/DESeq_analysis.md
 For P. cactorum
 
 ```bash
-for GeneGff in $(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.gff3 | grep '414_v2'); do
-  Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
-  Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
+for GeneGff in $(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3 | grep '414_v2'); do
+  Strain=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
+  Organism=$(echo $GeneGff | rev | cut -f4 -d '/' | rev)
   Assembly=$(ls repeat_masked/$Organism/$Strain/*/*_contigs_unmasked.fa)
   InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
   SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vJul2016_tophit_parsed.tbl)
   OutDir=gene_pred/annotation/$Organism/$Strain
   mkdir -p $OutDir
 	# GeneFasta=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.pep.fasta)
-  GeneFasta=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors.cds.fasta)
+  GeneFasta=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.cds.fasta)
 	SigP2=$(ls gene_pred/final_sigP/$Organism/$Strain/*_aug_sp.aa)
 	SigP4=$(ls gene_pred/final_signalp-4.1/$Organism/$Strain/*_aug_sp.aa)
   TMHMM_headers=$(ls gene_pred/trans_mem/$Organism/$Strain/*_TM_genes_pos_headers.txt)
@@ -2394,6 +2430,9 @@ for GeneGff in $(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_genes_incl_ORF
   # NormCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/normalised_counts.txt)
   RawCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/raw_counts.txt)
   FPKM=$(ls alignment/star/P.cactorum/414_v2/DeSeq/fpkm_counts.txt)
-  $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --trans_mem $TMHMM_headers --GPI_anchor $GPI_headers --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --raw_counts $RawCount --fpkm $FPKM --InterPro $InterPro --Swissprot $SwissProt > $OutDir/414_v2_gene_table_incl_exp.tsv
+  # File showing gene name conversions
+  ConversionLog=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.log)
+  VcfFiles=$(ls analysis/popgen/SNP_calling/*_vs_P414/*_no_indels.recode_gene.vcf)
+  $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --trans_mem $TMHMM_headers --GPI_anchor $GPI_headers --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --raw_counts $RawCount --fpkm $FPKM --InterPro $InterPro --Swissprot $SwissProt --SNP $VcfFiles --gene_conversion $ConversionLog > $OutDir/414_v2_gene_table_incl_exp.tsv
 done
 ```
