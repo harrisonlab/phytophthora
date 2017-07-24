@@ -638,7 +638,7 @@ Extract crinklers from published gene models
 
 
 ```bash
-  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/10300 | grep -v -e '67593' -e 'masked'); do
+  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/10300 | grep -v -e '67593' -e 'masked' | grep '10300'); do
     Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
     Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
     AugGff=$MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff
