@@ -148,14 +148,23 @@ This allowed estimation of sequencing depth and total genome size
 ```bash
 for TrimPath in $(ls -d qc_dna/paired/P.cactorum/10300); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
-TrimF=$(ls $TrimPath/F/*.fq.gz)
-TrimR=$(ls $TrimPath/R/*.fq.gz)
-TrimMatePath=$(echo $TrimPath | sed 's/paired/mate-paired/g')
-TrimMateF=$(ls $TrimMatePath/F/*.fq.gz)
-TrimMateR=$(ls $TrimMatePath/R/*.fq.gz)
-echo $TrimF $TrimMateF
-echo $TrimR $TrimMateR
-qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimMateF $TrimR $TrimMateR
+TrimF=$(ls $TrimPath/F/*.fq.gz | grep 'lane4_300bp')
+TrimR=$(ls $TrimPath/R/*.fq.gz | grep 'lane4_300bp')
+# TrimMatePath=$(echo $TrimPath | sed 's/paired/mate-paired/g')
+# TrimMateF=$(ls $TrimMatePath/F/*.fq.gz)
+# TrimMateR=$(ls $TrimMatePath/R/*.fq.gz)
+# echo $TrimF $TrimMateF
+# echo $TrimR $TrimMateR
+# qsub $ProgDir/kmc_kmer_counting.sh $TrimF $TrimMateF $TrimR $TrimMateR
+# for KmerSz in $(seq 21 2 31); do
+for KmerSz in $(seq 31 31); do
+	echo $KmerSz
+OutDir=qc_dna/kmc/P.cactorum/10300/$KmerSz
+echo $TrimF
+echo $TrimR
+qsub $ProgDir/kmc_kmer_counting.sh $KmerSz $OutDir $TrimF $TrimR
+# qsub $ProgDir/kmc_kmer_counting.sh $KmerSz $OutDir $TrimF
+done
 done
 ```
 
@@ -478,33 +487,54 @@ The number of bases masked by transposonPSI and Repeatmasker were summarised
 using the following commands:
 
 ```bash
-	RepPcac=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask
-	RepPinf=repeat_masked/P.infestans/T30-4/dna_repmask
-	RepPpar=repeat_masked/P.parisitica/310/dna_repmask
-	RepPcap=repeat_masked/P.capsici/LT1534/dna_repmask    
-	RepPsoj=repeat_masked/P.sojae/67593/dna_repmask
-	# for RepDir in $(ls -d repeat_masked/*/*/*); do
-	for RepDir in $RepPcac $RepPinf $RepPpar $RepPcap $RepPsoj; do
-		Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
-		Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
-		RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
-		TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
-		printf "$Organism\t$Strain\n"
-		printf "The number of bases masked by RepeatMasker:\t"
-		bedtools sort -i $RepMaskGff | bedtools merge  | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-		printf "The number of bases masked by TransposonPSI:\t"
-		sortBed -i $TransPSIGff > $RepDir/TPSI_sorted.bed
-		bedtools sort -i $RepDir/TPSI_sorted.bed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-		cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
-		sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
-		printf "The total number of masked bases are:\t"
-		bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-		rm $RepDir/TPSI_sorted.bed
-		rm $RepDir/merged.gff
-		rm $RepDir/merged_sorted.bed
-	done
+RepPcac=repeat_masked/P.cactorum/10300/10300_abyss_53_repmask
+RepPinf=repeat_masked/P.infestans/T30-4/dna_repmask
+RepPpar=repeat_masked/P.parisitica/310/dna_repmask
+RepPcap=repeat_masked/P.capsici/LT1534/dna_repmask    
+RepPsoj=repeat_masked/P.sojae/67593/dna_repmask
+# for RepDir in $(ls -d repeat_masked/*/*/*); do
+# for RepDir in $RepPcac $RepPinf $RepPpar $RepPcap $RepPsoj; do
+for RepDir in $RepPcac; do
+	Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
+	Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
+	RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
+	TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+	printf "$Organism\t$Strain\n"
+	printf "The number of bases masked by RepeatMasker:\t"
+	bedtools sort -i $RepMaskGff | bedtools merge  | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+	printf "The number of bases masked by TransposonPSI:\t"
+	sortBed -i $TransPSIGff > $RepDir/TPSI_sorted.bed
+	bedtools sort -i $RepDir/TPSI_sorted.bed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+	cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
+	sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
+	printf "The total number of masked bases are:\t"
+	# bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+	rm $RepDir/TPSI_sorted.bed
+	rm $RepDir/merged.gff
+	rm $RepDir/merged_sorted.bed
+done
 ```
-
+Results from TPSI
+```bash
+cat repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa.TPSI.allHits.chains.bestPerLocus | grep '#' | cut -f2 | sort | uniq -c
+```
+See http://avrilomics.blogspot.co.uk/2015/02/finding-repeats-using-transposonpsi.html
+```
+8 cacta
+210 Crypton
+308 DDE_1
+833 gypsy
+198 hAT
+298 helitronORF
+12 ISC1316
+58 LINE
+18 ltr_Roo
+230 mariner
+162 mariner_ant1
+116 MuDR_A_B
+302 piggybac
+490 TY1_Copia
+```
 # Gene Prediction
 
 
