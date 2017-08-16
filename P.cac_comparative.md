@@ -477,20 +477,38 @@ Assembly results were summarised using Quast:
 ```
 
 Contigs were identified that had blast hits to non-phytophthora genomes
-
+<!--
 ```bash
   for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
     echo "$Organism - $Strain"
     # Exclude_db="bact,virus,hsref"
-    Exclude_db="paenibacillus"
+    # Exclude_db="paenibacillus"
+    # Exclude_db="common_contaminants"
+    Exclude_db="paenibacillus,bacillus,delftia"
     Good_db="phytoph"
     AssemblyDir=$(dirname $Assembly)
-    # OutDir=$AssemblyDir/../deconseq
-    OutDir=$AssemblyDir/../deconseq_Paen
+    # OutDir=$AssemblyDir/../deconseq_Paen
+    # OutDir=$AssemblyDir/../deconseq_common
+    OutDir=$AssemblyDir/../deconseq_common_seperated
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
     qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+  done
+``` -->
+
+```bash
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    for Exclude_db in "bacillus" "delftia" "Paen"; do
+      Good_db="phytoph"
+      AssemblyDir=$(dirname $Assembly)
+      OutDir=$AssemblyDir/../deconseq_$Exclude_db
+      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+      qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+    done
   done
 ```
 
@@ -498,12 +516,16 @@ Results were summarised using the commands:
 
 ```bash
 # for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
-for File in $(ls assembly/spades/P.*/*/deconseq_Paen/log.txt); do
-  Name=$(echo $File | rev | cut -f3 -d '/' | rev);
-  Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
-  Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
-  Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
-  printf "$Name\t$Good\t$Both\t$Bad\n";
+# for File in $(ls assembly/spades/P.*/*/deconseq_common/log.txt); do
+for Exclude_db in "bacillus" "delftia" "Paen"; do
+  echo $Exclude_db
+  for File in $(ls assembly/spades/P.*/*/*/log.txt | grep "$Exclude_db"); do
+    Name=$(echo $File | rev | cut -f3 -d '/' | rev);
+    Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
+    Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
+    Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
+    printf "$Name\t$Good\t$Both\t$Bad\n";
+  done
 done
 ```
 <!-- ```
@@ -526,7 +548,7 @@ done
   SCRP370	5303	38	17
   SCRP376	5228	70	17
 ``` -->
-
+Results from Paen
 ```
 12420	5508	3	30
 15_13	5419	2	1
@@ -546,11 +568,94 @@ R36_14	5957	3	38
 SCRP370	5355	2	1
 SCRP376	5313	1	1
 ```
+Results from delftia
+```
+12420	5534	1	6
+15_13	5420	1	1
+15_7	5462	0	3
+2003_3	5583	0	6
+4032	8396	2	4
+4040	5938	2	2
+404	20184	0	10
+414	6029	0	4
+415	5713	0	3
+416	5507	0	3
+62471	7123	1	2
+P295	5179	1	9
+PC13_15	5309	0	8
+R36_14	5990	0	8
+371	4709	1	1
+SCRP370	5355	2	1
+SCRP376	5313	1	1
+```
+Results from bacillus
+```
+12420	5529	3	9
+15_13	5419	2	1
+15_7	5461	1	3
+2003_3	5577	1	11
+4032	8330	2	70
+4040	5890	5	47
+404	20175	2	17
+414	5995	1	37
+415	5693	3	20
+416	5486	2	22
+62471	7056	5	65
+P295	5162	3	24
+PC13_15	5302	1	14
+R36_14	5975	1	22
+371	4710	0	1
+SCRP370	5356	1	1
+SCRP376	5314	0	1
+```
+<!--
+Results from common conatmainants
+```
+12420	5513	6	22
+15_13	5416	4	2
+15_7	5457	4	4
+2003_3	5546	5	38
+4032	7969	10	423
+4040	5646	15	281
+404	20145	5	44
+414	5812	7	214
+415	5691	5	20
+416	5483	5	22
+62471	6788	5	333
+P295	5121	6	62
+PC13_15	5283	3	31
+R36_14	5961	2	35
+371	4709	1	1
+SCRP370	5355	2	1
+SCRP376	5312	1	2
+``` -->
+
+Those contigs that were not identified as contaminants in each of the filtering
+steps were retained.
+
+```bash
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+StrainDir=$(ls -d assembly/spades/$Organism/$Strain)
+mkdir -p $StrainDir/deconseq_appended
+for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen"); do
+cat $File | grep '>'
+done | sort | uniq | tr -d '>' > $StrainDir/deconseq_appended/exclude_list.txt
+Instructions=$StrainDir/deconseq_appended/exclude_instructions.txt
+printf "Exclude:\nSequence name, length, apparent source\n" > $Instructions
+cat $StrainDir/deconseq_appended/exclude_list.txt | sed -r 's/$/\t.\tcontaminant/g' >> $Instructions
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+$ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $StrainDir/deconseq_appended/contigs_min_500bp_renamed.fasta --coord_file $Instructions
+done
+```
 
 Assembly stats were collected on filtered assemblies:
 
 ```bash
-  for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+  # for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+  for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
     OutDir=$(dirname $Assembly)
@@ -562,7 +667,8 @@ Assembly stats were collected on filtered assemblies:
 Assembly stats were summarised and compared to previous assembly results using:
 
 ```bash
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/report.tsv); do  
+# for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/report.tsv); do  
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_common/report.tsv); do  
 Strain=$(echo $Assembly | rev | cut -f3 -d '/'| rev);
 Size=$(cat $Assembly | grep 'Total length' | head -n1 | cut -f2);
 OldAssembly=$(ls assembly/spades/P.*/$Strain/filtered_contigs*/report.tsv)
@@ -593,7 +699,8 @@ done
 Numbers of busco genes in each assembly were identified:
 
 ```bash
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+# for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
@@ -606,7 +713,8 @@ done
 ```
 
 ```bash
-  for File in $(ls assembly/spades/*/*/deconseq_Paen/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt  | grep -e 'P.cactorum' -e 'P.idaei'); do
+  # for File in $(ls assembly/spades/*/*/deconseq_Paen/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt  | grep -e 'P.cactorum' -e 'P.idaei'); do
+  for File in $(ls assembly/spades/*/*/deconseq_common/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt  | grep -e 'P.cactorum' -e 'P.idaei'); do
   Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
   Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
   Complete=$(cat $File | grep "(C)" | cut -f2)
@@ -673,6 +781,22 @@ Assembly stats were summarised using:
     echo "$File" | rev | cut -f3 -d '/' | rev ;
     cat $File | cut -f2;
   done
+```
+
+The following assemblies were accepted by ncbi following runs through the Paenobacillus deconseq database:
+
+```
+Pcac_12-420
+Pcac_15-13
+Pcac_4032
+Pcac_4040
+```
+The following were run through the Paenobacillus, Bacillus, Delftia database:
+```
+R36-14
+416
+415
+2003_3
 ```
 
 # Repeatmasking
