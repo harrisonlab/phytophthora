@@ -668,7 +668,7 @@ Assembly stats were summarised and compared to previous assembly results using:
 
 ```bash
 # for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/report.tsv); do  
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_common/report.tsv); do  
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/report.tsv); do  
 Strain=$(echo $Assembly | rev | cut -f3 -d '/'| rev);
 Size=$(cat $Assembly | grep 'Total length' | head -n1 | cut -f2);
 OldAssembly=$(ls assembly/spades/P.*/$Strain/filtered_contigs*/report.tsv)
@@ -1083,8 +1083,11 @@ models:
     $ProgDir/gene_list_to_gff.pl $AddGenesList $CodingQuaryGff CodingQuarry_v2.0 ID CodingQuary > $AddGenesGff
     $ProgDir/gene_list_to_gff.pl $AddGenesList $PGNGff PGNCodingQuarry_v2.0 ID CodingQuary >> $AddGenesGff
     ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
-
-    $ProgDir/add_CodingQuary_features.pl $AddGenesGff $Assembly > $FinalDir/final_genes_CodingQuary.gff3
+    # -
+    # This section is edited
+    $ProgDir/add_CodingQuary_features.pl $AddGenesGff $Assembly > $AddDir/add_genes_CodingQuary_unspliced.gff3
+    $ProgDir/correct_CodingQuary_splicing.py --inp_gff $AddDir/add_genes_CodingQuary_unspliced.gff3 > $FinalDir/final_genes_CodingQuary.gff3
+    # -
     $ProgDir/gff2fasta.pl $Assembly $FinalDir/final_genes_CodingQuary.gff3 $FinalDir/final_genes_CodingQuary
     cp $BrakerGff $FinalDir/final_genes_Braker.gff3
     $ProgDir/gff2fasta.pl $Assembly $FinalDir/final_genes_Braker.gff3 $FinalDir/final_genes_Braker
