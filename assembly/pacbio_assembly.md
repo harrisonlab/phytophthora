@@ -659,10 +659,6 @@ done
 
 #### Aligning
 
-Insert sizes of the RNA seq library were unknown until a draft alignment could
-be made. To do this tophat and cufflinks were run, aligning the reads against a
-single genome. The fragment length and stdev were printed to stdout while
-cufflinks was running.
 
 ```bash
   for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
@@ -779,18 +775,41 @@ Secondly, genes were predicted using CodingQuary:
 	done
 ```
 
+Some gene models were manually removed. Note - this step has been inserted after
+an initial prediction of the gene models and feedback has been received by ncbi.
+
+```bash
+# The following gene was removed from predicted gene models as a result of recomendation by ncbi
+# CUFF_1141_1_145 - alternatively spliced gene with no stop codon (remember that '_' need to be replaced with '.')
+# g7251 - overlapping exon with an RxLR gene
+for BrakerGff in $(ls gene_pred/braker/P.*/*/*/augustus.gff3 | grep '414_v2'); do
+  Strain=$(echo $BrakerGff| rev | cut -d '/' -f3 | rev | sed 's/_braker_new//g' | sed 's/_braker_pacbio//g')
+  Organism=$(echo $BrakerGff | rev | cut -d '/' -f4 | rev)
+  echo "$Organism - $Strain"
+  BrakerGffEdits=$(echo $BrakerGff | sed 's/.gff3/_edits.gff3/g')
+  cat $BrakerGff | grep -v -w 'CUFF.1141.1.145' | grep -v -w 'g7251' > $BrakerGffEdits
+  CodingQuaryGff=gene_pred/codingquary/$Organism/$Strain/out/PredictedPass.gff3
+  CodingQuaryGffEdits=$(echo $CodingQuaryGff | sed 's/.gff3/_edits.gff3/g')
+  PGNGff=gene_pred/codingquary/$Organism/$Strain/out/PGN_predictedPass.gff3
+  PGNGffEdits=$(echo $PGNGff | sed 's/.gff3/_edits.gff3/g')
+  cat $CodingQuaryGff | grep -v -w 'CUFF.1141.1.145' | grep -v -w 'g7251' > $CodingQuaryGffEdits
+  cat $PGNGff | grep -v -w 'CUFF.1141.1.145' | grep -v -w 'g7251' > $PGNGffEdits
+done
+```
+
+
 Then, additional transcripts were added to Braker gene models, when CodingQuary
 genes were predicted in regions of the genome, not containing Braker gene
 models:
 
 ```bash
-for BrakerGff in $(ls gene_pred/braker/P.*/*/*/augustus.gff3 | grep '414_v2'); do
+for BrakerGff in $(ls gene_pred/braker/P.*/*/*/augustus_edits.gff3 | grep '414_v2'); do
 Strain=$(echo $BrakerGff| rev | cut -d '/' -f3 | rev | sed 's/_braker_new//g' | sed 's/_braker_pacbio//g')
 Organism=$(echo $BrakerGff | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
 Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/"$Strain"_contigs_softmasked.fa)
-CodingQuaryGff=gene_pred/codingquary/$Organism/$Strain/out/PredictedPass.gff3
-PGNGff=gene_pred/codingquary/$Organism/$Strain/out/PGN_predictedPass.gff3
+CodingQuaryGff=$(ls gene_pred/codingquary/$Organism/$Strain/out/PredictedPass_edits.gff3)
+PGNGff=$(ls gene_pred/codingquary/$Organism/$Strain/out/PGN_predictedPass_edits.gff3)
 AddDir=gene_pred/codingquary/$Organism/$Strain/additional
 FinalDir=gene_pred/final_genes/$Organism/$Strain/final
 AddGenesList=$AddDir/additional_genes.txt
@@ -839,9 +858,9 @@ The final number of genes per isolate was observed using:
 
 ```
 gene_pred/final_genes/P.cactorum/414_v2/final
-24893
-4913
-29806
+24892
+4912
+29804
 ```
 
 <!--
@@ -1022,6 +1041,7 @@ done
 printf "\n"
 echo $File
 qsub $ProgDir/pred_sigP.sh $File
+qsub $ProgDir/pred_sigP.sh $File signalp-3.0
 qsub $ProgDir/pred_sigP.sh $File signalp-4.1
 done
 done
@@ -1035,11 +1055,12 @@ for SplitDir in $(ls -d gene_pred/final_split/P.*/* | grep '414_v2'); do
 Strain=$(echo $SplitDir | cut -d '/' -f4)
 Organism=$(echo $SplitDir | cut -d '/' -f3)
 echo "$Organism - $Strain"
+for SigpDir in $(ls -d gene_pred/final_sig* | cut -f2 -d'/'); do
+echo "$SigpDir"
 InStringAA=''
 InStringNeg=''
 InStringTab=''
 InStringTxt=''
-for SigpDir in $(ls -d gene_pred/final_sig* | cut -f2 -d'/'); do
 for GRP in $(ls -l $SplitDir/*_final_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
 InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.aa";
 InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp_neg.aa";  
@@ -1657,6 +1678,7 @@ done
 printf "\n"
 echo $File
 qsub $ProgDir/pred_sigP.sh $File
+qsub $ProgDir/pred_sigP.sh $File signalp-3.0
 qsub $ProgDir/pred_sigP.sh $File signalp-4.1
 done
 done
@@ -1671,11 +1693,12 @@ for SplitDir in $(ls -d gene_pred/ORF_split/*/* | grep '414_v2'); do
 Strain=$(echo $SplitDir | cut -d '/' -f4)
 Organism=$(echo $SplitDir | cut -d '/' -f3)
 echo "$Organism - $Strain"
+for SigpDir in $(ls -d gene_pred/ORF_sig* | cut -f2 -d'/'); do
+echo "$SigpDir"
 InStringAA=''
 InStringNeg=''
 InStringTab=''
 InStringTxt=''
-for SigpDir in $(ls -d gene_pred/ORF_sig* | cut -f2 -d'/'); do
 for GRP in $(ls -l $SplitDir/*_ORF_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
 InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp.aa";
 InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp_neg.aa";
@@ -1724,7 +1747,7 @@ echo "This represented the following number of unique genes:"
 # cat gene_pred/final_sig*/$Organism/$Strain/*_aug_sp.aa analysis/phobius/$Organism/$Strain/"$Strain"_phobius.fa | grep '>' | cut -f1 | tr -d ' >' | sort -g | uniq > $OutDir/"$Strain"_secreted.txt
 cat gene_pred/ORF_sig*/$Organism/$Strain/*_aug_sp.aa | grep '>' | cut -f1 | tr -d ' >' | sort -g | uniq > $OutDir/"$Strain"_secreted.txt
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-# $ProgDir/extract_from_fasta.py --fasta $Proteome --headers $OutDir/"$Strain"_secreted.txt > $OutDir/"$Strain"_secreted.fa
+$ProgDir/extract_from_fasta.py --fasta $Proteome --headers $OutDir/"$Strain"_secreted.txt > $OutDir/"$Strain"_secreted.fa
 cat $OutDir/"$Strain"_secreted.fa | grep '>' | wc -l
 done
 ```
@@ -1807,31 +1830,68 @@ ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 SigP_Gff=gene_pred/combined_sigP_ORF/$Organism/$Strain/"$Strain"_all_secreted_unmerged.gff
 ORF_fasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt  $SigP_Gff	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff
+$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt  $SigP_Gff	RxLR_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff
+$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt  $SigP_Gff	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.gff
 # ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt $SigP_Merged_Gff RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_EER_regex.gff
-RxLR_Merged_Gff=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.gff
-RxLR_Merged_txt=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.txt
-RxLR_Merged_AA=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.aa
+RxLR_Merged_Gff=$OutDir/"$Strain"_ORF_RxLR_regex_merged.gff
+RxLR_Merged_txt=$OutDir/"$Strain"_ORF_RxLR_regex_merged.txt
+RxLR_Merged_AA=$OutDir/"$Strain"_ORF_RxLR_regex_merged.aa
+RxLR_EER_Merged_Gff=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.gff
+RxLR_EER_Merged_txt=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.txt
+RxLR_EER_Merged_AA=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.aa
 ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
 $ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff --db sigP_ORF_RxLR.db
+$ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.gff --db sigP_ORF_RxLR_EER.db
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_RxLR.db --id sigP_ORF_RxLR --out sigP_ORF_RxLR_merged.db --gff > $RxLR_Merged_Gff
+$ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_RxLR_EER.db --id sigP_ORF_RxLR_EER --out sigP_ORF_RxLR_EER_merged.db --gff > $RxLR_EER_Merged_Gff
 cat $RxLR_Merged_Gff | grep 'transcript' | rev | cut -f1 -d '=' | rev > $RxLR_Merged_txt
+cat $RxLR_EER_Merged_Gff | grep 'transcript' | rev | cut -f1 -d '=' | rev > $RxLR_EER_Merged_txt
 $ProgDir/extract_from_fasta.py --fasta $ORF_fasta --headers $RxLR_Merged_txt > $RxLR_Merged_AA
-printf "Merged RxLR-EER regex proteins:\t"
+$ProgDir/extract_from_fasta.py --fasta $ORF_fasta --headers $RxLR_EER_Merged_txt > $RxLR_EER_Merged_AA
+printf "Merged RxLR regex proteins:\t"
 cat $RxLR_Merged_AA | grep '>' | wc -l
+printf "Merged RxLR-EER regex proteins:\t"
+cat $RxLR_EER_Merged_AA | grep '>' | wc -l
 printf "\n"
 done
 ```
 
 ```
 strain: 414_v2	species: P.cactorum
-the number of SigP gene is:	65593
-the number of SigP-RxLR genes are:	1782
-the number of SigP-RxLR-EER genes are:	219
+the number of SigP gene is:	54092
+the number of SigP-RxLR genes are:	1924
+the number of SigP-RxLR-EER genes are:	223
+Merged RxLR regex proteins:	1511
 Merged RxLR-EER regex proteins:	196
 ```
+
+Quantification of ORF RxLRs was also performed.
+
+```bash
+Gff=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_ORF_RxLR_regex_merged.gff | grep '414_v2')
+# for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
+for BamFile in $(ls alignment/star/*/*/concatenated/12_24hrs_published_concatenated.bam | grep '414_v2'); do
+# OutDir=$(dirname $BamFile)
+OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment_ORF_RxLR
+mkdir -p $OutDir
+Prefix=$(echo $BamFile | rev | cut -f3 -d '/' | rev | sed 's/vesca_//g')
+Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
+while [ $Jobs -gt 1 ]; do
+  sleep 1m
+  printf "."
+  Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
+done
+printf "\n"
+echo $Prefix
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+# echo "$BamFile $Gff $OutDir $Prefix"
+qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
+done
+```
+
+
 
 ```bash
 echo "Number of secreted ORFs"
@@ -2223,6 +2283,75 @@ The number of sequences extracted is
 ```
 
 
+## C.ii) SSCP
+
+Small secreted cysteine rich proteins were identified within secretomes. These
+proteins may be identified by EffectorP, but this approach allows direct control
+over what constitutes a SSCP.
+
+```bash
+
+for Secretome in $(ls gene_pred/combined_sigP/*/*/*_secreted.fa | grep -v 'all_secreted' |  grep '414_v2'); do
+Strain=$(echo $Secretome| rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+OutDir=analysis/sscp/$Organism/$Strain
+mkdir -p $OutDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/sscp
+$ProgDir/sscp_filter.py --inp_fasta $Secretome --max_length 300 --threshold 3 --out_fasta $OutDir/"$Strain"_sscp_all_results.fa
+cat $OutDir/"$Strain"_sscp_all_results.fa | grep 'Yes' > $OutDir/"$Strain"_sscp.fa
+printf "number of SSC-rich genes:\t"
+cat $OutDir/"$Strain"_sscp.fa | grep '>' | tr -d '>' | cut -f1 -d '.' | sort | uniq | wc -l
+printf "Number of effectors predicted by EffectorP:\t"
+EffectorP=$(ls analysis/effectorP/$Organism/$Strain/*_EffectorP_secreted_headers.txt)
+cat $EffectorP | wc -l
+printf "Number of SSCPs predicted by both effectorP and this approach: \t"
+cat $OutDir/"$Strain"_sscp.fa | grep '>' | tr -d '>' > $OutDir/"$Strain"_sscp_headers.txt
+cat $OutDir/"$Strain"_sscp_headers.txt $EffectorP | cut -f1 | sort | uniq -d | wc -l
+echo ""
+done > tmp.txt
+cat tmp.txt
+```
+
+
+```bash
+for Secretome in $(ls gene_pred/combined_sigP_ORF/*/*/*_all_secreted.fa | grep '414_v2'); do
+ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors
+Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Secretome| rev | cut -f2 -d '/' | rev)
+echo "$Organism - $Strain"
+
+OutDir=analysis/sscp_ORF/$Organism/$Strain
+mkdir -p $OutDir
+printf "the number of SigP gene is:\t";
+cat $Secretome | grep '>' | cut -f1 | sort | uniq | wc -l
+printf "the number of SSCP genes are:\t";
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/sscp
+$ProgDir/sscp_filter.py --inp_fasta $Secretome --max_length 300 --threshold 3 --out_fasta $OutDir/"$Strain"_sscp_ORF.fa
+
+cat $OutDir/"$Strain"_sscp_ORF.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/"$Strain"_sscp_ORF_headers_unmerged.txt
+cat $OutDir/"$Strain"_sscp_ORF_headers_unmerged.txt | tr -d ' ' | sort | uniq | wc -l
+
+SigP_Gff=$(ls gene_pred/combined_sigP_ORF/$Organism/$Strain/"$Strain"_all_secreted_unmerged.gff)
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_sscp_ORF_headers_unmerged.txt  $SigP_Gff	sscp_filter.py Name Augustus > $OutDir/"$Strain"_sscp_ORF_unmerged.gff
+
+SSCP_Merged_Gff=$OutDir/"$Strain"_ORF_sscp_merged.gff
+SSCP_Merged_txt=$OutDir/"$Strain"_ORF_sscp_merged.txt
+SSCP_Merged_AA=$OutDir/"$Strain"_ORF_sscp_merged.aa
+ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+$ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_sscp_ORF_unmerged.gff --db sigP_ORF_sscp.db
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_sscp.db --id sigP_ORF_sscp --out sigP_ORF_sscp_merged.db --gff > $SSCP_Merged_Gff
+cat $SSCP_Merged_Gff | grep 'transcript' | rev | cut -f1 -d '=' | rev > $SSCP_Merged_txt
+
+ORF_fasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
+$ProgDir/extract_from_fasta.py --fasta $ORF_fasta --headers $SSCP_Merged_txt > $SSCP_Merged_AA
+printf "Merged SSCP proteins:\t"
+cat $SSCP_Merged_AA | grep '>' | wc -l
+printf "\n"
+done
+```
 
 
 
