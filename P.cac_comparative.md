@@ -711,7 +711,7 @@ OutDir=$(dirname $Assembly)
 qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
 done
 ```
-
+<!--
 ```bash
   # for File in $(ls assembly/spades/*/*/deconseq_Paen/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt  | grep -e 'P.cactorum' -e 'P.idaei'); do
   for File in $(ls assembly/spades/*/*/deconseq_common/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt  | grep -e 'P.cactorum' -e 'P.idaei'); do
@@ -723,7 +723,7 @@ done
   Total=$(cat $File | grep "Total" | cut -f2)
   echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
   done
-```
+``` -->
 
 
 
@@ -737,7 +737,7 @@ used to correct the assembly to NCBI standards.
 NCBI reports (FCSreport.txt) were manually downloaded to the following loactions:
 
 ```bash
-for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
 NCBI_report_dir=genome_submission/$Organism/$Strain/initial_submission
@@ -749,22 +749,29 @@ done
 These downloaded files were used to correct assemblies:
 
 ```bash
-for Assembly in $(ls assembly/spades/*/*/deconseq/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v 'ncbi_edits'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep '12420'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
 NCBI_report=$(ls genome_submission/$Organism/$Strain/initial_submission/Contamination*.txt)
+if [[ $NCBI_report ]]; then
+echo "Contamination report found"
+else
+NCBI_report=genome_submission/$Organism/$Strain/initial_submission/no_edits.txt
+printf "Exclude:\nSequence name, length, apparent source\n" > $NCBI_report
+fi
 OutDir=assembly/spades/$Organism/$Strain/ncbi_edits
 mkdir -p $OutDir
 ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
-$ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
+$ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
+# $ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
 done
 ```
 
 
 
 ```bash
-  for Assembly in $(ls assembly/spades/*/*/deconseq/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep '2003_3'); do
+  for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
     Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
