@@ -1870,11 +1870,15 @@ Merged RxLR-EER regex proteins:	196
 Quantification of ORF RxLRs was also performed.
 
 ```bash
-Gff=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_ORF_RxLR_regex_merged.gff | grep '414_v2')
-# for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
-for BamFile in $(ls alignment/star/*/*/concatenated/12_24hrs_published_concatenated.bam | grep '414_v2'); do
-# OutDir=$(dirname $BamFile)
-OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment_ORF_RxLR
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+InGff=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain*/*_ORF_RxLR_regex_merged.gff)
+InGff_features=$(echo $InGff | sed 's/.gff/_features.gff/g')
+$ProgDir/add_ORF_features.pl $InGff $Assembly >> $InGff_features
+for BamFile in $(ls ../../../..//sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
+OutDir=alignment/star/$Organism/$Strain/featureCounts_maria_alignment_ORF_RxLR
 mkdir -p $OutDir
 Prefix=$(echo $BamFile | rev | cut -f3 -d '/' | rev | sed 's/vesca_//g')
 Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
@@ -1887,8 +1891,17 @@ printf "\n"
 echo $Prefix
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 # echo "$BamFile $Gff $OutDir $Prefix"
-qsub $ProgDir/sub_featureCounts.sh $BamFile $Gff $OutDir $Prefix
+qsub $ProgDir/sub_featureCounts.sh $BamFile $InGff_features $OutDir $Prefix
 done
+done
+```
+
+Those RxLRs with evidence of expression in planta (fpkm >5) were included in
+ORF RxLR gene models:
+
+```bash
+
+
 ```
 
 
