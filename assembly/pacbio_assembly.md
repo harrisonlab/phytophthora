@@ -1870,12 +1870,13 @@ Merged RxLR-EER regex proteins:	196
 Quantification of ORF RxLRs was also performed.
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w -e '414_v2'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
 InGff=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain*/*_ORF_RxLR_regex_merged.gff)
 InGff_features=$(echo $InGff | sed 's/.gff/_features.gff/g')
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/add_ORF_features.pl $InGff $Assembly >> $InGff_features
 for BamFile in $(ls ../../../..//sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
 OutDir=alignment/star/$Organism/$Strain/featureCounts_maria_alignment_ORF_RxLR
@@ -1900,8 +1901,14 @@ Those RxLRs with evidence of expression in planta (fpkm >5) were included in
 ORF RxLR gene models:
 
 ```bash
-
-
+  Organism="P.cactorum"
+  Strain="414_v2"
+  OutDir=$(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain)
+  for FeatureCounts in $(ls alignment/star/$Organism/$Strain/featureCounts_maria_alignment_ORF_RxLR/*_featurecounts.txt); do
+    OutFile=$(echo $FeatureCounts | sed 's/.txt/_fpkm_>5.txt/g')
+  cat $FeatureCounts | tail -n+3 | cut -f1,7 | grep -v -e '\s0$' -e '\s1$' -e '\s2$' -e '\s3$' -e '\s4$' > $OutFile
+  cat $OutFile
+  done | cut -f1 | sort | uniq > $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt
 ```
 
 
