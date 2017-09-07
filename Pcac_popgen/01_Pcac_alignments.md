@@ -365,6 +365,25 @@ for a in $(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered.vcf);
 done
 ```
 
+## Remove sequencing errors from vcf files:
+
+
+
+```bash
+Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+OutDir=$(dirname $Vcf)
+Errors=$OutDir/414_error_SNPs.tsv
+FilteredVcf=$OutDir/414_v2_contigs_unmasked_no_errors.vcf
+ProgDir=$(ls /home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen)
+$ProgDir/flag_error_SNPs.py --inp_vcf $Vcf --ref_isolate 414 --errors $Errors --filtered $FilteredVcf
+echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
+cat $Errors | wc -l
+echo "These have been removed from the vcf file"
+```
+
+```
+  2758
+```
 
 
 # 3.1 P. idaei vs P414
@@ -381,7 +400,7 @@ done
   cat $OutDir/$Prefix.vcf | awk -F "\t" '$1 ~ "#" || $10 ~ "1/1" || $11 ~ "1/1" || $12 ~ "1/1" || $10 ~ "0/1" || $11 ~ "0/1" || $12 ~ "0/1" { print}' > $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
   # mq=40
   # qual=30
   # dp=10
@@ -434,7 +453,7 @@ done
   cat $OutDir/$Prefix.vcf | awk -F "\t" '$1 ~ "#" || $10 ~ "1/1" || $11 ~ "1/1" || $12 ~ "1/1" || $10 ~ "0/1" || $11 ~ "0/1" || $12 ~ "0/1" { print}' > $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
   # mq=40
   # qual=30
   # dp=10
@@ -487,7 +506,7 @@ done
   cat $OutDir/$Prefix.vcf | awk -F "\t" '$1 ~ "#" || $10 ~ "1/1" || $11 ~ "1/1" || $12 ~ "1/1" || $10 ~ "0/1" || $11 ~ "0/1" || $12 ~ "0/1" { print}' > $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
   # mq=40
   # qual=30
   # dp=10
@@ -541,7 +560,7 @@ done
   cat $OutDir/$Prefix.vcf | awk -F "\t" '$1 ~ "#" || $10 ~ "1/1" || $11 ~ "1/1" || $12 ~ "1/1" || $10 ~ "0/1" || $11 ~ "0/1" || $12 ~ "0/1" { print}' > $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
   # mq=40
   # qual=30
   # dp=10
