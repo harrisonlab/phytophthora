@@ -35,6 +35,7 @@ java -jar $ProgDir/GenomeAnalysisTK.jar \
      -I $Project/analysis/popgen/P.cactorum/15_7/15_7_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
      -I $Project/analysis/popgen/P.cactorum/2003_3/2003_3_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
      -I $Project/analysis/popgen/P.cactorum/4032/4032_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
+     -I $Project/analysis/popgen/P.cactorum/4040/4040_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
      -I $Project/analysis/popgen/P.cactorum/404/404_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
      -I $Project/analysis/popgen/P.cactorum/414/414_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
      -I $Project/analysis/popgen/P.cactorum/415/415_vs_414_v2_aligned_nomulti_proper_sorted_nodup_rg.bam \
