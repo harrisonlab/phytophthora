@@ -208,7 +208,7 @@ Run BWA-mem
 ```bash
 CurDir=$PWD
 Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
-for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -e 'P.idaei' -e 'P.cactorum'|  grep -v '10300' | grep -e '4040' -e '414'); do
+for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -e 'P.idaei' -e 'P.cactorum'|  grep -v '10300'); do
   Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
   Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
   echo $Strain
@@ -221,8 +221,9 @@ for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -e 'P.idaei' -e 'P.cactorum
     ConcatR=$ConcatTmpDir/"$Strain"_R_reads.fq.gz
     cat $ReadsF > $ConcatF
     cat $ReadsR > $ConcatR
-    ProgDir=/home/sobczm/bin/popgen/snp
-    qsub $ProgDir/sub_bwa_mem.sh Illumina $Strain $CurDir/$Reference $ConcatF $ConcatR
+    OutDir=analysis/popgen/indel_calling/alignments
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+    qsub $ProgDir/sub_prep_lumpy.sh $Strain $CurDir/$Reference $ConcatF $ConcatR $OutDir
 done
 ```
 
