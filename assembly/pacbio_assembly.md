@@ -1149,7 +1149,7 @@ Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
 echo "$Organism - $Strain"
 NonTmHeaders=$(echo "$File" | sed 's/neg.txt/neg_headers.txt/g')
 cat $File | cut -f1 > $NonTmHeaders
-SigP=$(ls gene_pred/final_sigP/$Organism/$Strain/*_sp.aa | grep -v 'neg')
+SigP=$(ls gene_pred/combined_sigP/$Organism/$Strain/*_all_secreted.fa)
 OutDir=$(dirname $SigP)
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_from_fasta.py --fasta $SigP --headers $NonTmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem.aa
@@ -1531,8 +1531,9 @@ Domain search space  (domZ):             407  [number of targets reported over t
 
 The total RxLRs are
 
+
 ```bash
-for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep '414_v2'); do
+for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_regex.txt | grep '414_v2'); do
 Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
 Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
 Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended.gff3)
@@ -1556,6 +1557,35 @@ Gff=$(ls gene_pred/final_genes/$Organism/$Strain/final/final_genes_appended.gff3
 cat $Gff | grep -w -f $OutDir/"$Strain"_total_RxLR_headers.txt > $OutDir/"$Strain"_total_RxLR.gff
 echo "Number of genes in the extracted gff file:"
 cat $OutDir/"$Strain"_total_RxLR.gff | grep -w 'gene' | wc -l
+done
+```
+
+
+```bash
+for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep '414_v2'); do
+Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
+Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
+Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended.gff3)
+Proteome=$(ls gene_pred/final_genes/$Organism/$Strain/*/final_genes_combined.pep.fasta)
+HmmRxLR=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/*_RxLR_hmmer_headers.txt
+echo "$Organism - $Strain"
+echo "Number of RxLRs identified by Regex:"
+cat $RegexRxLR | sort | uniq | wc -l
+echo "Number of RxLRs identified by Hmm:"
+cat $HmmRxLR | sort | uniq | wc -l
+echo "Number of RxLRs in combined dataset:"
+cat $RegexRxLR $HmmRxLR | sort | uniq | wc -l
+# echo "Number of RxLRs in both datasets:"
+# cat $RegexRxLR $HmmRxLR | sort | uniq -d | wc -l
+echo ""
+# echo "Extracting RxLRs from datasets"
+OutDir=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain
+mkdir -p $OutDir
+cat $RegexRxLR $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_RxLR_EER_headers.txt
+Gff=$(ls gene_pred/final_genes/$Organism/$Strain/final/final_genes_appended.gff3)
+cat $Gff | grep -w -f $OutDir/"$Strain"_total_RxLR_EER_headers.txt > $OutDir/"$Strain"_total_RxLR_EER.gff
+echo "Number of genes in the extracted gff file:"
+cat $OutDir/"$Strain"_total_RxLR_EER.gff | grep -w 'gene' | wc -l
 done
 ```
 
@@ -1817,7 +1847,7 @@ OutDir=analysis/RxLR_effectors/RxLR_EER_regex_finder/"$Organism"/"$Strain";
 mkdir -p $OutDir;
 printf "\nstrain: $Strain\tspecies: $Organism\n";
 printf "the number of SigP gene is:\t";
-cat $Secretome | grep '>' | cut -f1 | sort | uniq | wc -l
+cat $Secretome | grep '>' | cut -f1 | tr -d ' ' | sort | uniq | wc -l
 printf "the number of SigP-RxLR genes are:\t";
 $ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.fa;
 cat $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt
@@ -1860,7 +1890,7 @@ done
 
 ```
 strain: 414_v2	species: P.cactorum
-the number of SigP gene is:	54092
+the number of SigP gene is:	33185
 the number of SigP-RxLR genes are:	1924
 the number of SigP-RxLR-EER genes are:	223
 Merged RxLR regex proteins:	1511
@@ -1909,14 +1939,18 @@ ORF RxLR gene models:
   cat $FeatureCounts | tail -n+3 | cut -f1,7 | grep -v -e '\s0$' -e '\s1$' -e '\s2$' -e '\s3$' -e '\s4$' > $OutFile
   cat $OutFile
   done | cut -f1 | sort | uniq > $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt
+  cat $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt | wc -l
+  SigP_Gff=$(ls gene_pred/combined_sigP_ORF/P.cactorum/414_v2/414_v2_all_secreted_unmerged.gff)
+  cat $SigP_Gff | grep -f $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt | cut -f4 -d '=' | cut -f1 -d ';' > $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers_renamed.txt
+  cat $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers_renamed.txt | wc -l
 ```
 
 
-
+<!--
 ```bash
 echo "Number of secreted ORFs"
 cat gene_pred/ORF_signalp-4.1/P.cactorum/414_v2/414_v2_aug_sp.aa gene_pred/ORF_sigP/P.cactorum/414_v2/414_v2_aug_sp.aa | grep '>' | cut -f1 | sort | uniq | wc -l
-```
+``` -->
 
 
 ### E5) From ORF gene models - Hmm evidence of WY domains
@@ -1988,40 +2022,44 @@ printf "Merged RxLR-EER Hmm proteins:\t"
 cat $RxLR_Merged_AA | grep '>' | wc -l
 done
 ```
+
 ```
-  P.cactorum 414_v2
-  Initial search space (Z):              65593  [actual number of targets]
-  Domain search space  (domZ):             498  [number of targets reported over threshold]
-  Merged RxLR-EER Hmm proteins:	154
+P.cactorum 414_v2
+Initial search space (Z):              89501  [actual number of targets]
+Domain search space  (domZ):             667  [number of targets reported over threshold]
+Merged RxLR-EER Hmm proteins:	154
 ```
 
 
 ### E7) Combining RxLRs from Regex and hmm searches
 
 
-The total RxLRs are
+The total ORF RxLRs are
 
 ```bash
-  for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_ORF_RxLR_EER_regex_merged.txt | grep '414_v2'); do
-    Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
-    Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
+  for RegexRxLREER in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_ORF_RxLR_EER_regex_merged.txt | grep '414_v2'); do
+    Organism=$(echo $RegexRxLREER | rev |  cut -d '/' -f3 | rev)
+    Strain=$(echo $RegexRxLREER | rev | cut -d '/' -f2 | rev)
     Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF.gff3)
     Proteome=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
+    RegexRxLRfpkm=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers_renamed.txt)
     HmmRxLR=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmm_merged.txt)
     echo "$Organism - $Strain"
-    echo "Number of RxLRs identified by Regex:"
-    cat $RegexRxLR | sort | uniq | wc -l
+    echo "Number of RxLR EERs identified by Regex:"
+    cat $RegexRxLREER | sort | uniq | wc -l
+    echo "Number of RxLRs identified by Regex with fpkm > 5"
+    cat $RegexRxLRfpkm | sort | uniq | wc -l
     echo "Number of RxLRs identified by Hmm:"
     cat $HmmRxLR | sort | uniq | wc -l
     echo "Number of RxLRs in combined dataset:"
-    cat $RegexRxLR $HmmRxLR | sort | uniq | wc -l
+    cat $RegexRxLREER $HmmRxLR $RegexRxLRfpkm | sort | uniq | wc -l
     # echo "Number of RxLRs in both datasets:"
-    # cat $RegexRxLR $HmmRxLR | sort | uniq -d | wc -l
+    # cat $RegexRxLREER $HmmRxLR | sort | uniq -d | wc -l
     echo ""
     # echo "Extracting RxLRs from datasets"
     OutDir=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain
     mkdir -p $OutDir
-    cat $RegexRxLR $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
+    cat $RegexRxLREER $RegexRxLRfpkm $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
     # cat $Gff | grep -w -f $OutDir/"$Strain"_total_ORF_RxLR_headers.txt > $OutDir/"$Strain"_total_ORF_RxLR.gff
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
     $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_total_ORF_RxLR_headers.txt $Gff ORF_RxLR Name Augustus > $OutDir/"$Strain"_total_ORF_RxLR.gff
@@ -2041,6 +2079,7 @@ Number of RxLRs in combined dataset:
 Number of genes in the extracted gff file:
 214
 ```
+
 
 ## 4.2.c Analysis of RxLR effectors - merger of Augustus / published genes with ORFs
 
@@ -2425,6 +2464,38 @@ $ProgDir/gff2fasta.pl $Assembly $GffRenamed $OutDir/414_v2_genes_incl_ORFeffecto
 sed -i 's/\*/X/g' $OutDir/414_v2_genes_incl_ORFeffectors_renamed.pep.fasta
 ```
 
+# Assessing gene space in predicted transcriptomes
+
+```bash
+  for Transcriptome in $(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gene.fasta | grep '414_v2'); do
+    Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
+    echo "$Organism - $Strain"
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+    # BuscoDB="Fungal"
+    BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+    OutDir=gene_pred/busco/$Organism/$Strain/genes
+    qsub $ProgDir/sub_busco2.sh $Transcriptome $BuscoDB $OutDir
+  done
+```
+
+```
+277     Complete BUSCOs (C)
+269     Complete and single-copy BUSCOs (S)
+8       Complete and duplicated BUSCOs (D)
+4       Fragmented BUSCOs (F)
+22      Missing BUSCOs (M)
+303     Total BUSCO groups searched
+```
+
+Make a list of BUSCO genes:
+
+```bash
+BuscoHits=$(ls gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene/single_copy_busco_sequences/EOG0937*.fna)
+OutDir=$(ls -d gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene)
+cat $BuscoHits | grep '>' | cut -f3 -d ':' > $OutDir/busco_single_copy_gene_headers.txt
+```
+
 
 # Re-running Functional annotation
 
@@ -2499,7 +2570,7 @@ of the Subreads package.
 ```bash
   Gff=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3 | grep '414_v2')
   # for BamFile in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentAligned.sortedByCoord.out.bam); do
-  for BamFile in $(ls ../../../..//sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
+  for BamFile in $(ls ../../../../sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
     OutDir=$(dirname $BamFile)
     OutDir=alignment/star/P.cactorum/414_v2/featureCounts_maria_alignment
     Prefix=$(echo $BamFile | rev | cut -f3 -d '/' | rev | sed 's/vesca_//g')
@@ -2577,11 +2648,11 @@ for GeneGff in $(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_gen
   DEG_Files=$(ls alignment/star/P.cactorum/414_v2/DeSeq/*_vs_*.txt  | grep -v -e 'up' -e 'down' | sed -e "s/$/ /g" | tr -d "\n")
 	# $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --RxLR_total $RxLR_total --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --CRN_total $CRN_total --DEG_files $DEG_Files  > $OutDir/414_v2_gene_table_incl_exp.tsv
   # NormCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/normalised_counts.txt)
-  RawCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/raw_counts.txt)
+  RawCount=$(ls alignment/star/P.cactorum/414_v2/DeSeq/raw_counts2.txt)
   FPKM=$(ls alignment/star/P.cactorum/414_v2/DeSeq/fpkm_counts.txt)
   # File showing gene name conversions
   ConversionLog=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.log)
-  VcfFiles=$(ls analysis/popgen/SNP_calling/*_vs_P414/*_no_indels.recode_gene.vcf)
+  VcfFiles=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors_nonsyn.vcf)
   $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --trans_mem $TMHMM_headers --GPI_anchor $GPI_headers --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --raw_counts $RawCount --fpkm $FPKM --InterPro $InterPro --Swissprot $SwissProt --SNP $VcfFiles --gene_conversion $ConversionLog > $OutDir/414_v2_gene_table_incl_exp.tsv
 done
 ```
