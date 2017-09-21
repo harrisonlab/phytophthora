@@ -905,3 +905,35 @@ Pc_apple_vs_Pc_apple	29182	15934	14314	6893	7421	65	72	9	20	3	11
 Pc_strawberry_vs_Pc_strawberry	25557	14070	12652	6019	6633	58	61	8	18	3	10
 Pi_vs_Pi	5321	2844	2588	1027	1561	8	10	2	4	5	11
 ```
+
+## extracting genes of interest from vcf files
+
+SOme genes were noted to be of particular interest in gene annotation files.
+
+these were extracted using:
+```bash
+for Vcf in $(ls analysis/popgen/SNP_calling/*_nonsyn*.vcf | grep -v -e 'recode' -e '.vcf_'); do
+OutDir=$(dirname $Vcf)
+printf \
+"g5726.t1
+g12834.t1
+g13724.t1
+g13723.t1
+g17937.t1
+g18059.t1
+g7924.t1
+g9970.t1
+g20761.t1
+g4271.t1
+g14040.t1
+g21158.t1
+g7088.t1
+g4807.t1
+g13726.t1
+g14771.t1
+g10788.t1" \
+> $OutDir/interesting_genes_from_annot_tab.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+$ProgDir/vcf_extract_genes.py --vcf $Vcf --gene_list $OutDir/interesting_genes_from_annot_tab.txt > $OutDir/interesting_genes_from_annot_tab.vcf
+done
+```
