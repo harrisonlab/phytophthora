@@ -25,7 +25,10 @@ countData <- countData[,-1]
 #indexes <- unique(gsub("(.*)_L00.*", "\\1", colnames(countData)))
 indexes <- c("PRO1467_S4", "PRO1467_S5", "PRO1467_S6", "PRO1467_S14", "PRO1467_S15", "PRO1467_S22", "PRO1467_S7", "PRO1467_S20", "PRO1467_S9", "PRO1467_S17", "PRO1467_S18", "PRO1467_S28")
 
-countDataSubset <- sapply(indexes, function(xx) rowSums(countData[,grep(paste(xx,'_', sep = ""), names(countData)), drop=FALSE]))
+#countDataSubset <- sapply(indexes, function(xx) rowSums(countData[,grep(paste(xx,'_', sep = ""), names(countData)), drop=FALSE]))
+# If featurecounts has multimapping reads divided by the number of mapping sites, these will be rounded:
+#countDataSubset <- round(countDataSubset,0)
+countData <- round(countData,0)
 
 
 #output countData
@@ -56,7 +59,8 @@ colData$Group <- paste0(colData$Isolate,colData$Plant.Line,colData$Timepoint)
 design <- ~Group
 #design <- colData$Group
 
-dds <-     DESeqDataSetFromMatrix(countData,colData,design)
+#dds <-     DESeqDataSetFromMatrix(countDataSubset,colData,design)
+dds <-     DESeqDataSetFromMatrix(countData,colData,design)*/
 #sizeFactors(dds) <- sizeFactors(estimateSizeFactors(dds, type = c("iterate")))
 sizeFactors(dds) <- sizeFactors(estimateSizeFactors(dds, type = c("ratio")))
 dds <- DESeq(dds, fitType="local")
@@ -132,7 +136,8 @@ dev.off()
 
 #Plot using rlog transformation:
 pdf("alignment/star/P.cactorum/414_v2/DeSeq/PCA_rld.pdf")
-plotPCA(rld,intgroup=c("Isolate", "Plant.Line", "Timepoint"))
+#plotPCA(rld,intgroup=c("Isolate", "Plant.Line", "Timepoint"))
+plotPCA(rld,intgroup=indexes)
 dev.off()
 
 pdf("alignment/star/P.cactorum/414_v2/DeSeq/PCA_additional.pdf")
