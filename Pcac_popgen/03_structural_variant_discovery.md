@@ -241,7 +241,16 @@ done
   CurDir=$PWD
   AlignDir=analysis/popgen/indel_calling/alignments
   cd $AlignDir
+  for Strain in $(ls *_sorted.bam | grep -v -e 'split' -e 'discordant' | sed 's/_sorted.bam//g'); do
+    # Jobs=$(qstat | grep 'sub_lumpy' | wc -l)
+    # while [ $Jobs -gt 0 ]; do
+    # printf "."
+    # sleep 10s
+    # Jobs=$(qstat | grep 'sub_lumpy' | wc -l)
+    # done		
   ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-  qsub $ProgDir/sub_lumpy.sh lumpy
+  # qsub $ProgDir/sub_lumpy.sh "$Strain"_lumpy $Strain
+  $ProgDir/sub_lumpy.sh "$Strain"_lumpy $Strain
+  done
   cd $CurDir
 ```
