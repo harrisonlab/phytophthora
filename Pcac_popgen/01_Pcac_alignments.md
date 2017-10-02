@@ -935,5 +935,7 @@ g10788.t1" \
 > $OutDir/interesting_genes_from_annot_tab.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
 $ProgDir/vcf_extract_genes.py --vcf $Vcf --gene_list $OutDir/interesting_genes_from_annot_tab.txt > $OutDir/interesting_genes_from_annot_tab.vcf
+GenesBySector=$(ls /home/groups/harrisonlab/project_files/idris/analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors_nonsyn_genes_by_venn_sector.txt)
+cat $GenesBySector | grep -f $OutDir/interesting_genes_from_annot_tab.txt | sort | uniq
 done
 ```
