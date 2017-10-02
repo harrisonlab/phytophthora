@@ -10,6 +10,7 @@
 #Output: Genotype (*.gt) and VCF (*.vcf) files with structural variants.
 
 Prefix=$1
+Strain=$2
 
 #First, obtain command line arguments with: 1) all the alignments
 # 2) discordant alignments, 3) split alignments to be used as input
@@ -17,30 +18,35 @@ Prefix=$1
 
 #1)
 Bams=()
-for b in $(ls *_sorted.bam | grep -v -e 'splitters' -e 'discordant' | grep -v '12420'); do
+for b in $(ls *_sorted.bam | grep -v -e 'splitters' -e 'discordant' | grep "${Strain}_"); do
   Bams+=("$b");
 done;
 Bam=$(IFS=, ; echo "${Bams[*]}")
 
 #2)
 Discs=()
-for b in $(ls *discordants_sorted.bam| grep -v '12420'); do
+for b in $(ls *discordants_sorted.bam | grep "${Strain}_"); do
   Discs+=("$b");
 done;
 Discordant=$(IFS=, ; echo "${Discs[*]}")
 
 #3)
 Splits=()
-for b in $(ls *splitters_sorted.bam| grep -v '12420'); do
+for b in $(ls *splitters_sorted.bam | grep "${Strain}_"); do
   Splits+=("$b");
 done;
 Splitters=$(IFS=, ; echo "${Splits[*]}")
 
 # Out="$Prefix".gt
 
+echo "Strain: $Strain"
+echo "Bams: $Bams"
+echo "Discordant: $Discordant"
+echo "Splitters: $Splitters"
+
 #Detect structural variants
-lumpyexpress -B $Bam -S $Splitters -D $Discordant -o "$Prefix".gt
+lumpyexpress -B $Bam -S $Splitters -D $Discordant -o "$Prefix"_express.vcf
 
 #Call genotypes
 # svtyper=/home/sobczm/bin/svtyper
-svtyper -B $Bam -S $Splitters -i "$Prefix".gt > "$Prefix".vcf
+svtyper -B $Bam -S $Splitters -i "$Prefix"_express.vcf > "$Prefix".vcf
