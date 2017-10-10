@@ -1,8 +1,10 @@
 #!/bin/bash
 #$ -S /bin/bash
 #$ -cwd
-#$ -pe smp 16
-#$ -l virtual_free=5.9G
+#$ -pe smp 7
+#$ -l virtual_free=14G
+# # $ -pe smp 16
+# # $ -l virtual_free=5.9G
 
 #	This script Runs genome assembly via Spades on trimmed sequence data for
 #	P. cactorum isolate 10300. Assembly is performed at a range of hash lengths.
@@ -20,20 +22,20 @@ TrimPath=qc_dna/paired/P.cactorum/10300
 MatePath=qc_dna/mate-paired/P.cactorum/10300
 
 
-Lib1F=$CurPath/tmp_F_1.fq.gz
-Lib1R=$CurPath/tmp_R_1.fq.gz
+Lib1F=$(ls qc_dna/paired/P.cactorum/10300/F/*.fq.gz | grep -v 'Pcact10300_S2_L001_R1_001.fastq.gz' | head -n1 | tail -n1)
+Lib1R=$(ls qc_dna/paired/P.cactorum/10300/R/*.fq.gz | grep -v 'Pcact10300_S2_L001_R2_001.fastq.gz'| head -n1 | tail -n1)
 # Lib2InsLgth=1000
-Lib2F=$CurPath/tmp_F_2.fq.gz
-Lib2R=$CurPath/tmp_R_2.fq.gz
+Lib2F=$(ls qc_dna/paired/P.cactorum/10300/F/*.fq.gz | grep -v 'Pcact10300_S2_L001_R1_001.fastq.gz'| head -n2 | tail -n1)
+Lib2R=$(ls qc_dna/paired/P.cactorum/10300/R/*.fq.gz | grep -v 'Pcact10300_S2_L001_R2_001.fastq.gz'| head -n2 | tail -n1)
 # Lib3InsLgth=1000
-Lib3F=$CurPath/tmp_F_3.fq.gz
-Lib3R=$CurPath/tmp_R_3.fq.gz
+Lib3F=$(ls qc_dna/paired/P.cactorum/10300/F/*.fq.gz | grep -v 'Pcact10300_S2_L001_R1_001.fastq.gz' | head -n3 | tail -n1)
+Lib3R=$(ls qc_dna/paired/P.cactorum/10300/R/*.fq.gz | grep -v 'Pcact10300_S2_L001_R2_001.fastq.gz' | head -n3 | tail -n1)
 # Lib4InsLgth=300
-Lib4F=$CurPath/tmp_F_4.fq.gz
-Lib4R=$CurPath/tmp_R_4.fq.gz
+Lib4F=$(ls qc_dna/paired/P.cactorum/10300/F/*.fq.gz | grep -v 'Pcact10300_S2_L001_R1_001.fastq.gz' | head -n4 | tail -n1)
+Lib4R=$(ls qc_dna/paired/P.cactorum/10300/R/*.fq.gz | grep -v 'Pcact10300_S2_L001_R2_001.fastq.gz' | head -n4 | tail -n1)
 # Lib5InsLgth=5000
-Lib5F=$CurPath/tmp_F_5.fq.gz
-Lib5R=$CurPath/tmp_R_5.fq.gz
+Lib5F=$(ls qc_dna/mate-paired/P.cactorum/10300/F/*.fq.gz | grep -v 'rev' | head -n1 | tail -n1)
+Lib5R=$(ls qc_dna/mate-paired/P.cactorum/10300/R/*.fq.gz | grep -v 'rev' | head -n1 | tail -n1)
 
 
 Strain=10300
@@ -53,20 +55,20 @@ AssemblyName="$Strain"_spades
 mkdir -p $WorkDir
 cd $WorkDir
 
-cp $Lib1F Lib1_1.fq.gz
-cp $Lib1R Lib1_2.fq.gz
+cp $CurPath/$Lib1F Lib1_1.fq.gz
+cp $CurPath/$Lib1R Lib1_2.fq.gz
 
-cp $Lib2F Lib2_1.fq.gz
-cp $Lib2R Lib2_2.fq.gz
+cp $CurPath/$Lib2F Lib2_1.fq.gz
+cp $CurPath/$Lib2R Lib2_2.fq.gz
 
-cp $Lib3F Lib3_1.fq.gz
-cp $Lib3R Lib3_2.fq.gz
+cp $CurPath/$Lib3F Lib3_1.fq.gz
+cp $CurPath/$Lib3R Lib3_2.fq.gz
 
-cp $Lib4F Lib4_1.fq.gz
-cp $Lib4R Lib4_2.fq.gz
+cp $CurPath/$Lib4F Lib4_1.fq.gz
+cp $CurPath/$Lib4R Lib4_2.fq.gz
 
-cp $Lib5F Lib5_1.fq.gz
-cp $Lib5R Lib5_2.fq.gz
+cp $CurPath/$Lib5F Lib5_1.fq.gz
+cp $CurPath/$Lib5R Lib5_2.fq.gz
 
 #---	Step 3		---
 # 		Assemble
