@@ -204,7 +204,7 @@ cat gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv | grep
 
 Run BWA-mem
 
-
+<!--
 ```bash
 CurDir=$PWD
 Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
@@ -253,4 +253,37 @@ done
   $ProgDir/sub_lumpy.sh "$Strain"_lumpy $Strain
   done
   cd $CurDir
+``` -->
+
+
+
+```bash
+CurDir=$PWD
+Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
+for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -e 'P.idaei' -e 'P.cactorum' | grep -v '10300'); do
+Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+echo $Strain
+echo $Organism
+ReadsF=$(ls $StrainPath/F/*fq.gz)
+ReadsR=$(ls $StrainPath/R/*fq.gz)
+ConcatTmpDir=tmp_concat_dir
+mkdir -p $ConcatTmpDir
+ConcatF=$ConcatTmpDir/"$Strain"_F_reads.fq.gz
+ConcatR=$ConcatTmpDir/"$Strain"_R_reads.fq.gz
+# cat $ReadsF > $ConcatF
+# cat $ReadsR > $ConcatR
+OutDir=analysis/popgen/indel_calling/alignments3
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/bwa
+qsub $ProgDir/sub_bwa.sh $Strain $CurDir/$Reference $ConcatF $ConcatR $OutDir
+done
+```
+
+```bash
+  Prefix=Pcac_svaba
+  Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
+  AlignDir=analysis/popgen/indel_calling/alignments3
+  OutDir=analysis/popgen/indel_calling/svaba
+  ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+  qsub $ProgDir/sub_svaba.sh $Prefix $Reference $AlignDir $OutDir
 ```
