@@ -1,10 +1,8 @@
 #!/bin/bash
 #$ -S /bin/bash
 #$ -cwd
-#$ -pe smp 7
-#$ -l virtual_free=14G
-# # $ -pe smp 16
-# # $ -l virtual_free=5.9G
+#$ -pe smp 16
+#$ -l virtual_free=5.9G
 
 #	This script Runs genome assembly via Spades on trimmed sequence data for
 #	P. cactorum isolate 10300. Assembly is performed at a range of hash lengths.
@@ -76,25 +74,24 @@ cp $CurPath/$Lib5R Lib5_2.fq.gz
 
 # abyss-pe k=64 -np 16 -j 16 name=P.cac_10300 lib='pe1 pe2 pe3 pe4 mp5' pe1='Lib1_1.fq.gz Lib1_2.fq.gz' pe2='Lib2_1.fq.gz Lib2_2.fq.gz' pe3='Lib3_1.fq.gz Lib3_2.fq.gz' pe4='Lib4_1.fq.gz Lib4_2.fq.gz' mp5='Lib5_1.fq.gz Lib5_2.fq.gz'
 
-spades.py \
-    -k 21,33,55,77,99,127 \
-    -m 96 \
-    --phred-offset 33 \
-    --pe1-1 Lib1_1.fq.gz \
-    --pe1-2 Lib1_1.fq.gz \
-    --pe2-1 Lib2_1.fq.gz \
-    --pe2-2 Lib2_1.fq.gz \
-    --pe3-1 Lib3_1.fq.gz \
-    --pe3-2 Lib3_1.fq.gz \
-    --pe4-1 Lib4_1.fq.gz \
-    --pe4-2 Lib4_1.fq.gz \
-    --mp1-1 Lib5_1.fq.gz \
-    --mp1-2 Lib5_1.fq.gz \
-    -t 16  \
-    -o $WorkDir/. \
-    --cov-cutoff "$Cutoff"
 
-
+    spades.py \
+        -k 21,33,45,57 \
+        -m 200 \
+        --phred-offset 33 \
+        --pe1-1 Lib1_1.fq.gz \
+        --pe1-2 Lib1_2.fq.gz \
+        --pe2-1 Lib2_1.fq.gz \
+        --pe2-2 Lib2_2.fq.gz \
+        --pe3-1 Lib3_1.fq.gz \
+        --pe3-2 Lib3_2.fq.gz \
+        --pe4-1 Lib4_1.fq.gz \
+        --pe4-2 Lib4_2.fq.gz \
+        --mp1-1 Lib5_1.fq.gz \
+        --mp1-2 Lib5_2.fq.gz \
+        -t 16  \
+        -o $WorkDir/. \
+        --cov-cutoff "$Cutoff"
 
 echo "Filtering contigs smaller than 500bp"
 mkdir -p $WorkDir/filtered_contigs
