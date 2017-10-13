@@ -198,11 +198,10 @@ The four genes were identified as:
 cat gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv | grep -w -e 'g7540' -e 'g9518' -e 'g20514' -e 'g22621' | less -S
 ```
 
-# Lumpy structural variant discovery:
+# structural variant discovery:
 
- lumpy is specifically geared toward identifying indels and uses more lines of evidence. Also, GATK will detect only small indels, whereas lumpy can detect bigger structural variants.
+ lumpy and svaba are specifically geared toward identifying indels and structural variants and uses more lines of evidence that gatk. Also, GATK will detect only small indels, whereas lumpy can detect bigger structural variants.
 
-Run BWA-mem
 
 <!--
 ```bash
@@ -255,7 +254,9 @@ done
   cd $CurDir
 ``` -->
 
+For this analysis svaba was used.
 
+Run BWA-mem
 
 ```bash
 CurDir=$PWD
