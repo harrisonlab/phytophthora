@@ -2652,7 +2652,9 @@ for GeneGff in $(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_gen
   FPKM=$(ls alignment/star/P.cactorum/414_v2/DeSeq/fpkm_counts.txt)
   # File showing gene name conversions
   ConversionLog=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.log)
-  VcfFiles=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors_nonsyn.vcf)
-  $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --trans_mem $TMHMM_headers --GPI_anchor $GPI_headers --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --raw_counts $RawCount --fpkm $FPKM --InterPro $InterPro --Swissprot $SwissProt --SNP $VcfFiles --gene_conversion $ConversionLog > $OutDir/414_v2_gene_table_incl_exp.tsv
+  SnpVcfFile=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors_nonsyn.vcf)
+  IndelVcfFile=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel_no_errors_gene.vcf)
+  SvVcfFile=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv_no_errors_gene.vcf)
+  $ProgDir/pacbio_anntoation_tables.py --gff_format gff3 --gene_gff $GeneGff --gene_fasta $GeneFasta --SigP2 $SigP2 --SigP4 $SigP4 --phobius $PhobiusTxt --trans_mem $TMHMM_headers --GPI_anchor $GPI_headers --RxLR_total $RxLR_total --CRN_total $CRN_total --DEG_files $DEG_Files --raw_counts $RawCount --fpkm $FPKM --InterPro $InterPro --Swissprot $SwissProt --SNP $SnpVcfFile --gene_conversion $ConversionLog --indel $IndelVcfFile --struct_variants $SvVcfFile > $OutDir/414_v2_gene_table_incl_exp.tsv
 done
 ```
