@@ -42,6 +42,9 @@ ap.add_argument('--fpkm',required=True,type=str,help='normalised fpkm count data
 ap.add_argument('--InterPro',required=True,type=str,help='The Interproscan functional annotation .tsv file')
 ap.add_argument('--Swissprot',required=True,type=str,help='A parsed table of BLAST results against the Swissprot database. Note - must have been parsed with swissprot_parser.py')
 ap.add_argument('--SNP',required=True,nargs='+',type=str,help='A list of annotated .vcf with information on synonymous and non-synonymous SNPs in comparisons to the reference. Note - each of these files should be contained within a sepperate directory which is named on the comparison to be made.')
+ap.add_argument('--indel',required=True,type=str,help='An of annotated .vcf with indel information.')
+ap.add_argument('--struct_variants',required=True,type=str,help='An of annotated .vcf with indel information.')
+
 ap.add_argument('--gene_conversion',required=True,type=str,help='Conversion of gene ids of effector genes prior to ncbi-renaming for RxLRs, secreted genes and CRNs.')
 
 conf = ap.parse_args()
@@ -141,12 +144,47 @@ for SNP_file in SNP_files:
                 transcript_id = split_info[6]
                 if 'missense_variant' in effect:
                     AA_change = split_info[10]
-                    SNP_dict[transcript_id].append("_".join([comparison, AA_change]))
+                    SNP_dict[transcript_id].append("_".join([effect, AA_change]))
                 elif 'nonsense_variant' in effect:
                     AA_change = "stop"
-                    SNP_dict[transcript_id].append("_".join([comparison, AA_change]))
+                    SNP_dict[transcript_id].append("_".join([effect, AA_change]))
                     # print effect
 
+with open(conf.indel) as f:
+    indel_lines = f.readlines()
+
+indel_dict = defaultdict(list)
+for line in indel_lines:
+    if line.startswith('#'):
+        continue
+    else:
+        split_line = line.split()
+        indel_info = split_line[7]
+        split_info = indel_info.split("|")
+        effect = split_info[1]
+        # print effect
+        transcript_id = split_info[6]
+        AA_change = split_info[10]
+        # print "_".join([transcript_id, effect, AA_change])
+        indel_dict[transcript_id].append("_".join([effect, AA_change]))
+
+with open(conf.struct_variants) as f:
+    sv_lines = f.readlines()
+
+sv_dict = defaultdict(list)
+for line in sv_lines:
+    if line.startswith('#'):
+        continue
+    else:
+        split_line = line.split()
+        variant_info = split_line[7]
+        split_info = variant_info.split("|")
+        effect = split_info[1]
+        # print effect
+        transcript_id = split_info[6]
+        AA_change = split_info[10]
+        # print "_".join([transcript_id, effect, AA_change])
+        indel_dict[transcript_id].append("_".join([effect, AA_change]))
 
 with open(conf.gene_conversion) as f:
     conversion_lines = f.readlines()
@@ -455,6 +493,7 @@ for DEG_file in DEG_files:
     header_line.append("P-val_" + file_name)
 header_line.append('prot_seq')
 header_line.append('Non-syn_SNP')
+header_line.append('InDel')
 print ("\t".join(header_line))
 
 transcript_lines = []
@@ -617,6 +656,11 @@ for line in transcript_lines:
     else:
         non_syn_col = ""
 
+    if indel_dict[transcript_id]:
+        indel_col = "|".join(indel_dict[transcript_id])
+    else:
+        indel_col = ""
+
     prot_seq = "".join(prot_dict[transcript_id])
     # outline = [transcript_id, sigP2, phobius ,RxLR_motif, RxLR_hmm, WY_hmm, CRN_LFLAK, CRN_DWL, orthogroup]
     outline = [transcript_id]
@@ -630,6 +674,7 @@ for line in transcript_lines:
     outline.extend(mean_fpkm_cols)
     outline.extend(DEG_out)
     outline.append(non_syn_col)
+    outline.append(indel_col)
     outline.append(prot_seq)
     outline.extend(swissprot_cols)
     outline.append(interpro_col)
