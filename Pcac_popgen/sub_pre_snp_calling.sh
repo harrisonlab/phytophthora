@@ -34,13 +34,13 @@ grep -v "XS:i" *.sam > tmp.sam
 # mv tmp.sam $Filename
 samtools view --threads 16 -bS -o $Name.bam tmp.sam
 samtools sort --threads 16 -o "$Name"_nomulti_sorted.bam $Name.bam
-samtools index --threads 16 "$Name"_nomulti_sorted.bam
+samtools index -@ 16 "$Name"_nomulti_sorted.bam "$Name"_nomulti_sorted.bam.index
 
 ### Keep only reads with "paired reads" and "properly paired reads" flags.
 samtools view -b -h -f 3 -o "$Name"_nomulti_proper.bam "$Name"_nomulti_sorted.bam
 ### Sort for downstream analyses
-samtools sort "$Name"_nomulti_proper.bam "$Name"_nomulti_proper_sorted
-samtools index "$Name"_nomulti_proper_sorted.bam
+samtools sort --threads 16 -o "$Name"_nomulti_proper_sorted.bam "$Name"_nomulti_proper.bam
+samtools index -@ 16 "$Name"_nomulti_proper_sorted.bam "$Name"_nomulti_proper_sorted.bam.index
 
 ### Remove PCR and optical duplicates
 ProgDir=/home/sobczm/bin/picard-tools-2.5.0
