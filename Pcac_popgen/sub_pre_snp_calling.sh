@@ -1,7 +1,7 @@
 #$ -S /bin/bash
 #$ -cwd
-#$ -pe smp 1
-#$ -l h_vmem=16G
+#$ -pe smp 8
+#$ -l h_vmem=2G
 #$ -l h=blacklace01.blacklace|blacklace02.blacklace|blacklace04.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace07.blacklace|blacklace08.blacklace|blacklace09.blacklace|blacklace10.blacklace
 ##############################################
 # Prep mappings from Bowtie2 for SNP calling
@@ -32,15 +32,15 @@ cd $WorkDir
 ### Get rid of multimapping reads by filtering out on the XS:i: tag
 grep -v "XS:i" *.sam > tmp.sam
 # mv tmp.sam $Filename
-samtools view --threads 16 -bS -o $Name.bam tmp.sam
-samtools sort --threads 16 -o "$Name"_nomulti_sorted.bam $Name.bam
-samtools index -@ 16 "$Name"_nomulti_sorted.bam "$Name"_nomulti_sorted.bam.index
+samtools view --threads 8 -bS -o $Name.bam tmp.sam
+samtools sort --threads 8 -o "$Name"_nomulti_sorted.bam $Name.bam
+samtools index -@ 8 "$Name"_nomulti_sorted.bam "$Name"_nomulti_sorted.bam.index
 
 ### Keep only reads with "paired reads" and "properly paired reads" flags.
 samtools view -b -h -f 3 -o "$Name"_nomulti_proper.bam "$Name"_nomulti_sorted.bam
 ### Sort for downstream analyses
-samtools sort --threads 16 -o "$Name"_nomulti_proper_sorted.bam "$Name"_nomulti_proper.bam
-samtools index -@ 16 "$Name"_nomulti_proper_sorted.bam "$Name"_nomulti_proper_sorted.bam.index
+samtools sort --threads 8 -o "$Name"_nomulti_proper_sorted.bam "$Name"_nomulti_proper.bam
+samtools index -@ 8 "$Name"_nomulti_proper_sorted.bam "$Name"_nomulti_proper_sorted.bam.index
 
 ### Remove PCR and optical duplicates
 ProgDir=/home/sobczm/bin/picard-tools-2.5.0
