@@ -171,6 +171,15 @@ and annotation.
   cp $RawDat/Pcact-PC1315_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/F/.
   cp $RawDat/Pcact-PC1315_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/PC13_15/R/.
 
+  RawDat=/data/seq_data/miseq/2017/RAW/171006_M04465_0050_000000000-B49T7/Data/Intensities/BaseCalls
+  mkdir -p raw_dna/paired/P.cactorum/11-40/F
+  mkdir -p raw_dna/paired/P.cactorum/11-40/R
+  mkdir -p raw_dna/paired/P.cactorum/17-21/F
+  mkdir -p raw_dna/paired/P.cactorum/17-21/R
+  cp $RawDat/Pcact-CN11-40_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/11-40/F/.
+  cp $RawDat/Pcact-CN11-40_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/11-40/R/.
+  cp $RawDat/Pcact-CN17-21_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/17-21/F/.
+  cp $RawDat/Pcact-CN17-21_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/17-21/R/.
 ```
 
 #Data qc
@@ -182,7 +191,7 @@ Data quality was visualised using fastqc:
 
 ```bash
   # for RawData in $(ls raw_dna/paired/P.*/*/*/*.fastq.gz | grep '170210'); do
-  for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300' | grep '2003_3'); do
+  for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300' | grep -e '11-40' -e '17-21'); do
     echo $RawData;
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
@@ -206,7 +215,7 @@ done
 ```
 
 ```bash
-for StrainPath in $(ls -d raw_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
+for StrainPath in $(ls -d raw_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21'); do
 # for StrainPath in $(ls -d raw_dna/paired/*/* | grep -e 'idaei'); do
 Jobs=$(qstat | grep 'rna_qc_' | grep 'qw' | wc -l)
 while [ $Jobs -gt 1 ]; do
@@ -280,7 +289,17 @@ done
 Data quality was visualised once again following trimming:
 
 ```bash
-for RawData in $(ls qc_dna/paired/P.*/*/*/*q.gz  | grep 'P.idaei'); do
+for TrimData in $(ls qc_dna/paired/P.cactorum/*/*/*.fq.gz | grep -e '11-40' -e '17-21'); do
+echo $TrimData;
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+qsub $ProgDir/run_fastqc.sh $TrimData;
+done
+```
+
+Sequencing coveraqge was estimated:
+
+```bash
+for RawData in $(ls qc_dna/paired/P.*/*/*/*q.gz | grep -e '11-40' -e '17-21'); do
 echo $RawData;
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
@@ -294,7 +313,7 @@ done
 Find predicted coverage for these isolates:
 
 ```bash
-for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep 'idaei'); do
+for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep -e '11-40' -e '17-21'); do
 Strain=$(basename $StrainDir)
 printf "$Strain\t"
 for File in $(ls qc_dna/paired/P.*/"$Strain"/*/*.txt); do
