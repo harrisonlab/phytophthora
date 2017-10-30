@@ -114,6 +114,15 @@ qsub $ProgDir/sub_pre_snp_calling.sh <INPUT SAM FILE> <SAMPLE_ID>
   done
 ```
 
+```bash
+  for Sam in $(ls analysis/popgen/*/*/*_vs_414_v2_aligned.sam | grep -v '10300' | grep '2003_3'); do
+    Strain=$(echo $Sam | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Sam | rev | cut -f3 -d '/' | rev)
+    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+    qsub $ProgDir/sub_pre_snp_calling.sh $Sam $Strain
+  done
+```
+
 <!-- ##Copy outputs from cleanup to alignment folder
 
 ```bash
