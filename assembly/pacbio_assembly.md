@@ -119,6 +119,135 @@ qsub $ProgDir/submit_canu.sh $Run1 $GenomeSz $Prefix $OutDir
 ```
 -->
 
+### Falcon Assembly
+
+FALCON is an assembler designed by Pacific Biosciences to assemble long-read data. It is also 'diploid-aware'. This file contains an example set of commands for running FALCON on PacBio data for the P414 strain of Phytophthora cactorum. This is run on NIABs triticum computer.
+
+
+```bash
+ssh adarmitage@10.1.10.170
+/bin/bash
+```
+
+```bash
+DataDir=/data/projects/armita
+mkdir -p $DataDir
+scp armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz $DataDir/.
+scp armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz $DataDir/.
+gunzip $DataDir/*.fastq.gz
+# scp -r armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/raw_dna/paired/P.cactorum/414 $DataDir/.
+
+```
+
+The following lines must be in your bash profile
+```bash
+  export PATH=/home/sobczm/bin/cmake-3.8.0/bin:${PATH}
+  export PATH=/home/sobczm/bin/gawk-4.1.4:${PATH}
+  export PYTHONPATH=/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/analysis/bin
+  export PYTHONPATH="$PYTHONPATH:/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/common/lib"
+  export PYTHONPATH="$PYTHONPATH:/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/analysis/lib/python2.7"
+  export PYTHONPATH="$PYTHONPATH:/home/sobczm/usr/local/lib/python2.7/site-packages"
+  export PYTHONPATH="$PYTHONPATH:/home/sobczm/bin/FALCON-integrate/fc_env/lib/python2.7/site-packages"
+  export PYTHONPATH="$PYTHONPATH:/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/analysis/lib"
+  export PYTHONUSERBASE=/home/sobczm/bin/FALCON-integrate/fc_env
+  export PATH=$PYTHONUSERBASE/bin:${PATH}
+  export PATH=/home/sobczm/usr/local/bin:${PATH}
+  export PATH=/home/sobczm/bin/pbh5tools/bin:${PATH}
+  export PATH=/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/analysis/bin:${PATH}
+```
+
+In order to run, FALCON needs two files to be available. One that tells it where the fasta files of reads are and one that specifies parameters to run with.
+
+```bash
+mkdir -p falcon
+cd falcon
+Run1=$(ls /data/projects/armita/*.fastq | head -n1)
+Run2=$(ls /data/projects/armita/*.fastq | head -n1)
+printf "$Run1\n$Run2\n" > input.fofn
+
+printf \
+"[General]
+use_tmpdir = True
+job_type = local
+
+# list of fasta files
+input_fofn = input.fofn
+
+#input type, raw or pre-assembled reads (preads, error corrected reads)
+input_type = raw
+
+# The length cutoff used for seed reads used for initial mapping during error correction
+# "-1" indicates FALCON should calculate the cutoff using
+# the user-defined genome length and coverage cut off
+length_cutoff = -1
+
+###In a general sense, longer pread length cut offs will increase the
+###contiguity (contig N50) in your assembly, but may result in shorter over all assembly length.
+
+length_cutoff_pr = 3500
+genome_size = 66000000
+seed_coverage = 30
+
+## resource usage ## EMPTY FOR LOCAL USAGE
+# grid settings for...
+jobqueue = production
+# daligner step of raw reads
+sge_option_da =
+# las-merging of raw reads
+sge_option_la =
+# consensus calling for preads
+sge_option_pda =
+# daligner on preads
+sge_option_pla =
+# las-merging on preads
+sge_option_fc =
+# final overlap/assembly
+sge_option_cns =
+
+# job concurrency settings for...
+# all jobs
+default_concurrent_jobs = 32
+# preassembly
+da_concurrent_jobs = 32
+la_concurrent_jobs = 32
+# consensus calling of preads
+cns_concurrent_jobs = 32
+# overlap detection
+pda_concurrent_jobs = 32
+pla_concurrent_jobs = 32
+
+# daligner parameter options for...
+# https://dazzlerblog.wordpress.com/command-guides/daligner-command-reference-guide/
+
+##initial overlap of raw reads
+pa_HPCdaligner_option =  -v -B128 -t16 -e0.75 -M24 -l3200 -k18 -h480 -w8 -s100
+
+## overlap of preads
+ovlp_HPCdaligner_option = -v -B128 -M24 -k24 -h1024 -e.96 -l2500 -s100
+
+## parameters for creation of dazzler database of...
+## https://dazzlerblog.wordpress.com/command-guides/dazz_db-command-guide/
+pa_DBsplit_option = -a -x500 -s200
+ovlp_DBsplit_option = -s200
+
+## settings for consensus calling for preads
+falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 200 --n_core 8
+
+overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 2 --n_core 16" \
+> fc_run.cfg
+```
+
+Run falcon job itself in a screen session
+```bash
+screen -a
+/bin/bash
+export PYTHONUSERBASE=/data/software/FALCON-integrate/fc_env
+export PATH=$PYTHONUSERBASE/bin:$PATH
+fc_run.py fc_run.cfg
+```
+
+### Canu assembly
+
 ```bash
   Run1=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
   Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
