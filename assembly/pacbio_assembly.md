@@ -141,6 +141,7 @@ gunzip $DataDir/*.fastq.gz
 
 The following lines must be in your bash profile
 ```bash
+  source /home/sobczm/bin/FALCON-integrate/env.sh
   export PATH=/home/sobczm/bin/cmake-3.8.0/bin:${PATH}
   export PATH=/home/sobczm/bin/gawk-4.1.4:${PATH}
   export PYTHONPATH=/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/analysis/bin
@@ -161,8 +162,8 @@ In order to run, FALCON needs two files to be available. One that tells it where
 ```bash
 mkdir -p falcon
 cd falcon
-Run1=$(ls /data/projects/armita/*.fastq | head -n1)
-Run2=$(ls /data/projects/armita/*.fastq | head -n1)
+Run1=$(ls ../../../data/projects/armita/*.fastq | head -n1 | tail -n1)
+Run2=$(ls ../../../data/projects/armita/*.fastq | head -n2 | tail -n1)
 printf "$Run1\n$Run2\n" > input.fofn
 
 printf \
@@ -175,18 +176,37 @@ input_fofn = input.fofn
 
 #input type, raw or pre-assembled reads (preads, error corrected reads)
 input_type = raw
+#input_type = preads
 
 # The length cutoff used for seed reads used for initial mapping during error correction
+#lambda
+#length_cutoff = 1
+#E. coli: automatic calculation
+#length_cutoff = -1
+#fungal
+length_cutoff = 6000
+#Plant
+#length_cutoff = 5000
+
+# The length cutoff used for seed reads used for assembly overlapping of preads
 # "-1" indicates FALCON should calculate the cutoff using
 # the user-defined genome length and coverage cut off
-length_cutoff = -1
-
+# otherwise, user can specify length cut off in bp (e.g. 2000)
 ###In a general sense, longer pread length cut offs will increase the
 ###contiguity (contig N50) in your assembly, but may result in shorter over all assembly length.
 
-length_cutoff_pr = 3500
+#Lambda
+#length_cutoff_pr = 1
+#fungal
+length_cutoff_pr = 8000
+#plant
+#length_cutoff_pr = 1000
+#E. coli
+#length_cutoff_pr = 12000
 genome_size = 66000000
-seed_coverage = 30
+#E. coli and plant
+#seed_coverage = 30
+
 
 ## resource usage ## EMPTY FOR LOCAL USAGE
 # grid settings for...
@@ -204,6 +224,7 @@ sge_option_fc =
 # final overlap/assembly
 sge_option_cns =
 
+
 # job concurrency settings for...
 # all jobs
 default_concurrent_jobs = 32
@@ -220,20 +241,68 @@ pla_concurrent_jobs = 32
 # https://dazzlerblog.wordpress.com/command-guides/daligner-command-reference-guide/
 
 ##initial overlap of raw reads
+#Lambda
+#S argument controls the size of jobs - bigger number will result in a smaller number
+#of longer-running jobs.
+#pa_HPCdaligner_option =  -v -B4 -t16 -h1 -e.70 -l1 -s1000
+#E.coli
+#pa_HPCdaligner_option =  -v -B4 -t16 -e.70 -l1000 -s1000
+#fungal
 pa_HPCdaligner_option =  -v -B128 -t16 -e0.75 -M24 -l3200 -k18 -h480 -w8 -s100
+#plant
+#pa_HPCdaligner_option =  -v -B128 -M32 -e.70 -l4800 -s100 -k18 -h480 -w8
 
 ## overlap of preads
+#Lambda
+#ovlp_HPCdaligner_option = -v -B4 -t32 -h1 -e.99 -l1 -s1000
+#E. coli
+#ovlp_HPCdaligner_option = -v -B4 -t32 -h60 -e.96 -l500 -s1000
+#fungal
 ovlp_HPCdaligner_option = -v -B128 -M24 -k24 -h1024 -e.96 -l2500 -s100
+#plant
+#ovlp_HPCdaligner_option = -v -B128 -M32 -h1024 -e.96 -l2400 -s100 -k18
 
 ## parameters for creation of dazzler database of...
 ## https://dazzlerblog.wordpress.com/command-guides/dazz_db-command-guide/
+## raw reads
+#Lambda
+#pa_DBsplit_option = -x5 -s50 -a
+#E. coli
+#pa_DBsplit_option = -x500 -s50
+#fungal
 pa_DBsplit_option = -a -x500 -s200
+#plant
+#pa_DBsplit_option = -a -x500 -s400
+
+#Lambda
+#ovlp_DBsplit_option = -x5 -s50 -a
+#E. coli
+#ovlp_DBsplit_option = -x500 -s50
+#fungal
 ovlp_DBsplit_option = -s200
+#plant
+#ovlp_DBsplit_option = -s400
 
 ## settings for consensus calling for preads
+#Lambda
+#falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 1 --max_n_read 20000 --n_core 6
+#E. coli
+#falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 200 --n_core 6
+#fungal
 falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 200 --n_core 8
+#plant
+#falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 2 --max_n_read 200 --n_core 12
+#falcon_sense_skip_contained = True
 
-overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 2 --n_core 16" \
+#Lambda
+#overlap_filtering_setting = --max_diff 10000 --max_cov 100000 --min_cov 0 --bestn 1000 --n_core 24
+#E. coli
+#overlap_filtering_setting = --max_diff 100 --max_cov 100 --min_cov 20 --bestn 10 --n_core 24
+#fungal
+overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 2 --n_core 12
+#plant
+#overlap_filtering_setting = --max_diff 100 --max_cov 100 --min_cov 2 --n_core 12
+" \
 > fc_run.cfg
 ```
 
