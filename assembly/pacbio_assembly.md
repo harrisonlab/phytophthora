@@ -125,6 +125,8 @@ FALCON is an assembler designed by Pacific Biosciences to assemble long-read dat
 
 
 ```bash
+mkdir -p assembly/falcon/P.cactorum/414
+
 ssh adarmitage@10.1.10.170
 /bin/bash
 ```
@@ -160,11 +162,19 @@ The following lines must be in your bash profile
 In order to run, FALCON needs two files to be available. One that tells it where the fasta files of reads are and one that specifies parameters to run with.
 
 ```bash
-mkdir -p falcon
-cd falcon
-Run1=$(ls ../../../data/projects/armita/*.fastq | head -n1 | tail -n1)
-Run2=$(ls ../../../data/projects/armita/*.fastq | head -n2 | tail -n1)
-printf "$Run1\n$Run2\n" > input.fofn
+# mkdir -p falcon
+# cd falcon
+# Run1=$(ls ../../../data/projects/armita/*.fastq | head -n1 | tail -n1)
+# Run2=$(ls ../../../data/projects/armita/*.fastq | head -n2 | tail -n1)
+# printf "$Run1\n$Run2\n" > input.fofn
+cd /data/projects/armita
+cat concatenated_pacbio.fastq | sed -n '1~4s/^@/>/p;2~4p' > concatenated_pacbio.fasta
+cat concatenated_pacbio_extra_coverage.fastq | sed -n '1~4s/^@/>/p;2~4p' > concatenated_pacbio_extra_coverage.fasta
+# Run1=$(ls ../../../data/projects/armita/*.fasta | head -n1 | tail -n1)
+# Run2=$(ls ../../../data/projects/armita/*.fasta | head -n2 | tail -n1)
+# printf "$Run1\n$Run2\n" > input.fofn
+echo "concatenated_pacbio.fasta" > Pcac.fofn
+echo "concatenated_pacbio_extra_coverage.fasta" >> Pcac.fofn
 
 printf \
 "[General]
@@ -172,21 +182,17 @@ use_tmpdir = True
 job_type = local
 
 # list of fasta files
-input_fofn = input.fofn
+input_fofn = Pcac.fofn
 
 #input type, raw or pre-assembled reads (preads, error corrected reads)
 input_type = raw
-#input_type = preads
 
 # The length cutoff used for seed reads used for initial mapping during error correction
-#lambda
-#length_cutoff = 1
 #E. coli: automatic calculation
-#length_cutoff = -1
+length_cutoff = -1
 #fungal
-length_cutoff = 6000
-#Plant
-#length_cutoff = 5000
+#length_cutoff = 6000
+
 
 # The length cutoff used for seed reads used for assembly overlapping of preads
 # "-1" indicates FALCON should calculate the cutoff using
@@ -205,7 +211,7 @@ length_cutoff_pr = 8000
 #length_cutoff_pr = 12000
 genome_size = 66000000
 #E. coli and plant
-#seed_coverage = 30
+#seed_coverage = 86
 
 
 ## resource usage ## EMPTY FOR LOCAL USAGE
@@ -303,17 +309,61 @@ overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 2 --n_core 12
 #plant
 #overlap_filtering_setting = --max_diff 100 --max_cov 100 --min_cov 2 --n_core 12
 " \
-> fc_run.cfg
+> Pcac_fc_run.cfg
 ```
 
 Run falcon job itself in a screen session
 ```bash
 screen -a
 /bin/bash
-export PYTHONUSERBASE=/data/software/FALCON-integrate/fc_env
-export PATH=$PYTHONUSERBASE/bin:$PATH
-fc_run.py fc_run.cfg
+# source /home/sobczm/bin/FALCON-integrate/fc_env/bin/activate
+# source /home/sobczm/bin/FALCON-integrate/env.sh
+# export PYTHONUSERBASE=/data/software/FALCON-integrate/fc_env
+# export PATH=$PYTHONUSERBASE/bin:$PATH
+
+# FALCON_WORKSPACE=$(pwd)
+# PYTHONUSERBASE=$(pwd)/fc_env
+# FALCON_PREFIX=${PYTHONUSERBASE}
+# mkdir -p ${FALCON_PREFIX}/include
+# mkdir -p ${FALCON_PREFIX}/bin
+# mkdir -p ${FALCON_PREFIX}/lib
+
+
+# FALCON_WORKSPACE=$(pwd)
+# PYTHONUSERBASE=$(pwd)/fc_env
+# FALCON_PREFIX=${PYTHONUSERBASE}
+# PATH=${PYTHONUSERBASE}/bin:${FALCON_PREFIX}/bin:${PATH}
+# export PYTHONUSERBASE
+# export FALCON_WORKSPACE
+# export FALCON_PREFIX
+# export PATH
+# mkdir -p ${FALCON_PREFIX}/include
+# mkdir -p ${FALCON_PREFIX}/bin
+# mkdir -p ${FALCON_PREFIX}/lib
+
+rm -rf 0-rawreads/ 1-preads_ovl/ 2-asm-falcon/ all.log mypwatcher/ scripts/ sge_log
+rm fc_run.log pypeflow.log logging.ini
+fc_run.py Pcac_fc_run.cfg
+# fc_run.py fc_run.cfg
 ```
+
+
+```bash
+
+scp -r 2-asm-falcon armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/.
+```
+
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $(ls assembly/falcon/P.cactorum/414/*/p_ctg.fa); do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+    OutDir=$(dirname $Assembly)
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
+```
+
 
 ### Canu assembly
 
