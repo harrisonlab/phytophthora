@@ -143,7 +143,7 @@ gunzip $DataDir/*.fastq.gz
 
 The following lines must be in your bash profile
 ```bash
-  source /home/sobczm/bin/FALCON-integrate/env.sh
+  # source /home/sobczm/bin/FALCON-integrate/env.sh
   export PATH=/home/sobczm/bin/cmake-3.8.0/bin:${PATH}
   export PATH=/home/sobczm/bin/gawk-4.1.4:${PATH}
   export PYTHONPATH=/data/software/smrtanalysis/install/smrtanalysis_2.3.0.140936/analysis/bin
@@ -201,17 +201,11 @@ length_cutoff = -1
 ###In a general sense, longer pread length cut offs will increase the
 ###contiguity (contig N50) in your assembly, but may result in shorter over all assembly length.
 
-#Lambda
-#length_cutoff_pr = 1
+
 #fungal
-length_cutoff_pr = 8000
-#plant
-#length_cutoff_pr = 1000
-#E. coli
-#length_cutoff_pr = 12000
-genome_size = 66000000
-#E. coli and plant
-#seed_coverage = 86
+length_cutoff_pr = 3500
+genome_size = 75000000
+seed_coverage = 30
 
 
 ## resource usage ## EMPTY FOR LOCAL USAGE
@@ -250,64 +244,28 @@ pla_concurrent_jobs = 32
 #Lambda
 #S argument controls the size of jobs - bigger number will result in a smaller number
 #of longer-running jobs.
-#pa_HPCdaligner_option =  -v -B4 -t16 -h1 -e.70 -l1 -s1000
-#E.coli
-#pa_HPCdaligner_option =  -v -B4 -t16 -e.70 -l1000 -s1000
 #fungal
 pa_HPCdaligner_option =  -v -B128 -t16 -e0.75 -M24 -l3200 -k18 -h480 -w8 -s100
-#plant
-#pa_HPCdaligner_option =  -v -B128 -M32 -e.70 -l4800 -s100 -k18 -h480 -w8
 
 ## overlap of preads
-#Lambda
-#ovlp_HPCdaligner_option = -v -B4 -t32 -h1 -e.99 -l1 -s1000
-#E. coli
-#ovlp_HPCdaligner_option = -v -B4 -t32 -h60 -e.96 -l500 -s1000
 #fungal
 ovlp_HPCdaligner_option = -v -B128 -M24 -k24 -h1024 -e.96 -l2500 -s100
-#plant
-#ovlp_HPCdaligner_option = -v -B128 -M32 -h1024 -e.96 -l2400 -s100 -k18
 
 ## parameters for creation of dazzler database of...
 ## https://dazzlerblog.wordpress.com/command-guides/dazz_db-command-guide/
 ## raw reads
-#Lambda
-#pa_DBsplit_option = -x5 -s50 -a
-#E. coli
-#pa_DBsplit_option = -x500 -s50
 #fungal
 pa_DBsplit_option = -a -x500 -s200
-#plant
-#pa_DBsplit_option = -a -x500 -s400
 
-#Lambda
-#ovlp_DBsplit_option = -x5 -s50 -a
-#E. coli
-#ovlp_DBsplit_option = -x500 -s50
 #fungal
 ovlp_DBsplit_option = -s200
-#plant
-#ovlp_DBsplit_option = -s400
 
 ## settings for consensus calling for preads
-#Lambda
-#falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 1 --max_n_read 20000 --n_core 6
-#E. coli
-#falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 200 --n_core 6
 #fungal
-falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 200 --n_core 8
-#plant
-#falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 2 --max_n_read 200 --n_core 12
-#falcon_sense_skip_contained = True
+falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 150 --n_core 8
 
-#Lambda
-#overlap_filtering_setting = --max_diff 10000 --max_cov 100000 --min_cov 0 --bestn 1000 --n_core 24
-#E. coli
-#overlap_filtering_setting = --max_diff 100 --max_cov 100 --min_cov 20 --bestn 10 --n_core 24
 #fungal
-overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 2 --n_core 12
-#plant
-#overlap_filtering_setting = --max_diff 100 --max_cov 100 --min_cov 2 --n_core 12
+overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 1 --n_core 12
 " \
 > Pcac_fc_run.cfg
 ```
@@ -347,10 +305,46 @@ fc_run.py Pcac_fc_run.cfg
 # fc_run.py fc_run.cfg
 ```
 
+Assess assembly Graph and Pread Overlaps
+https://pb-falcon.readthedocs.io/en/latest/tutorial.html#assembly-graph-and-pread-overlaps
+
+Assembly contiguity can be enhanced by adjusting a few parameters in the last stage of the assembly process. You can try a grid of pread length cut offs for the filtering of the final overlaps in the assembly graph. In a general sense, longer pread length cut offs will increase the contiguity (contig N50) in your assembly, but may result in shorter over all assembly length. To try different length cut off, rename your 2-asm-falcon dir, modify the config file, rename the log and mypwatcher directory, and restart FALCON:
 
 ```bash
+cd 2-asm-falcon
+fc_ovlp_stats --fofn ../1-preads_ovl/merge-gather/las.fofn > ovlp.stats
+scp -r ovlp.stats armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/.
+cd ../
+```
 
-scp -r 2-asm-falcon armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/.
+```R
+library(ggplot2)
+ovlp<-read.table("ovlp.stats", header=F)
+colnames(ovlp)<-c("pread","length","fivePrimeOvlps","threePrimeOvlps")
+
+pdf(file="OvlpHist.pdf", width=11, height=5)
+par(oma=c(3,3,2,0), cex=1.6, las=1, mar=c(4,4,2,2), mfrow=c(1,2))
+hist(ovlp$fivePrimeOvlps, breaks=100,
+        xlab="number of overlaps between preads",
+        ylab="count", main="Five Prime")
+hist(ovlp$threePrimeOvlps, breaks=100,
+        xlab="number of overlaps between preads",
+        ylab="count", main="Three Prime")
+hist(ovlp$fivePrimeOvlps, breaks=1000,
+        xlim=c(1,100),
+        xlab="number of overlaps between preads",
+        ylab="count", main="Five Prime")
+hist(ovlp$threePrimeOvlps, breaks=1000,
+        xlim=c(1,100),
+        xlab="number of overlaps between preads",
+        ylab="count", main="Three Prime")
+
+dev.off()
+```
+
+```bash
+cp Pcac_fc_run.cfg 2-asm-falcon/.
+scp -r 2-asm-falcon armita@149.155.34.72:/home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/v2
 ```
 
 
@@ -362,6 +356,20 @@ scp -r 2-asm-falcon armita@149.155.34.72:/home/groups/harrisonlab/project_files/
     OutDir=$(dirname $Assembly)
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir
   done
+```
+
+checking using busco
+
+```bash
+for Assembly in $(ls assembly/falcon/P.cactorum/414/*/p_ctg.fa); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+  Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+  echo "$Organism - $Strain"
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+  BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+  OutDir=$(dirname $Assembly)
+  qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+done
 ```
 
 
