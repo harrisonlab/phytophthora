@@ -431,7 +431,11 @@ for Proteome in $(ls gene_pred/final/*/*/*/final_genes_appended_renamed.pep.fast
 ```
 
 ```
-
+P.cactorum - 10300
+The following number of sequences were predicted as secreted:
+17591
+This represented the following number of unique genes:
+5255
 ```
 
 Some proteins that are incorporated into the cell membrane require secretion.
@@ -476,6 +480,16 @@ TmHeaders=$(echo $PosFile | sed 's/.txt/_headers.txt/g')
 cat $PosFile | cut -f1 > $TmHeaders
 
 done
+```
+
+```
+  P.cactorum - 10300
+  Number of SigP proteins:
+  17591
+  Number without transmembrane domains:
+  13452
+  Number of gene models:
+  4024
 ```
 
 Proteins containing GPI anchors were also removed using GPIsom
@@ -567,6 +581,8 @@ done
 Those genes that were predicted as secreted and tested positive by effectorP
 were identified:
 
+Note - this doesnt exclude proteins with TM domains or GPI anchors
+
 ```bash
   for File in $(ls analysis/effectorP/*/*/*_EffectorP.txt | grep '10300'); do
     Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
@@ -591,7 +607,9 @@ were identified:
   done
 ```
 ```
-
+P.cactorum - 10300
+EffectorP headers:	13994
+Secreted effectorP headers:	1376
 ```
 
 ## D) CAZY proteins
@@ -647,7 +665,9 @@ done
 ```
 
 ```
-
+P.cactorum - 10300
+number of CAZY genes identified:	697
+number of Secreted CAZY genes identified:	404
 ```
 
 Note - the CAZY genes identified may need further filtering based on e value and
@@ -718,11 +738,11 @@ done
 ```
 
 ```
-  strain: 10300   species: P.cactorum
-  the total number of SigP gene is:       17591
-  the number of unique SigP gene is:      3291
-  the number of SigP-RxLR genes are:      294
-  the number of SigP-RxLR-EER genes are:  130
+  strain: 10300	species: P.cactorum
+  the total number of SigP gene is:	17591
+  the number of unique SigP gene is:	5470
+  the number of SigP-RxLR genes are:	537
+  the number of SigP-RxLR-EER genes are:	253
 ```
 
 
@@ -763,12 +783,12 @@ Domain search space  (domZ):             148  [number of targets reported over t
 The total RxLRs are
 
 ```bash
-for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep '10300'); do
+for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep -v -e 'Aug' -e 'ORF' | grep '10300'); do
 Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
 Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
 Gff=$(ls gene_pred/final/$Organism/$Strain/final/final_genes_appended_renamed.gff3)
 Proteome=$(ls gene_pred/final/$Organism/$Strain/*/final_genes_appended_renamed.pep.fasta)
-HmmRxLR=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/*_RxLR_hmmer_headers.txt
+HmmRxLR=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/*_RxLR_hmmer_headers.txt | grep -v -e 'Aug' -e 'ORF')
 echo "$Organism - $Strain"
 echo "Number of RxLRs identified by Regex:"
 cat $RegexRxLR | sort | uniq | wc -l
@@ -793,11 +813,13 @@ done
 ```
 P.cactorum - 10300
 Number of RxLRs identified by Regex:
-109
+253
 Number of RxLRs identified by Hmm:
-415
+148
 Number of RxLRs in combined dataset:
-436
+298
+Number of genes in the extracted gff file:
+293
 ```
 
 
