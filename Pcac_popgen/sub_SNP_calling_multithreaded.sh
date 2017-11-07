@@ -53,7 +53,7 @@ java -jar $ProgDir/GenomeAnalysisTK.jar \
 #This tool will take an MNP (e.g. ACCCA -> TCCCG) and break it up into separate records for each component part (A-T and A->G).
 #This tool modifies only bi-allelic variants.
 
-java -jar $gatk/GenomeAnalysisTK.jar \
+java -jar $ProgDir/GenomeAnalysisTK.jar \
    -T VariantsToAllelicPrimitives \
    -R $Reference \
    -V $Out1 \
