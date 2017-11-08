@@ -189,9 +189,9 @@ input_type = raw
 
 # The length cutoff used for seed reads used for initial mapping during error correction
 #E. coli: automatic calculation
-length_cutoff = -1
+# length_cutoff = -1
 #fungal
-#length_cutoff = 6000
+length_cutoff = 6000
 
 
 # The length cutoff used for seed reads used for assembly overlapping of preads
@@ -203,9 +203,10 @@ length_cutoff = -1
 
 
 #fungal
-length_cutoff_pr = 3500
-genome_size = 75000000
-seed_coverage = 30
+# length_cutoff_pr = 3500
+length_cutoff_pr = 5000
+genome_size = 66000000
+#seed_coverage = 30
 
 
 ## resource usage ## EMPTY FOR LOCAL USAGE
@@ -262,10 +263,10 @@ ovlp_DBsplit_option = -s200
 
 ## settings for consensus calling for preads
 #fungal
-falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 150 --n_core 8
+falcon_sense_option = --output_multi --min_idt 0.70 --min_cov 4 --max_n_read 200 --n_core 8
 
 #fungal
-overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 1 --n_core 12
+overlap_filtering_setting = --max_diff 120 --max_cov 120 --min_cov 2 --n_core 12
 " \
 > Pcac_fc_run.cfg
 ```
