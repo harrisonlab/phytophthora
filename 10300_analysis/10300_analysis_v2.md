@@ -521,7 +521,7 @@ were copied and pasted into:
 were copied and pasted into: -->
 
 ```bash
-  nano gene_pred/trans_mem/P.cactorum/414_v2/GPIsom/GPI_pos.fa
+  nano gene_pred/trans_mem/P.cactorum/10300/GPIsom/GPI_pos.fa
 ```
 
 Those proteins with GPI anchors were removed from lists of Signal
@@ -1168,25 +1168,11 @@ qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
 done
 ```
 
-Accepted hits .bam file were concatenated and indexed for use for gene model training:
+<!--
 
 
 ```bash
-for OutDir in $(ls -d alignment/star/*/* | grep '1177'); do
-  Strain=$(echo $OutDir | rev | cut -d '/' -f1 | rev)
-  Organism=$(echo $OutDir | rev | cut -d '/' -f2 | rev)
-  echo "$Organism - $Strain"
-  # For all alignments
-  BamFiles=$(ls $OutDir/treatment/*/*.sortedByCoord.out.bam | tr -d '\n' | sed 's/.bam/.bam /g')
-  mkdir -p $OutDir/concatenated
-  samtools merge -f $OutDir/concatenated/concatenated.bam $BamFiles
-done
-```
-
-
-
-```bash
-for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -1194,17 +1180,12 @@ InGff=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain*/*_OR
 InGff_features=$(echo $InGff | sed 's/.gff/_features.gff/g')
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/add_ORF_features.pl $InGff $Assembly >> $InGff_features
-for BamFile in $(ls ../../../..//sobczm/popgen/rnaseq/vesca_*/pcac/star_aligmentAligned.sortedByCoord.out.bam); do
-OutDir=alignment/star/$Organism/$Strain/featureCounts_maria_alignment_ORF_RxLR
+for BamFile in $(ls alignment/star/P.cactorum/10300/treatment/genbank/star_aligmentAligned.sortedByCoord.out.bam); do
+# OutDir=alignment/star/$Organism/$Strain/featureCounts_genbank
+OutDir=$(dirname $BamFile)
 mkdir -p $OutDir
-Prefix=$(echo $BamFile | rev | cut -f3 -d '/' | rev | sed 's/vesca_//g')
-Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
-while [ $Jobs -gt 1 ]; do
-  sleep 1m
-  printf "."
-  Jobs=$(qstat | grep 'sub_fea' | grep 'qw'| wc -l)
-done
-printf "\n"
+# Prefix=$(echo $BamFile | rev | cut -f3 -d '/' | rev | sed 's/vesca_//g')
+Prefix=$Strain
 echo $Prefix
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 # echo "$BamFile $Gff $OutDir $Prefix"
@@ -1218,27 +1199,26 @@ ORF RxLR gene models:
 
 ```bash
   Organism="P.cactorum"
-  Strain="414_v2"
+  Strain="10300"
   OutDir=$(ls -d analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain)
-  for FeatureCounts in $(ls alignment/star/$Organism/$Strain/featureCounts_maria_alignment_ORF_RxLR/*_featurecounts.txt); do
+  for FeatureCounts in $(ls alignment/star/$Organism/$Strain/treatment/genbank/*_featurecounts.txt); do
     OutFile=$(echo $FeatureCounts | sed 's/.txt/_fpkm_>5.txt/g')
-  cat $FeatureCounts | tail -n+3 | cut -f1,7 | grep -v -e '\s0$' -e '\s1$' -e '\s2$' -e '\s3$' -e '\s4$' > $OutFile
+  # cat $FeatureCounts | tail -n+3 | cut -f1,7 | grep -v -e '\s0$' -e '\s1$' -e '\s2$' -e '\s3$' -e '\s4$' > $OutFile
+    cat $FeatureCounts | tail -n+3 | awk '$7>5 {print $0}' > $OutFile
   cat $OutFile
   done | cut -f1 | sort | uniq > $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt
   cat $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt | wc -l
-  SigP_Gff=$(ls gene_pred/combined_sigP_ORF/P.cactorum/414_v2/414_v2_all_secreted_unmerged.gff)
+  SigP_Gff=$(ls gene_pred/combined_sigP_ORF/P.cactorum/10300/10300_all_secreted_unmerged.gff)
   cat $SigP_Gff | grep -f $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers.txt | cut -f4 -d '=' | cut -f1 -d ';' > $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers_renamed.txt
   cat $OutDir/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers_renamed.txt | wc -l
 ```
 
+The number of Aditional RxLRs from those  secreted ORF RxLRs with a fpkm >5 was:
 
 ```
-  strain: 10300	species: P.cactorum
-  the number of SigP gene is:	20039
-  the number of SigP-RxLR genes are:	1209
-  the number of SigP-RxLR-EER genes are:	193
-  Merged RxLR-EER regex proteins:	68
-```
+  904
+``` -->
+
 
 
 ### E5) From ORF gene models - Hmm evidence of WY domains
@@ -1315,10 +1295,10 @@ done
 ```
 
 ```
-  P.cactorum 10300
-  Initial search space (Z):              20039  [actual number of targets]
-  Domain search space  (domZ):             157  [number of targets reported over threshold]
-  Merged RxLR-EER Hmm proteins:	54
+P.cactorum 10300
+Initial search space (Z):              55959  [actual number of targets]
+Domain search space  (domZ):             471  [number of targets reported over threshold]
+Merged RxLR-EER Hmm proteins:	145
 ```
 
 <!--
@@ -1327,50 +1307,72 @@ done
 * Domain search space  (domZ):             144  [number of targets reported over threshold]
  -->
 
-### E7) Combining RxLRs from Regex and hmm searches
+ ### E7) Combining RxLRs from Regex and hmm searches
 
 
-The total RxLRs are
+ The total ORF RxLRs are
 
-```bash
-  for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_ORF_RxLR_EER_regex_merged.txt | grep '10300'); do
-    Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
-    Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
-    Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF.gff3)
-    Proteome=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
-    HmmRxLR=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmm_merged.txt)
-    echo "$Organism - $Strain"
-    echo "Number of RxLRs identified by Regex:"
-    cat $RegexRxLR | sort | uniq | wc -l
-    echo "Number of RxLRs identified by Hmm:"
-    cat $HmmRxLR | sort | uniq | wc -l
-    echo "Number of RxLRs in combined dataset:"
-    cat $RegexRxLR $HmmRxLR | sort | uniq | wc -l
-    # echo "Number of RxLRs in both datasets:"
-    # cat $RegexRxLR $HmmRxLR | sort | uniq -d | wc -l
-    echo ""
-    # echo "Extracting RxLRs from datasets"
-    OutDir=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain
-    mkdir -p $OutDir
-    cat $RegexRxLR $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
-    # cat $Gff | grep -w -f $OutDir/"$Strain"_total_ORF_RxLR_headers.txt > $OutDir/"$Strain"_total_ORF_RxLR.gff
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
-    $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_total_ORF_RxLR_headers.txt $Gff ORF_RxLR Name Augustus > $OutDir/"$Strain"_total_ORF_RxLR.gff
-    echo "Number of genes in the extracted gff file:"
-    cat $OutDir/"$Strain"_total_ORF_RxLR.gff | grep -w 'gene' | wc -l
-  done
+ ```bash
+for RegexRxLREER in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_ORF_RxLR_EER_regex_merged.txt | grep '10300'); do
+ Organism=$(echo $RegexRxLREER | rev |  cut -d '/' -f3 | rev)
+ Strain=$(echo $RegexRxLREER | rev | cut -d '/' -f2 | rev)
+ Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain"_ORF.gff3)
+ Proteome=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
+ # RegexRxLRfpkm=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/"$Strain"_ORF_RxLR_regex_merged_fpkm_5_headers_renamed.txt)
+ HmmRxLR=$(ls analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/"$Strain"_ORF_RxLR_hmm_merged.txt)
+ echo "$Organism - $Strain"
+ echo "Number of RxLR EERs identified by Regex:"
+ cat $RegexRxLREER | sort | uniq | wc -l
+ # echo "Number of RxLRs identified by Regex with fpkm > 5"
+ # cat $RegexRxLRfpkm | sort | uniq | wc -l
+ echo "Number of RxLRs identified by Hmm:"
+ cat $HmmRxLR | sort | uniq | wc -l
+ echo "Number of RxLRs in combined dataset:"
+ # cat $RegexRxLREER $HmmRxLR $RegexRxLRfpkm | sort | uniq | wc -l
+ cat $RegexRxLREER $HmmRxLR | sort | uniq | wc -l
+ echo ""
+ # echo "Extracting RxLRs from datasets"
+ OutDir=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain
+ mkdir -p $OutDir
+ # cat $RegexRxLREER $RegexRxLRfpkm $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
+ cat $RegexRxLREER $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
+ ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_total_ORF_RxLR_headers.txt $Gff ORF_RxLR Name Augustus > $OutDir/"$Strain"_total_ORF_RxLR.gff
+ echo "Number of genes in the extracted gff file:"
+ cat $OutDir/"$Strain"_total_ORF_RxLR.gff | grep -w 'gene' | wc -l
+done
 ```
+<!--
+When including SigP RxLRs with an fpkm >5
 
 ```
-  P.cactorum - 10300
-  Number of RxLRs identified by Regex:
-  68
-  Number of RxLRs identified by Hmm:
-  54
-  Number of RxLRs in combined dataset:
-  73
-  Number of genes in the extracted gff file:
-  73
+P.cactorum - 10300
+The number of ORF RxLRs overlapping Augustus RxLRs:
+149
+The number of Augustus RxLRs overlapping ORF RxLRs:
+149
+The number of RxLRs unique to ORF models:
+864
+The number of RxLRs unique to Augustus models:
+27
+The total number of putative RxLRs are:
+1040
+The number of sequences extracted is
+1040
+```
+-->
+
+```
+P.cactorum - 10300
+Number of RxLR EERs identified by Regex:
+182
+Number of RxLRs identified by Hmm:
+145
+Number of RxLRs in combined dataset:
+205
+
+Number of genes in the extracted gff file:
+205
 ```
 
 ## 4.2.c Analysis of RxLR effectors - merger of Augustus / published genes with ORFs
@@ -1443,17 +1445,17 @@ done
 ```
   P.cactorum - 10300
   The number of ORF RxLRs overlapping Augustus RxLRs:
-  56
+  149
   The number of Augustus RxLRs overlapping ORF RxLRs:
-  56
+  149
   The number of RxLRs unique to ORF models:
-  17
+  56
   The number of RxLRs unique to Augustus models:
-  244
+  27
   The total number of putative RxLRs are:
-  317
+  232
   The number of sequences extracted is
-  317
+  232
 ```
 
 
@@ -1532,7 +1534,7 @@ done
   The number of CRNs common to both models are:
   85
   Number of CRN ORFs after merging:
-  15
+  58
 ```
 
 Extract crinklers from ORFs and Braker/codingquary gene models
@@ -1585,13 +1587,233 @@ Extract crinklers from ORFs and Braker/codingquary gene models
 ```
   P.cactorum - 10300
   The number of ORF CRNs overlapping Augustus CRNs:
-  14
+  55
   The number of Augustus CRNs overlapping ORF CRNs:
-  15
+  56
   The number of CRNs unique to ORF models:
-  1
+  3
   The number of CRNs unique to Augustus models:
-  59
+  18
   The number of sequences extracted is
-  75
+  74
+```
+
+
+
+## C.ii) SSCP
+
+Small secreted cysteine rich proteins were identified within secretomes. These
+proteins may be identified by EffectorP, but this approach allows direct control
+over what constitutes a SSCP.
+
+```bash
+
+for Secretome in $(ls gene_pred/combined_sigP/*/*/*_secreted.fa | grep -v 'all_secreted' |  grep '10300'); do
+Strain=$(echo $Secretome| rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+OutDir=analysis/sscp/$Organism/$Strain
+mkdir -p $OutDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/sscp
+$ProgDir/sscp_filter.py --inp_fasta $Secretome --max_length 300 --threshold 3 --out_fasta $OutDir/"$Strain"_sscp_all_results.fa
+cat $OutDir/"$Strain"_sscp_all_results.fa | grep 'Yes' > $OutDir/"$Strain"_sscp.fa
+printf "number of SSC-rich genes:\t"
+cat $OutDir/"$Strain"_sscp.fa | grep '>' | tr -d '>' | cut -f1 -d '.' | sort | uniq | wc -l
+printf "Number of effectors predicted by EffectorP:\t"
+EffectorP=$(ls analysis/effectorP/$Organism/$Strain/*_EffectorP_secreted_headers.txt)
+cat $EffectorP | wc -l
+printf "Number of SSCPs predicted by both effectorP and this approach: \t"
+cat $OutDir/"$Strain"_sscp.fa | grep '>' | tr -d '>' > $OutDir/"$Strain"_sscp_headers.txt
+cat $OutDir/"$Strain"_sscp_headers.txt $EffectorP | cut -f1 | sort | uniq -d | wc -l
+echo ""
+done
+```
+
+```
+P.cactorum - 10300
+% cysteine content threshold set to:	3
+maximum length set to:	300
+No. short-cysteine rich proteins in input fasta:	388
+number of SSC-rich genes:	386
+Number of effectors predicted by EffectorP:	845
+Number of SSCPs predicted by both effectorP and this approach: 	223
+```
+<!--
+```bash
+for Secretome in $(ls gene_pred/combined_sigP_ORF/*/*/*_all_secreted.fa | grep '10300'); do
+ProgDir=~/git_repos/emr_repos/tools/pathogen/RxLR_effectors
+Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Secretome| rev | cut -f2 -d '/' | rev)
+echo "$Organism - $Strain"
+
+OutDir=analysis/sscp_ORF/$Organism/$Strain
+mkdir -p $OutDir
+printf "the number of SigP gene is:\t";
+cat $Secretome | grep '>' | cut -f1 | sort | uniq | wc -l
+printf "the number of SSCP genes are:\t";
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/sscp
+$ProgDir/sscp_filter.py --inp_fasta $Secretome --max_length 300 --threshold 3 --out_fasta $OutDir/"$Strain"_sscp_ORF.fa
+
+cat $OutDir/"$Strain"_sscp_ORF.fa | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/"$Strain"_sscp_ORF_headers_unmerged.txt
+cat $OutDir/"$Strain"_sscp_ORF_headers_unmerged.txt | tr -d ' ' | sort | uniq | wc -l
+
+SigP_Gff=$(ls gene_pred/combined_sigP_ORF/$Organism/$Strain/"$Strain"_all_secreted_unmerged.gff)
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+$ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_sscp_ORF_headers_unmerged.txt  $SigP_Gff	sscp_filter.py Name Augustus > $OutDir/"$Strain"_sscp_ORF_unmerged.gff
+
+SSCP_Merged_Gff=$OutDir/"$Strain"_ORF_sscp_merged.gff
+SSCP_Merged_txt=$OutDir/"$Strain"_ORF_sscp_merged.txt
+SSCP_Merged_AA=$OutDir/"$Strain"_ORF_sscp_merged.aa
+ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
+$ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_sscp_ORF_unmerged.gff --db sigP_ORF_sscp.db
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_sscp.db --id sigP_ORF_sscp --out sigP_ORF_sscp_merged.db --gff > $SSCP_Merged_Gff
+cat $SSCP_Merged_Gff | grep 'transcript' | rev | cut -f1 -d '=' | rev > $SSCP_Merged_txt
+
+ORF_fasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
+$ProgDir/extract_from_fasta.py --fasta $ORF_fasta --headers $SSCP_Merged_txt > $SSCP_Merged_AA
+printf "Merged SSCP proteins:\t"
+cat $SSCP_Merged_AA | grep '>' | wc -l
+printf "\n"
+done
+```
+-->
+
+
+
+# Making a combined file of Braker, Coding quary genes as well as additional ORF effector candidates
+
+
+A gff file containing the combined Braker and CodingQuary genes as well as the
+additional CRN and RxLR genes predicted by ORF analysis was made.
+
+```bash
+GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended.gff3)
+GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORFsUniq_RxLR_EER_motif_hmm.gff)
+GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed)
+Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+OutDir=gene_pred/final_incl_ORF/P.cactorum/10300
+mkdir -p $OutDir
+cat $GeneGff > $OutDir/10300_genes_incl_ORFeffectors.gff3
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
+$ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/10300_genes_incl_ORFeffectors.gff3
+# Make gene models from gff files.
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+$ProgDir/gff2fasta.pl $Assembly $OutDir/10300_genes_incl_ORFeffectors.gff3 $OutDir/10300_genes_incl_ORFeffectors
+```
+
+
+
+```bash
+  for GffAppended in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3); do
+    Strain=$(echo $GffAppended | rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $GffAppended | rev | cut -d '/' -f4 | rev)
+    echo "$Organism - $Strain"
+    FinalDir=$(dirname $GffAppended)
+    GffFiltered=$FinalDir/filtered_duplicates.gff
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+    $ProgDir/remove_dup_features.py --inp_gff $GffAppended --out_gff $GffFiltered
+    GffRenamed=$FinalDir/final_genes_genes_incl_ORFeffectors_renamed.gff3
+    LogFile=$FinalDir/final_genes_appended_renamed.log
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+    $ProgDir/gff_rename_genes.py --inp_gff $GffFiltered --conversion_log $LogFile > $GffRenamed
+    rm $GffFiltered
+    Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+  $ProgDir/gff2fasta.pl $Assembly $GffRenamed $FinalDir/final_genes_genes_incl_ORFeffectors_renamed
+    # The proteins fasta file contains * instead of Xs for stop codons, these should
+    # be changed
+    sed -i 's/\*/X/g' gene_pred/final/$Organism/$Strain/final/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta
+  done
+```
+
+No duplicate genes were found.
+```bash
+
+```
+
+
+# Assessing gene space in predicted transcriptomes
+
+```bash
+  for Transcriptome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta); do
+    Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
+    echo "$Organism - $Strain"
+    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+    # BuscoDB="Fungal"
+    BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+    OutDir=gene_pred/busco/$Organism/$Strain/genes
+    qsub $ProgDir/sub_busco3.sh $Transcriptome $BuscoDB $OutDir
+  done
+```
+
+```
+
+```
+
+Make a list of BUSCO genes:
+
+```bash
+BuscoHits=$(ls gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene/single_copy_busco_sequences/EOG0937*.fna)
+OutDir=$(ls -d gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene)
+cat $BuscoHits | grep '>' | cut -f3 -d ':' > $OutDir/busco_single_copy_gene_headers.txt
+```
+
+
+# Re-running Functional annotation
+
+## A) Interproscan
+
+Interproscan was used to give gene models functional annotations.
+Annotation was run using the commands below:
+
+Note: This is a long-running script. As such, these commands were run using
+'screen' to allow jobs to be submitted and monitored in the background.
+This allows the session to be disconnected and reconnected over time.
+
+Screen ouput detailing the progress of submission of interporscan jobs
+was redirected to a temporary output file named interproscan_submission.log .
+
+```bash
+  # mkdir -p gene_pred/final_genes/P.cactorum/414_v2/final_ncbi
+  # gene_pred/final_ncbi/P.cactorum/414_v2/414_v2_genes_incl_ORFeffectors_* gene_pred/final_genes/P.cactorum/414_v2/final_ncbi/.
+	screen -a
+	cd /home/groups/harrisonlab/project_files/idris
+	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	for Genes in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta); do
+	echo $Genes
+	$ProgDir/sub_interproscan.sh $Genes
+	done 2>&1 | tee -a interproscan_submisison.log
+```
+
+Following interproscan annotation split files were combined using the following
+commands:
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+for Proteome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta); do
+Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+echo $Strain
+InterProRaw=gene_pred/interproscan/$Organism/$Strain/raw
+$ProgDir/append_interpro.sh $Proteome $InterProRaw
+done
+```
+
+
+## B) SwissProt
+
+```bash
+  for Proteome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta); do
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    OutDir=gene_pred/swissprot/$Organism/$Strain
+    SwissDbDir=../../uniprot/swissprot
+    SwissDbName=uniprot_sprot
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/swissprot
+    qsub $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName
+  done
 ```
