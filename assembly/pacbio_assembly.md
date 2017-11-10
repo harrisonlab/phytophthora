@@ -117,6 +117,7 @@ qsub $ProgDir/submit_canu.sh $Run1 $GenomeSz $Prefix $OutDir
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
   qsub $ProgDir/submit_canu.sh $Run2 $GenomeSz $Prefix $OutDir
 ```
+
 -->
 
 ### Falcon Assembly
@@ -387,7 +388,17 @@ done
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
   qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
 ```
+<!-- 
+Data quality was visualised once again following trimming:
 
+```bash
+for RawData in $(ls assembly/canu/P.cactorum/414_modified_script/414_canu.trimmedReads.fasta.gz); do
+echo $RawData;
+GenomeSz=65
+OutDir=$(dirname $RawData)
+qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
+done
+``` -->
 
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
