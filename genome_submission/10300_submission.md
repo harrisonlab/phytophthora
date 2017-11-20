@@ -49,9 +49,9 @@ be searched later to extract locus tags for particular strains.
 ```bash
 mkdir -p genome_submission/
 printf \
-"AA0111 SUB1952873 675
+"PC110 SUB1952873 10300
 " \
-> genome_submission/Aalt_PRJNA360212_locus_tags.txt
+> genome_submission/Pcac_PRJNA343457_locus_tags.txt
 ```
 
 # Final Submission
@@ -63,11 +63,11 @@ These commands were used in the final submission of Alternaria spp. genomes:
 An output and working directory was made for genome submission:
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa); do
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
   Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
   Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
   echo "$Organism - $Strain"
-  ProjDir=/home/groups/harrisonlab/project_files/alternaria
+  ProjDir=/home/groups/harrisonlab/project_files/idris
   cd $ProjDir
   OutDir="genome_submission/$Organism/$Strain"
   mkdir -p $OutDir
@@ -87,7 +87,7 @@ Vairables containing locations of files and options for scripts were set:
 AnnieDir="/home/armita/prog/annie/genomeannotation-annie-c1e848b"
 ProgDir="/home/armita/git_repos/emr_repos/tools/genbank_submission"
 # File locations:
-SbtFile="genome_submission/template.sbt"
+SbtFile="genome_submission/P.cactorum/10300/template.sbt"
 LabID="ArmitageEMR"
 ```
 
@@ -108,12 +108,12 @@ Note - It is important that transcripts have been re-labelled as mRNA by this
 point.
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa | grep '1177'); do
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
   Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
   Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
   echo "$Organism - $Strain"
   OutDir="genome_submission/$Organism/$Strain"
-  GffFile=$(ls gene_pred/final/$Organism/"$Strain"*/final/final_genes_appended_renamed.gff3)
+  GffFile=$(ls gene_pred/final_incl_ORF/$Organism/"$Strain"/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 
   InterProTab=$(ls gene_pred/interproscan/$Organism/"$Strain"*/"$Strain"*_interproscan.tsv)
   SwissProtBlast=$(ls gene_pred/swissprot/$Organism/"$Strain"*/swissprot_vJul2016_tophit_parsed.tbl)
@@ -130,12 +130,12 @@ Gag was run using the modified gff file as well as the annie annotation file.
 Gag was noted to output database references incorrectly, so these were modified.
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa | grep '1177'); do
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 echo "$Organism - $Strain"
 OutDir="genome_submission/$Organism/$Strain"
-GffFile=$(ls gene_pred/final/$Organism/"$Strain"*/final/final_genes_appended_renamed.gff3)
+GffFile=$(ls gene_pred/final_incl_ORF/$Organism/"$Strain"/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 mkdir -p $OutDir/gag/round1
 gag.py -f $Assembly -g $GffFile -a $OutDir/annie_corrected_output.csv --fix_start_stop -o $OutDir/gag/round1 2>&1 | tee $OutDir/gag_log1.txt
 sed -i 's/Dbxref/db_xref/g' $OutDir/gag/round1/genome.tbl
@@ -162,14 +162,14 @@ Note - all input files for tbl2asn need to be in the same directory and have the
 same basename.
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa | grep '1177'); do
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 echo "$Organism - $Strain"
 OutDir="genome_submission/$Organism/$Strain"
 
 cp $Assembly $OutDir/gag/round1/genome.fsa
-SbtFile=$(ls genome_submission/template.sbt)
+SbtFile="genome_submission/P.cactorum/10300/template.sbt"
 cp $SbtFile $OutDir/gag/round1/genome.sbt
 mkdir -p $OutDir/tbl2asn/round1
 tbl2asn -p $OutDir/gag/round1/. -t $OutDir/gag/round1/genome.sbt -r $OutDir/tbl2asn/round1 -M n -X E -Z $OutDir/gag/round1/discrep.txt -j "[organism=$Organism] [strain=$Strain]"
@@ -194,12 +194,12 @@ annotation then genes, mRNA and exon features need to reflect this by marking
 them as incomplete ('unknown_UTR').
 
 ```bash
-  for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa | grep '1177'); do
+  for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     echo "$Organism - $Strain"
     OutDir="genome_submission/$Organism/$Strain"
-    SubmissionID=$(cat genome_submission/Aalt_PRJNA360212_locus_tags.txt | grep "$Strain" | cut -f1 -d ' ')
+    SubmissionID=$(cat genome_submission/Pcac_PRJNA343457_locus_tags.txt | grep "$Strain" | cut -f1 -d ' ')
     echo $SubmissionID
     mkdir -p $OutDir/gag/edited
     ProgDir=/home/armita/git_repos/emr_repos/tools/genbank_submission
@@ -211,7 +211,7 @@ them as incomplete ('unknown_UTR').
 ## Generating a structured comment detailing annotation methods
 
 ```bash
-  for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa); do
+  for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     echo "$Organism - $Strain"
@@ -220,7 +220,7 @@ them as incomplete ('unknown_UTR').
     Annotation Provider\tHarrison Lab NIAB-EMR
     Annotation Date\tAUG-2017
     Annotation Version\tRelease 1.01
-    Annotation Method\tAb initio gene prediction: Braker 1.9 and CodingQuary 2.0; Functional annotation: Swissprot (July 2016 release) and Interproscan 5.18-57.0" \
+    Annotation Method\tAb initio gene prediction: Braker 1.9, CodingQuary 2.0 and ORF finding (see publication); Functional annotation: Swissprot (July 2016 release) and Interproscan 5.18-57.0" \
     > $OutDir/gag/edited/annotation_methods.strcmt.txt
   done
 ```
@@ -235,7 +235,7 @@ sequence, these options show that paired-ends have been used to estimate gaps
 and that runs of N's longer than 10 bp should be labelled as gaps.
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/ncbi_edits_repmask/*_contigs_unmasked.fa | grep '1177'); do
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
   Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
   Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
   echo "$Organism - $Strain"
