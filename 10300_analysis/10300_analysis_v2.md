@@ -1761,11 +1761,18 @@ were manually inspected in geneious and the following genes removed:
 
 RemoveAugList="g515 g2039 g2060 g2269 g2679 g4182 g6770 g11565 g13314 g13818 g16594 g17982"
 RemoveOrfList="ORF_F_12367 ORF_F_29498 ORF_R_35309 ORF_F_61898 ORF_R_84315 ORF_R_87287 ORF_F_89337 ORF_R_116876 ORF_R_133618 ORF_F_152796 ORF_F_153549 ORF_F_153700 ORF_R_164307 ORF_F_166062 ORF_F_169259 ORF_R_196780 ORF_F_203498 ORF_R_205898 ORF_F_213350"
+echo "$RemoveAugList $RemoveOrfList" | sed 's/ /\n/g' > tmp.txt
+
+OutDir=gene_pred/final_incl_ORF/P.cactorum/10300
+cat $OutDir/10300_genes_incl_ORFeffectors.gff3  | grep -w 'gene' | wc -l
+cat $OutDir/10300_genes_incl_ORFeffectors.gff3 | grep -w -v -f tmp.txt > $OutDir/10300_genes_incl_ORFeffectors_filtered.gff3
+cat tmp.txt | wc -l
+cat $OutDir/10300_genes_incl_ORFeffectors_filtered.gff3  | grep -w 'gene' | wc -l
 ```
 
 
 ```bash
-  for GffAppended in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/10300_genes_incl_ORFeffectors.gff3); do
+  for GffAppended in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/10300_genes_incl_ORFeffectors_filtered.gff3); do
     Strain=$(echo $GffAppended | rev | cut -d '/' -f3 | rev)
     Organism=$(echo $GffAppended | rev | cut -d '/' -f4 | rev)
     echo "$Organism - $Strain"
