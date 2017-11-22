@@ -134,7 +134,7 @@ qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
 done
 done
 ```
-
+<!--
 Accepted hits .bam file were concatenated and indexed for use for gene model training:
 
 
@@ -148,7 +148,7 @@ for OutDir in $(ls -d alignment/star/*/* | grep '1177'); do
   mkdir -p $OutDir/concatenated
   samtools merge -f $OutDir/concatenated/concatenated.bam $BamFiles
 done
-```
+``` -->
 
 
 #### Braker prediction
@@ -1704,6 +1704,64 @@ Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contig
 $ProgDir/gff2fasta.pl $Assembly $OutDir/10300_genes_incl_ORFeffectors.gff3 $OutDir/10300_genes_incl_ORFeffectors
 ```
 
+High confidence genes overlapped by ORFs to be inserted were manually inspected
+to see whether the original gene model or the ORF should be kept. Preference was
+given to the ORF effector candidate. BEfore this could be done bedtools was
+used to identify which genes were intersected:
+
+```bash
+GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended.gff3)
+GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORFsUniq_RxLR_EER_motif_hmm.gff)
+GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed)
+Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+bedtools intersect -wo -a $GeneGff -b $GffOrfRxLR | grep -e "AUGUSTUS.gene" | grep "ORF_RxLR.gene"| cut -f1,9,18
+bedtools intersect -wo -a $GeneGff -b $GffOrfCRN | grep -e "AUGUSTUS.gene" | grep "CRN_HMM.gene"| cut -f1,9,18
+
+```
+
+```
+contig_6        ID=g515;        ID=ORF_R_6618
+contig_12       ID=g1018;       ID=ORF_F_12367
+contig_12       ID=g1019;       ID=ORF_F_12367
+contig_27       ID=g2039;       ID=ORF_F_23817
+contig_28       ID=g2060;       ID=ORF_R_23034
+contig_32       ID=g2269;       ID=ORF_R_25613
+contig_37       ID=g2567;       ID=ORF_F_29498
+contig_39       ID=g2679;       ID=ORF_F_30553
+contig_50       ID=g3259;       ID=ORF_R_35309
+contig_70       ID=g4182;       ID=ORF_R_46076
+contig_105      ID=g5587;       ID=ORF_F_61898
+contig_140      ID=g6770;       ID=ORF_F_74889
+contig_167      ID=g7613;       ID=ORF_R_84315
+contig_177      ID=g7884;       ID=ORF_R_87287
+contig_184      ID=g8089;       ID=ORF_F_89337
+contig_295      ID=g10709;      ID=ORF_R_116876
+contig_338      ID=g11565;      ID=ORF_R_126392
+contig_376      ID=g12249;      ID=ORF_R_133618
+contig_446      ID=g13314;      ID=ORF_F_144470
+contig_481      ID=g13818;      ID=ORF_F_149698
+contig_505      ID=g14113;      ID=ORF_F_152796
+contig_510      ID=g14176;      ID=ORF_F_153549
+contig_511      ID=g14195;      ID=ORF_F_153700
+contig_598      ID=g15185;      ID=ORF_R_164307
+contig_621      ID=g15416;      ID=ORF_F_166062
+contig_653      ID=g15708;      ID=ORF_F_169259
+contig_757      ID=g16594;      ID=ORF_R_179006
+contig_993      ID=g17982;      ID=ORF_F_193355
+contig_1054     ID=g18249;      ID=ORF_R_196780
+contig_1263     ID=g18988;      ID=ORF_F_203498
+contig_1339     ID=g19176;      ID=ORF_R_205898
+contig_1865     ID=g20046;      ID=ORF_F_213350
+```
+
+Some ORF effectors were noted to overlap AugustusCodingQuary gene models. These
+were manually inspected in geneious and the following genes removed:
+
+```bash
+
+RemoveAugList="g515 g2039 g2060 g2269 g2679 g4182 g6770 g11565 g13314 g13818 g16594 g17982"
+RemoveOrfList="ORF_F_12367 ORF_F_29498 ORF_R_35309 ORF_F_61898 ORF_R_84315 ORF_R_87287 ORF_F_89337 ORF_R_116876 ORF_R_133618 ORF_F_152796 ORF_F_153549 ORF_F_153700 ORF_R_164307 ORF_F_166062 ORF_F_169259 ORF_R_196780 ORF_F_203498 ORF_R_205898 ORF_F_213350"
+```
 
 
 ```bash
@@ -1724,7 +1782,7 @@ $ProgDir/gff2fasta.pl $Assembly $OutDir/10300_genes_incl_ORFeffectors.gff3 $OutD
   $ProgDir/gff2fasta.pl $Assembly $GffRenamed $FinalDir/final_genes_genes_incl_ORFeffectors_renamed
     # The proteins fasta file contains * instead of Xs for stop codons, these should
     # be changed
-    sed -i 's/\*/X/g' gene_pred/final/$Organism/$Strain/final/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta
+    sed -i 's/\*/X/g' $FinalDir/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta
   done
 ```
 
@@ -1794,8 +1852,8 @@ commands:
 ```bash
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
 for Proteome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta); do
-Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
-Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
+Strain=$(echo $Proteome | rev | cut -d '/' -f2 | rev)
+Organism=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
 echo "$Organism - $Strain"
 echo $Strain
 InterProRaw=gene_pred/interproscan/$Organism/$Strain/raw
@@ -1808,8 +1866,8 @@ done
 
 ```bash
   for Proteome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta); do
-    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     OutDir=gene_pred/swissprot/$Organism/$Strain
     SwissDbDir=../../uniprot/swissprot
     SwissDbName=uniprot_sprot
