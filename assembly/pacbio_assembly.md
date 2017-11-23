@@ -388,7 +388,7 @@ done
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
   qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
 ```
-<!-- 
+<!--
 Data quality was visualised once again following trimming:
 
 ```bash
