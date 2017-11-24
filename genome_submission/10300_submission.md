@@ -245,6 +245,6 @@ for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300
   cp $SbtFile $OutDir/gag/edited/genome.sbt
   mkdir $OutDir/tbl2asn/final
   tbl2asn -p $OutDir/gag/edited/. -t $OutDir/gag/edited/genome.sbt -r $OutDir/tbl2asn/final -M n -X E -Z $OutDir/tbl2asn/final/discrep.txt -j "[organism=$Organism] [strain=$Strain]" -l paired-ends -a r10k -w $OutDir/gag/edited/annotation_methods.strcmt.txt
-  cat $OutDir/tbl2asn/final/genome.sqn | sed 's/_pilon//g' | sed 's/title "Saccharopine dehydrogenase.*/title "Saccharopine dehydrogenase/g' | sed 's/"Saccharopine dehydrogenase.*"/"Saccharopine dehydrogenase"/g' > $OutDir/tbl2asn/final/$FinalName.sqn
+  cat $OutDir/tbl2asn/final/genome.sqn | sed 's/_pilon//g' | sed 's/title "Saccharopine dehydrogenase.*/title "Saccharopine dehydrogenase/g' | sed 's/"Saccharopine dehydrogenase.*"/"Saccharopine dehydrogenase"/g' | sed  "s/aldolase_/aldolase/g" > $OutDir/tbl2asn/final/$FinalName.sqn
 done
 ```
