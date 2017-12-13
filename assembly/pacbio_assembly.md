@@ -374,6 +374,36 @@ for Assembly in $(ls assembly/falcon/P.cactorum/414/*/p_ctg.fa); do
 done
 ```
 
+The falcon assembly was polished using Pilon
+
+```bash
+for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/p_ctg.fa); do
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+echo $Strain
+echo $Organism
+TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+OutDir=$(dirname $Assembly)/polished
+Iterations='5'
+Ploidy='diploid'
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
+qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir $Iterations $Ploidy
+done
+```
+
+
 
 ### Canu assembly
 
