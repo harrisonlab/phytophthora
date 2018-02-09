@@ -71,6 +71,19 @@ done
 
 The Spades genome assembly was considered to be worse than the abyss assembly
 
+```bash
+  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Single=$(cat $File | grep "(S)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Single\t$Fragmented\t$Missing\t$Total"
+  done
+```
+
 
 
 
@@ -406,6 +419,7 @@ for Proteome in $(ls gene_pred/final/*/*/*/final_genes_appended_renamed.pep.fast
     phobius.pl $Proteome > $OutDir/"$Strain"_phobius.txt
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     $ProgDir/phobius_parser.py --inp_fasta $Proteome --phobius_txt $OutDir/"$Strain"_phobius.txt --out_fasta $OutDir/"$Strain"_phobius.fa
+    cat $OutDir/"$Strain"_phobius.fa | grep '>' | cut -f1 | tr -d '>' > $OutDir/"$Strain"_phobius_headers.txt
   done
  ```
 
@@ -706,6 +720,51 @@ Cols in yourfile.out.dm.ps:
 
 * The best threshold varies for different CAZyme classes (please see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4132414/ for details). Basically to annotate GH proteins, one should use a very relax coverage cutoff or the sensitivity will be low (Supplementary Tables S4 and S9); (ii) to annotate CE families a very stringent E-value cutoff and coverage cutoff should be used; otherwise the precision will be very low due to a very high false positive rate (Supplementary Tables S5 and S10)
 
+### Summary of CAZY families by organism
+
+
+```bash
+for CAZY in $(ls gene_pred/CAZY/*/*/*_CAZY.out.dm.ps | grep '10300'); do
+  Strain=$(echo $CAZY | rev | cut -f2 -d '/' | rev)
+  Organism=$(echo $CAZY | rev | cut -f3 -d '/' | rev)
+  OutDir=$(dirname $CAZY)
+  echo "$Organism - $Strain"
+  Secreted=$(ls gene_pred/combined_sigP/$Organism/$Strain/*_sp_no_trans_mem_no_GPI_headers.txt)
+  Gff=$(ls gene_pred/final/$Organism/$Strain/final/final_genes_appended_renamed.gff3)
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/CAZY
+  $ProgDir/summarise_CAZY.py --cazy $CAZY --inp_secreted $Secreted --inp_gff $Gff --summarise_family --trim_gene_id 2 --kubicek_2014
+done
+```
+
+```
+  P.cactorum - 10300
+  Polygalacturonase - 17
+  A-Arabinosidases - 5
+  Xylanases - 12
+  Polygalacturonate lyases - 34
+  B-Glycosidases - 16
+  Cellulases - 26
+  other - 126
+```
+
+The following commands were used to identify b-glucan binding proteins as described in:
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3627985/
+
+```bash
+  for File in $(ls gene_pred/CAZY/*/*/*CAZY.out.dm | grep '10300'); do
+    cat $File | grep -w -e 'GH5' -e 'GH55' -e 'GH81' -e 'GH16' -e 'GH3' -e 'GH17' -e 'GH72' | sed -r "s/\s+/\t/g" | cut -f1,4 |  sort | uniq > tmp1.txt
+    cat tmp1.txt | cut -f2 > tmp2.txt
+    cat tmp1.txt | grep -f tmp3.txt | cut -f1 | sort | uniq -c
+  done
+```
+
+```
+  2 GH16.hmm
+  18 GH17.hmm
+  14 GH3.hmm
+  14 GH5.hmm
+  11 GH81.hmm
+```
 
 # D) Prediction of RxLRs from - Augustus/CodingQuary gene models
 
@@ -836,6 +895,33 @@ Number of RxLRs in combined dataset:
 176
 Number of genes in the extracted gff file:
 176
+```
+
+
+
+```bash
+for Secretome in $(ls gene_pred/combined_sigP/*/*/*_all_secreted.fa | grep '10300'); do
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
+OutDir=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain
+mkdir -p $OutDir
+HmmResults="$Strain"_Aug_WY_hmmer.txt
+hmmsearch -T 0 $HmmModel $Secretome > $OutDir/$HmmResults
+echo "$Organism $Strain"
+cat $OutDir/$HmmResults | grep 'Initial search space'
+cat $OutDir/$HmmResults | grep 'number of targets reported over threshold'
+HmmFasta="$Strain"_Aug_WY_hmmer.fa
+$ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Secretome > $OutDir/$HmmFasta
+Headers="$Strain"_Aug_WY_hmmer_headers.txt
+# cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' | sort | uniq > $OutDir/$Headers
+cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | cut -f1 | sort | uniq > $OutDir/$Headers
+Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended_renamed.gff3)
+cat $Gff | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_WY_hmmer.gff
+# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+# $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $Gff $HmmModel Name Augustus > $OutDir/"$Strain"_Aug_WY_hmmer.gff
+done
 ```
 
 
@@ -1307,7 +1393,7 @@ Merged RxLR-EER Hmm proteins:	145
 * Domain search space  (domZ):             144  [number of targets reported over threshold]
  -->
 
- ### E7) Combining RxLRs from Regex and hmm searches
+### E7) Combining RxLRs from Regex and hmm searches
 
 
  The total ORF RxLRs are
@@ -1595,7 +1681,7 @@ Extract crinklers from ORFs and Braker/codingquary gene models
   The number of CRNs unique to Augustus models:
   18
   The number of sequences extracted is
-  74
+  77
 ```
 
 
@@ -1688,7 +1774,7 @@ A gff file containing the combined Braker and CodingQuary genes as well as the
 additional CRN and RxLR genes predicted by ORF analysis was made.
 
 ```bash
-GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended.gff3)
+GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended_renamed.gff3)
 GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORFsUniq_RxLR_EER_motif_hmm.gff)
 GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed)
 Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa)
@@ -1710,7 +1796,8 @@ given to the ORF effector candidate. BEfore this could be done bedtools was
 used to identify which genes were intersected:
 
 ```bash
-GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended.gff3)
+# GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended.gff3)
+GeneGff=$(ls gene_pred/final/P.cactorum/10300/final/final_genes_appended_renamed.gff3)
 GffOrfRxLR=$(ls analysis/RxLR_effectors/combined_evidence/P.cactorum/10300/10300_ORFsUniq_RxLR_EER_motif_hmm.gff)
 GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed)
 Assembly=$(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_softmasked_repeatmasker_TPSI_appended.fa)
@@ -1720,38 +1807,42 @@ bedtools intersect -wo -a $GeneGff -b $GffOrfCRN | grep -e "AUGUSTUS.gene" | gre
 ```
 
 ```
-contig_6        ID=g515;        ID=ORF_R_6618
-contig_12       ID=g1018;       ID=ORF_F_12367
-contig_12       ID=g1019;       ID=ORF_F_12367
-contig_27       ID=g2039;       ID=ORF_F_23817
-contig_28       ID=g2060;       ID=ORF_R_23034
-contig_32       ID=g2269;       ID=ORF_R_25613
-contig_37       ID=g2567;       ID=ORF_F_29498
-contig_39       ID=g2679;       ID=ORF_F_30553
-contig_50       ID=g3259;       ID=ORF_R_35309
-contig_70       ID=g4182;       ID=ORF_R_46076
-contig_105      ID=g5587;       ID=ORF_F_61898
-contig_140      ID=g6770;       ID=ORF_F_74889
-contig_167      ID=g7613;       ID=ORF_R_84315
-contig_177      ID=g7884;       ID=ORF_R_87287
-contig_184      ID=g8089;       ID=ORF_F_89337
-contig_295      ID=g10709;      ID=ORF_R_116876
-contig_338      ID=g11565;      ID=ORF_R_126392
-contig_376      ID=g12249;      ID=ORF_R_133618
-contig_446      ID=g13314;      ID=ORF_F_144470
-contig_481      ID=g13818;      ID=ORF_F_149698
-contig_505      ID=g14113;      ID=ORF_F_152796
-contig_510      ID=g14176;      ID=ORF_F_153549
-contig_511      ID=g14195;      ID=ORF_F_153700
-contig_598      ID=g15185;      ID=ORF_R_164307
-contig_621      ID=g15416;      ID=ORF_F_166062
-contig_653      ID=g15708;      ID=ORF_F_169259
-contig_757      ID=g16594;      ID=ORF_R_179006
-contig_993      ID=g17982;      ID=ORF_F_193355
+contig_6	ID=g553;	ID=ORF_R_6618
+contig_12	ID=g1094;	ID=ORF_F_12367
+contig_12	ID=g1095;	ID=ORF_F_12367
+contig_27	ID=g2191;	ID=ORF_F_23817
+contig_28	ID=g2212;	ID=ORF_R_23034
+contig_32	ID=g2443;	ID=ORF_R_25613
+contig_37	ID=g2771;	ID=ORF_F_29498
+contig_39	ID=g2890;	ID=ORF_F_30553
+contig_50	ID=g3520;	ID=ORF_R_35309
+contig_70	ID=g4524;	ID=ORF_R_46076
+contig_105	ID=g6026;	ID=ORF_F_61898
+contig_140	ID=g7303;	ID=ORF_F_74889
+contig_167	ID=g8212;	ID=ORF_R_84315
+contig_177	ID=g8502;	ID=ORF_R_87287
+contig_184	ID=g8735;	ID=ORF_F_89337
+contig_295	ID=g11604;	ID=ORF_R_116876
+contig_338	ID=g12540;	ID=ORF_R_126392
+contig_376	ID=g13291;	ID=ORF_R_133618
+contig_446	ID=g14477;	ID=ORF_F_144470
+contig_481	ID=g15058;	ID=ORF_F_149698
+contig_505	ID=g15388;	ID=ORF_F_152796
+contig_510	ID=g15458;	ID=ORF_F_153549
+contig_511	ID=g15477;	ID=ORF_F_153700
+contig_598	ID=g16576;	ID=ORF_R_164307
+contig_621	ID=g16841;	ID=ORF_F_166062
+contig_653	ID=g17169;	ID=ORF_F_169259
+contig_757	ID=g18179;	ID=ORF_R_179006
+contig_993	ID=g19772;	ID=ORF_F_193355
 contig_1054     ID=g18249;      ID=ORF_R_196780
 contig_1263     ID=g18988;      ID=ORF_F_203498
 contig_1339     ID=g19176;      ID=ORF_R_205898
 contig_1865     ID=g20046;      ID=ORF_F_213350
+contig_1054	ID=g20072;	ID=ORF_R_196780
+contig_1263	ID=g20935;	ID=ORF_F_203498
+contig_1339	ID=g21173;	ID=ORF_R_205898
+contig_1865	ID=g22216;	ID=ORF_F_213350
 ```
 
 Some ORF effectors were noted to overlap AugustusCodingQuary gene models. These
@@ -1759,7 +1850,7 @@ were manually inspected in geneious and the following genes removed:
 
 ```bash
 
-RemoveAugList="g515 g2039 g2060 g2269 g2679 g4182 g6770 g11565 g13314 g13818 g16594 g17982"
+RemoveAugList="g553 g2191 g2212 g2443 g2890 g4524 g7303 g12540 g14477 g15058 g18179 g19772"
 RemoveOrfList="ORF_F_12367 ORF_F_29498 ORF_R_35309 ORF_F_61898 ORF_R_84315 ORF_R_87287 ORF_F_89337 ORF_R_116876 ORF_R_133618 ORF_F_152796 ORF_F_153549 ORF_F_153700 ORF_R_164307 ORF_F_166062 ORF_F_169259 ORF_R_196780 ORF_F_203498 ORF_R_205898 ORF_F_213350"
 echo "$RemoveAugList $RemoveOrfList" | sed 's/ /\n/g' > tmp.txt
 
@@ -1802,21 +1893,41 @@ No duplicate genes were found.
 # Assessing gene space in predicted transcriptomes
 
 ```bash
-  for Transcriptome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta); do
-    Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
-    Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
-    echo "$Organism - $Strain"
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
-    # BuscoDB="Fungal"
-    BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
-    OutDir=gene_pred/busco/$Organism/$Strain/genes
-    qsub $ProgDir/sub_busco3.sh $Transcriptome $BuscoDB $OutDir
+for Transcriptome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta); do
+Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# BuscoDB="Fungal"
+BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+OutDir=gene_pred/busco/$Organism/$Strain/genes
+qsub $ProgDir/sub_busco3.sh $Transcriptome $BuscoDB $OutDir
+done
+```
+
+```
+INFO    281 Complete BUSCOs (C)
+INFO    272 Complete and single-copy BUSCOs (S)
+INFO    9 Complete and duplicated BUSCOs (D)
+INFO    7 Fragmented BUSCOs (F)
+INFO    15 Missing BUSCOs (M)
+INFO    303 Total BUSCO groups searched
+```
+
+```bash
+  for File in $(ls gene_pred/busco/*/*/genes/*/short_summary_*.txt); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Single=$(cat $File | grep "(S)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Single\t$Fragmented\t$Missing\t$Total"
   done
 ```
 
-```
 
-```
 
 Make a list of BUSCO genes:
 
@@ -1859,10 +1970,9 @@ commands:
 ```bash
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
 for Proteome in $(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta); do
-Strain=$(echo $Proteome | rev | cut -d '/' -f2 | rev)
-Organism=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
+Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
-echo $Strain
 InterProRaw=gene_pred/interproscan/$Organism/$Strain/raw
 $ProgDir/append_interpro.sh $Proteome $InterProRaw
 done
@@ -1881,4 +1991,642 @@ done
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/swissprot
     qsub $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName
   done
+```
+
+
+# Additional effector candidates:
+
+## Identifying homologs to previously characterised effectors
+
+<!--
+```bash
+repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Query=$(ls analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+	qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+done
+```
+
+Once blast searches had completed, the BLAST hits were converted to GFF
+annotations:
+
+```bash
+  for BlastHits in $(ls analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_hits.csv); do
+    Organism=$(echo $BlastHits | rev | cut -f3 -d '/' | rev)  
+    Strain=$(echo $BlastHits | rev | cut -f2 -d '/' | rev)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    HitsGff=analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_avr_cds.fasta_hits.gff
+    Column2=Avr_homolog
+    NumHits=10
+    $ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+  done
+```
+
+```bash
+  GeneModels=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+  BlastHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_effector_cds.fasta_homologs.gff)
+  bedtools intersect -wb -a $GeneModels -b $BlastHits | grep -w 'mRNA' | cut -f9,18 | tr -d ';' | tr -d '"' | sed 's/ID=//g' | sed -r "s/Parent=.*\t/\t/g" > analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_effector_cds.fasta_homologs.headers.txt
+
+``` -->
+
+```bash
+qlogin -l h=blacklace11.blacklace
+cd /home/groups/harrisonlab/project_files/idris
+dbFasta=$(ls analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+dbType="nucl"
+QueryFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+Prefix="10300_appended_oomycete_effectors"
+Eval="1e-30"
+# WorkDir=$TMPDIR
+OutDir=analysis/blast_homology/P.cactorum/10300
+mkdir -p $OutDir
+#-------------------------------------------------------
+# 		Step 1.		Make database
+#-------------------------------------------------------
+makeblastdb -in $dbFasta -input_type fasta -dbtype nucl -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+#-------------------------------------------------------
+# 		Step 2.		Blast Search
+#-------------------------------------------------------
+tblastx -db $OutDir/$Prefix.db -query $QueryFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+#-------------------------------------------------------
+# 		Step 3.		Summarise hits
+#-------------------------------------------------------
+cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+```
+
+<!--
+```bash
+for Proteome in $(ls gene_pred/braker/P.cactorum/10300/P.cactorum/final_genes_Braker.cds.fasta ); do
+	ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+	Query=$(ls analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+	qsub $ProgDir/blast_pipe.sh $Query dna $Assembly
+done
+``` -->
+
+
+## PhiBase genes:
+
+
+Identifying PHIbase homologs
+<!--
+The PHIbase database was searched against the assembled genomes using tBLASTx. The default output location is:
+
+```bash
+for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300_contigs_unmasked.fa); do
+# Version 4.4 November 10th 2017
+Version=v4.4
+DbDir=$(ls -d ../../phibase/$Version)
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+qsub $ProgDir/blast_pipe.sh $DbDir/phi_accessions.fa protein $Assembly
+done
+```
+
+Once blast searches had completed, the BLAST hits were converted to GFF
+annotations:
+
+```bash
+  for BlastHits in $(ls analysis/blast_homology/P.cactorum/10300/10300_phi_accessions.fa_homologs.csv); do
+    Organism=$(echo $BlastHits | rev | cut -f3 -d '/' | rev)  
+    Strain=$(echo $BlastHits | rev | cut -f2 -d '/' | rev)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/blast
+    HitsGff=analysis/blast_homology/P.cactorum/10300/10300_phi_accessions.fa_homologs_homologs.gff
+    Column2=phibase_homolog
+    NumHits=10
+    $ProgDir/blast2gff.pl $Column2 $NumHits $BlastHits > $HitsGff
+  done
+```
+
+```bash
+  GeneModels=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+  BlastHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_phi_accessions.fa_homologs_homologs.gff)
+  bedtools intersect -wb -a $GeneModels -b $BlastHits | grep -w 'mRNA' | cut -f9,18 | tr -d ';' | tr -d '"' | sed 's/ID=//g' | sed -r "s/Parent=.*\t/\t/g" > analysis/blast_homology/P.cactorum/10300/10300_phi_accessions.fa_homologs_homologs.headers.txt
+```
+ -->
+
+```bash
+qlogin -l h=blacklace11.blacklace
+cd /home/groups/harrisonlab/project_files/idris
+dbFasta=$(ls ../../phibase/v4.4/phi_accessions.fa)
+dbType="prot"
+QueryFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+Prefix="10300_phi_accessions"
+Eval="1e-30"
+ # WorkDir=$TMPDIR
+ OutDir=analysis/blast_homology/P.cactorum/10300
+ mkdir -p $OutDir
+ #-------------------------------------------------------
+ # 		Step 1.		Make database
+ #-------------------------------------------------------
+ makeblastdb -in $dbFasta -input_type fasta -dbtype $dbType -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+ #-------------------------------------------------------
+ # 		Step 2.		Blast Search
+ #-------------------------------------------------------
+ blastx -num_threads 20 -db $OutDir/$Prefix.db -query $QueryFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+ #-------------------------------------------------------
+ # 		Step 3.		Summarise hits
+ #-------------------------------------------------------
+ cat $OutDir/${Prefix}_hits.txt | grep 'effector' | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+```
+
+## Chen et al 2014 homologs:
+
+All Chen 2014 genes
+
+```bash
+cd /home/groups/harrisonlab/project_files/idris
+OutDir=analysis/blast_homology/chen_2014
+mkdir -p $OutDir
+cd $OutDir
+wget ftp://ftp.ncbi.nlm.nih.gov/sra/wgs_aux/GB/GX/GBGX01/GBGX01.1.fsa_nt.gz
+gunzip GBGX01.1.fsa_nt.gz
+mv GBGX01.1.fsa_nt 10300_transcripts_chen_2014.fasta
+cd /home/groups/harrisonlab/project_files/idris
+
+qlogin -l h=blacklace10.blacklace -pe smp 16
+cd /home/groups/harrisonlab/project_files/idris
+# dbFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+dbFasta=$(ls analysis/blast_homology/chen_2014/10300_transcripts_chen_2014.fasta)
+dbType="nucl"
+# QueryFasta=$(ls analysis/blast_homology/chen_2014/10300_transcripts_chen_2014.fasta)
+QueryFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+Prefix="10300_chen_transcripts"
+Eval="1e-30"
+ # WorkDir=$TMPDIR
+ OutDir=analysis/blast_homology/P.cactorum/10300
+ mkdir -p $OutDir
+ #-------------------------------------------------------
+ # 		Step 1.		Make database
+ #-------------------------------------------------------
+ makeblastdb -in $dbFasta -input_type fasta -dbtype $dbType -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+ #-------------------------------------------------------
+ # 		Step 2.		Blast Search
+ #-------------------------------------------------------
+ tblastx -num_threads 16 -db $OutDir/$Prefix.db -query $QueryFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+ #-------------------------------------------------------
+ # 		Step 3.		Summarise hits
+ #-------------------------------------------------------
+ cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+```
+
+
+
+Chen 2014 RxLRs
+```bash
+qlogin -pe smp 16
+cd /home/groups/harrisonlab/project_files/idris
+dbFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+# dbFasta=$(ls analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa)
+dbType="nucl"
+QueryFasta=$(ls analysis/blast_homology/oomycete_avr_genes/chen_et_al_2014_RxLR.fa)
+# QueryFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+Prefix="10300_chen_RxLRs"
+Eval="1e-30"
+ # WorkDir=$TMPDIR
+OutDir=analysis/blast_homology/P.cactorum/10300
+mkdir -p $OutDir
+#-------------------------------------------------------
+# 		Step 1.		Make database
+#-------------------------------------------------------
+makeblastdb -in $dbFasta -input_type fasta -dbtype $dbType -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+#-------------------------------------------------------
+# 		Step 2.		Blast Search
+#-------------------------------------------------------
+tblastx -num_threads 16 -db $OutDir/$Prefix.db -query $QueryFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+#-------------------------------------------------------
+# 		Step 3.		Summarise hits
+#-------------------------------------------------------
+cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+```
+
+
+# Build annotation table
+
+
+```bash
+Organism=P.cactorum
+Strain=10300
+OutDir=analysis/gene_tables/$Organism/$Strain
+mkdir -p $OutDir
+
+# combine sigP2 headers
+cat gene_pred/final_sigP/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' > $OutDir/sigP2_headers_combined.txt
+cat gene_pred/ORF_sigP/P.cactorum/10300/10300_ORF_sp_headers.txt | tr -d ' ' >> $OutDir/sigP2_headers_combined.txt
+
+# combine sigP3 headers
+cat gene_pred/final_signalp-3.0/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP3_headers_combined.txt
+cat gene_pred/ORF_signalp-3.0/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP3_headers_combined.txt
+
+# combine sigP4 headers
+cat gene_pred/final_signalp-4.1/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP4_headers_combined.txt
+cat gene_pred/ORF_signalp-4.1/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP4_headers_combined.txt
+
+cat analysis/phobius/P.cactorum/10300/10300_phobius_headers.txt analysis/phobius/P.cactorum/10300/10300_phobius_headers_ORF.txt > $OutDir/10300_phobius_headers_combined.txt
+
+cat analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_RxLR_EER_regex.fa analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_ORF_RxLR_EER_regex_merged.aa > $OutDir/10300_combined_RxLR_EER_regex.fa
+
+cat analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_RxLR_hmmer.fa analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_ORF_RxLR_hmmer.fa > $OutDir/10300_combined_RxLR_hmmer.fa
+
+cat analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/10300_Aug_WY_hmmer.fa analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/10300_ORF_WY_hmmer.fa > $OutDir/10300_combined_WY_hmmer.fa
+
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.bed \
+	| grep -w 'transcript' | cut -f5 -d '=' | cut -f1 -d ';' \
+	> analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.txt
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_LFLAK_unmerged_hmmer.fa \
+	| grep -A1 -f analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.txt \
+	| grep -v '\-\-' \
+	> analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.fa
+
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORFsUniq_CRN_hmmer.fa > $OutDir/10300_combined_CRN_LFLAK_hmm.fa
+
+cat analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_pub_CRN_DWL_hmm.fa analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_ORF_CRN_DWL_unmerged_hmmer.fa > $OutDir/10300_combined_CRN_DWL_hmm.fa
+
+Organism=P.cactorum
+Strain=10300
+OutDir=analysis/gene_tables/$Organism/$Strain
+
+GeneGff=gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gff3
+GeneFasta=gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta
+OrfGff=$(ls gene_pred/ORF_finder/P.cactorum/10300/10300_ORF.gff3)
+ConversionLog=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_appended_renamed.log)
+SigP2=$OutDir/sigP2_headers_combined.txt
+SigP3=$OutDir/sigP3_headers_combined.txt
+SigP4=$OutDir/sigP4_headers_combined.txt
+PhobiusTxt=$OutDir/10300_phobius_headers_combined.txt
+RxLR_Motif=$OutDir/10300_combined_RxLR_EER_regex.fa
+RxLR_Hmm=$OutDir/10300_combined_RxLR_hmmer.fa
+RxLR_WY=$OutDir/10300_combined_WY_hmmer.fa
+CRN_LFLAK=$OutDir/10300_combined_CRN_LFLAK_hmm.fa
+CRN_DWL=$OutDir/10300_combined_CRN_DWL_hmm.fa
+CAZY_Hmm=$(ls gene_pred/CAZY/*/*/*CAZY.out.dm.ps | grep '10300')
+# RawCounts=alignment/star/P.cactorum/10300/DeSeq/V8_raw_counts.txt
+# Fpkm=alignment/star/P.cactorum/10300/DeSeq/V8_fpkm_norm_counts.txt
+PhiHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_phi_accessions_hits_headers.txt)
+AvrHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_effectors_hits_headers.txt)
+ChenHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_chen_transcripts_hits_headers.txt)
+InterPro=gene_pred/interproscan/final_incl_ORF/P.cactorum/P.cactorum_interproscan.tsv
+Swissprot=gene_pred/swissprot/P.cactorum/10300/swissprot_vJul2016_tophit_parsed.tbl
+OrthoName='Pcac'
+OrthoAll='Pcac Pinf Ppar Pcap Psoj'
+OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/Orthogroups.txt
+# OrthoFile=$(ls analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/*orthogroups.txt)
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+$ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_all $OrthoAll --ortho_file $OrthoFile --gene_gff $GeneGff --ORF_gff $OrfGff --gene_fasta $GeneFasta --conversion_list $ConversionLog --SigP2 $SigP2 --SigP3 $SigP3 --SigP4 $SigP4 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --CAZY $CAZY_Hmm --PhiHits $PhiHits --AvrHits $AvrHits --ChenHits $ChenHits --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
+```
+
+# Genomic analysis
+
+Identification of NLP necrosis inducing proteins:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep 'NPP1' | wc -l
+cat $AnnotTab | grep 'NPP1' > $OutDir/10300_gene_table_NLP.tsv
+cat $OutDir/10300_gene_table_NLP.tsv | grep "GBGX" | wc -l
+cat $AnnotTab | grep -e 'AF356840' -e 'AF352031' > $OutDir/10300_gene_table_NLP_Avr_homologs.tsv
+
+```
+
+Proteases:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+# Number of secreted proteases:
+cat $AnnotTab | grep 'IPR001254' | wc -l
+cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,24,25,29,30,34 | grep 'Yes' | wc -l
+cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,24,25,29,30,34 | grep 'Yes' > $OutDir/10300_gene_table_protease.tsv
+# Number with homologs in Chen 2014:
+cat $OutDir/10300_gene_table_protease.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_protease.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+```
+
+Protease inhibitors:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep -i 'kazal' | wc -l
+cat $AnnotTab | grep 'IPR002350' | wc -l
+cat $AnnotTab | grep 'IPR002350' > $OutDir/10300_gene_table_EPI_kazal.tsv
+cat $AnnotTab | grep -i 'cathepsin' | wc -l
+cat $AnnotTab | grep 'IPR013201' | wc -l
+cat $AnnotTab | grep 'IPR013201' > $OutDir/10300_gene_table_EPI_cathepsin.tsv
+cat $AnnotTab | grep -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e "EPIC._" | wc -l
+cat $AnnotTab | grep -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e "EPIC._"  > $OutDir/10300_gene_table_EPI_cysteine.tsv
+# Number identified by BLAST searches:
+cat $AnnotTab | grep "GIP._P" | wc -l
+cat $AnnotTab | grep 'IPR001314' | wc -l
+cat $OutDir/10300_gene_table_protease.tsv | grep "GIP._P" | wc -l
+cat $AnnotTab | grep -e 'PITG_13636' -e 'PITG_21456' > $OutDir/10300_gene_table_GIP.tsv
+
+# Number with homologs in Chen 2014:
+cat $OutDir/10300_gene_table_EPI_kazal.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_EPI_kazal.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+cat $OutDir/10300_gene_table_EPI_cathepsin.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_EPI_cathepsin.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+```
+
+Elicitins:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep -i 'elicitin' | wc -l
+cat $AnnotTab | grep 'IPR002200' | wc -l
+cat $AnnotTab | grep 'IPR002200' > $OutDir/10300_gene_table_elicitin.tsv
+cat $OutDir/10300_gene_table_elicitin.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_elicitin.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+```
+
+TGases (R-glutaminyl-peptide:amine-γ-glutamyltransferase):
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep -i 'elicitor' | wc -l
+cat $AnnotTab | grep 'IPR032048' | wc -l
+cat $AnnotTab | grep 'IPR032048' > $OutDir/10300_gene_table_TGase.tsv
+cat $OutDir/10300_gene_table_TGase.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_TGase.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+```
+
+RxLRs
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep -w 'RxLR' | tail -n+1 | wc -l
+cat $AnnotTab | grep -w 'RxLR' > $OutDir/10300_gene_table_RxLR.tsv
+cat $OutDir/10300_gene_table_RxLR.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,19 | grep 'Yes' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,34 | sort | uniq -c | sort -nr
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,24,25,26,30,34 | grep ";" > $OutDir/RxLR_notable_annotations.tsv
+cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Pinf(1)' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Psoj(1)' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Ppar(1)' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Pcap(1)' | wc -l
+
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f24,25,26 | sort | uniq -c | sort -nr | less -S
+
+cat $OutDir/10300_gene_table_RxLR.tsv | grep -i 'Avr' | cut -f1,24,25,26,29,30,34 | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,29 | grep -i 'Avr' | wc -l
+```
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+Avr1='PITG_16663'
+cat $AnnotTab | grep 'PITG_16663T' | sed "s/^/P. infestans Avr1 ortholog\t/g" > $OutDir/RxLR_orthologs.tsv
+Avr2='PITG_05121 PITG_06077 PITG_07500 PITG_07499 PITG_08278 PITG_22870 PITG_08943 PITG_23009 PITG_13956 PITG_23008 PITG_13940 PITG_13930 PITG_20025 PITG_21645 PITG_21949'
+cat $AnnotTab | grep -e 'PITG_05121T' -e 'PITG_06077T' -e 'PITG_07500T' -e 'PITG_07499T' -e 'PITG_08278T' -e 'PITG_22870T' -e 'PITG_08943T' -e 'PITG_23009T' -e 'PITG_13956T' -e 'PITG_23008T' -e 'PITG_13940T' -e 'PITG_13930T' -e 'PITG_20025T' -e 'PITG_21645T' -e 'PITG_21949' | sed "s/^/P. infestans Avr2 ortholog\t/g" >> $OutDir/RxLR_orthologs.tsv
+Avr3a='PITG_14368 PITG_14371 PITG_14374'
+cat $AnnotTab | grep -e 'PITG_14368T' -e 'PITG_14371T' -e 'PITG_14374 ' | sed "s/^/P. infestans Avr3a ortholog\t/g" >> $OutDir/RxLR_orthologs.tsv
+Avr3bHomolog='PITG_15732'
+cat $AnnotTab | grep 'PITG_15732T' | sed "s/^/P. infestans Avr3b ortholog\t/g" >> $OutDir/RxLR_orthologs.tsv
+Avr4='PITG_07387'
+cat $AnnotTab | grep 'PITG_07387T' | sed "s/^/P. infestans Avr4 ortholog\t/g" >> $OutDir/RxLR_orthologs.tsv
+Avrblb1='PITG_21388'
+cat $AnnotTab | grep 'PITG_21388T' | sed "s/^/P. infestans Avrblb1 ortholog\t/g" >> $OutDir/RxLR_orthologs.tsv
+Avrblb2='PITG_04085 PITG_04086 PITG_20300 PITG_04090 PITG_20303 PITG_20301 PITG_18683'
+cat $AnnotTab | grep -e 'PITG_04085T' -e 'PITG_04086T' -e 'PITG_20300T' -e 'PITG_04090T' -e 'PITG_20303T' -e 'PITG_20301T' -e 'PITG_18683T' | sed "s/^/P. infestans Avrblb2 ortholog\t/g" >> $OutDir/RxLR_orthologs.tsv
+```
+
+
+Crinklers:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep -w 'CRN' | wc -l
+cat $AnnotTab | grep -w 'CRN' > $OutDir/10300_gene_table_CRN.tsv
+
+echo "The number of crinklers with SignalP predictions:"
+cat $OutDir/10300_gene_table_CRN.tsv
+echo "The number of crinklers with phobius predictions:"
+
+cat $OutDir/10300_gene_table_CRN.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_CRN.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+
+```
+
+CAZY proteins:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' | wc -l
+cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
+cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' | grep 'Yes' | wc -l
+cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' | grep 'Yes' > $OutDir/10300_gene_table_CAZY_secreted.tsv
+
+cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | wc -l
+cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+
+
+cat $AnnotTab | cut -f1,12,13,14,23 | grep 'CAZY' | grep 'Yes' | cut -f5 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
+cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'GH'
+cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep -v 'GH' | grep 'CBM'
+cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'AA'
+cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'CE'
+cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep -v 'GH' | grep 'GT'
+cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'PL'
+```
+
+Avr gene homologs:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | cut -f1,29 | grep '_' | wc -l
+cat $AnnotTab | cut -f1,18,22,24,25,29,34 | grep -P "_.*\t" > $OutDir/10300_gene_table_avr.tsv
+```
+
+
+
+# Determine lengths of intergenic regions
+
+```bash
+
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=analysis/intergenic_regions/P.cactorum/10300
+mkdir -p $OutDir
+
+GeneGff=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/intergenic_regions
+$ProgDir/find_intergenic_regions.py --Gff $GeneGff > $OutDir/10300_intergenic_regions.txt
+
+# RxLR IG distance plots and test
+RxLR_list=$OutDir/RxLR_headers.txt
+cat $AnnotTab | grep -w 'RxLR' | cut -f1 | cut -f1 -d '.' | sort | uniq > $RxLR_list
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $RxLR_list > $OutDir/10300_RxLR_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_RxLR_intergenic_regions.txt --prefix $OutDir/10300_RxLR
+
+#[1] 0
+#[1] 2
+#[1] 0
+
+# CRN IG distance plots and test
+CRN_list=$OutDir/CRN_headers.txt
+cat $AnnotTab | grep -w 'CRN' | cut -f1 | cut -f1 -d '.' | sort | uniq > $CRN_list
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $CRN_list > $OutDir/10300_CRN_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_CRN_intergenic_regions.txt --prefix $OutDir/10300_CRN
+
+#[1] 5635
+#[1] 25
+#[1] 326
+
+# Elicitin IG distance plots and test
+Effector="elicitin"
+Headers=$OutDir/${Effector}_headers.txt
+cat $AnnotTab | grep 'IPR002200' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+
+# [1] 9774
+# [1] 9699
+# [1] 9947
+
+
+# Elicitin IG distance plots and test
+Effector="EPI"
+Headers=$OutDir/${Effector}_headers.txt
+cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+
+#[1] 7649
+#[1] 5089
+#[1] 7085
+
+# NLP IG distance plots and test
+Effector="NLP"
+Headers=$OutDir/${Effector}_headers.txt
+cat $AnnotTab | grep -e 'NPP1' -e 'AF356840' -e 'AF352031' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+
+# [1] 3689
+# [1] 2267
+# [1] 3019
+
+# CAZY IG distance plots and test
+Effector="CAZY"
+Headers=$OutDir/${Effector}_headers.txt
+cat $AnnotTab | grep -w -e 'CAZY' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+
+#[1] 30
+#[1] 2264
+#[1] 81
+
+Effector="CAZY_non_sec"
+Headers=$OutDir/${Effector}_headers.txt
+cat $AnnotTab | grep -w -e 'CAZY' | cut -f1,12,13,14 | grep -v 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+
+#[1] 9970
+#[1] 9978
+#[1] 9997
+
+
+Effector="Busco"
+Headers=$OutDir/${Effector}_headers.txt
+cat gene_pred/busco/final_incl_ORF/P.cactorum/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene/single_copy_busco_sequences/*.fna | grep '>' | cut -f3 -d ':'| sort | uniq > $Headers
+cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+
+#[1] 9999
+#[1] 9999
+#[1] 9999
+
+
+# IG plot for publication
+
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=analysis/intergenic_regions/P.cactorum/10300
+
+rxlr=$(ls $OutDir/10300_RxLR_intergenic_regions.txt)
+crn=$(ls $OutDir/10300_CRN_intergenic_regions.txt)
+cazy_sec=$(ls $OutDir/10300_CAZY_intergenic_regions.txt)
+pi=$(ls $OutDir/10300_EPI_intergenic_regions.txt)
+nlp=$(ls $OutDir/10300_NLP_intergenic_regions.txt)
+cazy_nonsec=$(ls $OutDir/10300_CAZY_non_sec_intergenic_regions.txt)
+busco=$(ls $OutDir/10300_Busco_intergenic_regions.txt)
+elicitin=$(ls $OutDir/10300_elicitin_intergenic_regions.txt)
+
+cat $OutDir/10300_intergenic_regions.txt | sed "s/$/\tTotal/g"  | cut -f1,2,3,5 > $OutDir/10300_IG_matrix_table.txt
+for File in $(ls $OutDir/10300_*_intergenic_regions.txt); do
+  Filename=$(basename $File)
+  Effector=$(echo $Filename | sed 's/10300_//g' | sed 's/_intergenic_regions.txt//g' | sed 's/elicitin/Elicitin/g' | sed 's/CAZY_non_sec/Non-secreted CAZyme/g' | sed 's/CAZY/Secreted CAZyme/g' | sed 's/Busco/BUSCO/g' | sed 's/EPI/PI/g')
+  echo $File
+  echo $Effector
+  cat $File | sed "s/$/\t$Effector/g"  | cut -f1,2,3,5 >> $OutDir/10300_IG_matrix_table.txt
+done
+
+
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
+# $ProgDir/plot_intergenic_regions_with_effectors_publication.r --inp_all $OutDir/10300_intergenic_regions.txt --rxlr_subset $rxlr --crn_subset $crn --cazy_sec_subset $cazy_sec --PI_subset $pi --busco_subset $busco --cazy_nonsec_subset $cazy_nonsec --elicitin_subset $elicitin --prefix $OutDir/10300_IG_matrix_plot
+$ProgDir/plot_intergenic_regions_with_effectors_publication2.r --inp_all $OutDir/10300_IG_matrix_table.txt --prefix $OutDir/10300_IG_matrix_plot
+
+
+
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+IG_file=$(ls analysis/intergenic_regions/P.cactorum/10300/10300_intergenic_regions.txt)
+
+
+cat $AnnotTab | grep -w -C1 "CRN" | 'CRN'
+
+
+
+for Effector in 'CAZY' 'CRN'; do
+EffectorList=$(ls analysis/intergenic_regions/P.cactorum/10300/10300_${Effector}_intergenic_regions.txt)
+OutDir=analysis/intergenic_regions/P.cactorum/10300/${Effector}
+mkdir -p $OutDir
+cat analysis/intergenic_regions/P.cactorum/10300/10300_${Effector}_intergenic_regions.txt | grep '+' > $OutDir/10300_${Effector}_intergenic_regions_+.txt
+cat $IG_file | grep -B1 -f $OutDir/10300_${Effector}_intergenic_regions_+.txt | awk 'NR%3==2' | cut -f1 > $OutDir/10300_${Effector}_intergenic_regions_+_fiveprime_neighbour.txt
+cat analysis/intergenic_regions/P.cactorum/10300/10300_${Effector}_intergenic_regions.txt | grep '-' > $OutDir/10300_${Effector}_intergenic_regions_-.txt
+cat $IG_file | grep -A1 -f $OutDir/10300_${Effector}_intergenic_regions_-.txt | awk 'NR%3==2' | cut -f1 > $OutDir/10300_${Effector}_intergenic_regions_-_fiveprime_neighbour.txt
+cat $OutDir/10300_${Effector}_intergenic_regions_+_fiveprime_neighbour.txt $OutDir/10300_${Effector}_intergenic_regions_-_fiveprime_neighbour.txt > $OutDir/10300_${Effector}_intergenic_regions_fiveprime_neighbour.txt
+
+cat $AnnotTab | grep -w -f $OutDir/10300_${Effector}_intergenic_regions_fiveprime_neighbour.txt > $OutDir/10300_${Effector}_intergenic_regions_fiveprime_neighbour_annot.txt
+
+
+
+cat analysis/intergenic_regions/P.cactorum/10300/10300_${Effector}_intergenic_regions.txt | grep '-' > $OutDir/10300_${Effector}_intergenic_regions_-.txt
+cat $IG_File | grep -B1 -f $OutDir/10300_${Effector}_intergenic_regions_-.txt | awk 'NR%3==1' | cut -f1 > $OutDir/10300_${Effector}_intergenic_regions_-_fiveprime_neighbour.txt
+cat analysis/intergenic_regions/P.cactorum/10300/10300_${Effector}_intergenic_regions.txt | grep '+' > $OutDir/10300_${Effector}_intergenic_regions_+.txt
+cat $IG_file | grep -A1 -f $OutDir/10300_${Effector}_intergenic_regions_+.txt | awk 'NR%3==2' | cut -f1 > $OutDir/10300_${Effector}_intergenic_regions_+_fiveprime_neighbour.txt
+cat $OutDir/10300_${Effector}_intergenic_regions_-_fiveprime_neighbour.txt $OutDir/10300_${Effector}_intergenic_regions_+_fiveprime_neighbour.txt > $OutDir/10300_${Effector}_intergenic_regions_fiveprime_neighbour.txt
+
+cat $AnnotTab | grep -w -f $OutDir/10300_${Effector}_intergenic_regions_fiveprime_neighbour.txt > $OutDir/10300_${Effector}_intergenic_regions_fiveprime_neighbour_annot.txt
+
+done
+
+cat $OutDir/10300_CRN_intergenic_regions.txt | grep '-' > $OutDir/10300_CRN_intergenic_regions_-.txt
+
+
 ```
