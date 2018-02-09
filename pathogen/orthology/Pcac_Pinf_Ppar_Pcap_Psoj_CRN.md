@@ -4,20 +4,30 @@
 ```bash
   ProjDir=/home/groups/harrisonlab/project_files/idris
   cd $ProjDir
-  IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_CRN
+  IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication
   WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
   mkdir -p $WorkDir
   mkdir -p $WorkDir/formatted
   mkdir -p $WorkDir/goodProteins
-  mkdir -p $WorkDir/badProteins  
+  mkdir -p $WorkDir/badProteins
 ```
 
 ## 1) Format fasta files
 
 ### for P.cac 10300
+
+
+
+```bash
+OutDir=$WorkDir
+mkdir -p $OutDir
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+cat $AnnotTab | grep -w 'CRN' | cut -f1,26 | sed "s/^/>/g" | sed "s/\t/\n/g" | sed "s/X$//g" > $OutDir/Pcac_CRN.fa
+```
+
 ```bash
   Taxon_code=Pcac
-  Fasta_file=analysis/CRN_effectors/hmmer_CRN/P.cactorum/10300/10300_Total_CRN.fa
+  Fasta_file=$OutDir/Pcac_CRN.fa
   Id_field=1
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
   mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
@@ -125,18 +135,45 @@
   qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
-## 5) Plot venn diagrams:
-
-<!-- ```bash
-  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
-  $ProgDir/ven_diag_5_way.R --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
-``` -->
+Also try using orthofinder
 
 ```bash
-  ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
-  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
+qlogin -pe smp 16
+
+ProjDir=/home/groups/harrisonlab/project_files/idris
+cd $ProjDir
+IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication
+WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
+
+#16 threads used
+orthofinder -f $WorkDir/formatted -t 16
+```
 
 ```
+Orthogroup statistics:
+   Statistics_PerSpecies.csv   Statistics_Overall.csv   Orthogroups_SpeciesOverlaps.csv
+
+OrthoFinder assigned 547 genes (84.2% of total) to 42 orthogroups. Fifty percent of all genes were in orthogroups
+with 19 or more genes (G50 was 19) and were contained in the largest 11 orthogroups (O50 was 11). There were 8
+orthogroups with all species present and 0 of these consisted entirely of single-copy genes.
+
+When publishing work that uses OrthoFinder please cite:
+    D.M. Emms & S. Kelly (2015), OrthoFinder: solving fundamental biases in whole genome comparisons
+    dramatically improves orthogroup inference accuracy, Genome Biology 16:157.
+```
+
+## 5) Plot venn diagrams:
+
+Orthofinder output:
+
+```bash
+  GoodProts=$WorkDir/goodProteins/goodProteins.fasta
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  $ProgDir/orthoMCLgroups2tab.py $GoodProts $WorkDir/formatted/Results_Jan15/Orthogroups.txt > $WorkDir/formatted/Results_Jan15/"$IsolateAbrv"_orthogroups.tab
+  ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r --inp $WorkDir/formatted/Results_Jan15/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/formatted/Results_Jan15/"$IsolateAbrv"_orthogroups.pdf
+```
+
 
 Output was a pdf file of the venn diagram.
 
@@ -149,22 +186,48 @@ number of unique groups of inparalogs
 
 ```
   [1] "Pcac"
-  [1] 8
-  [1] 3
+  [1] 41
+  [1] 0
+  [1] 0
   [1] "Pcap"
-  [1] 6
-  [1] 8
+  [1] 49
+  [1] 0
+  [1] 0
   [1] "Psoj"
-  [1] 30
-  [1] 11
+  [1] 83
+  [1] 0
+  [1] 0
   [1] "Pinf"
-  [1] 4
-  [1] 4
+  [1] 52
+  [1] 0
+  [1] 0
   [1] "Ppar"
-  [1] 6
-  [1] 1
+  [1] 19
+  [1] 0
+  [1] 0
 ```
 
+
+## Extracting fasta files for orthogroups:
+
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication/formatted/Results_Jan15/Orthogroups.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication/goodProteins/goodProteins.fasta
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication/formatted/Results_Jan15/orthogroups_fasta_Pcac
+  #
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
+```
+
+```bash
+ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication/*orthogroups.txt
+GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication/goodProteins/goodProteins.fasta
+OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_CRN_publication/orthogroups_fasta_Pcac
+mkdir -p $OutDir
+$ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
+```
 
 # 6) Downstream analysis
 
@@ -344,4 +407,14 @@ extracted using the commands:
   [1] "Ppar"
   [1] 0
   [1] 0
+```
+
+
+## Identify the number of incomplete crinklers
+
+
+```bash
+OutDir=analysis/gene_tables/P.cactorum/10300/subset
+cat $OutDir/10300_gene_table_CRN.tsv | cut -f26 | grep "X$" | wc -l
+cat $OutDir/10300_gene_table_CRN.tsv | cut -f26 | grep -v "X$" | wc -l
 ```
