@@ -115,7 +115,7 @@ for Assembly in $(ls repeat_masked/P.cactorum/10300/10300_abyss_53_repmask/10300
   OutDir="genome_submission/$Organism/$Strain"
   GffFile=$(ls gene_pred/final_incl_ORF/$Organism/"$Strain"/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 
-  InterProTab=$(ls gene_pred/interproscan/$Organism/"$Strain"*/"$Strain"*_interproscan.tsv)
+  InterProTab=$(ls gene_pred/interproscan/final_incl_ORF/P.cactorum/P.cactorum_interproscan.tsv)
   SwissProtBlast=$(ls gene_pred/swissprot/$Organism/"$Strain"*/swissprot_vJul2016_tophit_parsed.tbl)
   SwissProtFasta=$(ls /home/groups/harrisonlab/uniprot/swissprot/uniprot_sprot.fasta)
   python3 $AnnieDir/annie.py -ipr $InterProTab -g $GffFile -b $SwissProtBlast -db $SwissProtFasta -o $OutDir/annie_output.csv --fix_bad_products
