@@ -405,6 +405,7 @@ done
 
 
 
+<!--
 ### Canu assembly
 
 ```bash
@@ -418,6 +419,7 @@ done
   ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
   qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
 ```
+-->
 <!--
 Data quality was visualised once again following trimming:
 
@@ -429,7 +431,7 @@ OutDir=$(dirname $RawData)
 qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
 done
 ``` -->
-
+<!--
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
   for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
@@ -583,13 +585,13 @@ OutDir=assembly/merged_canu_spades/$Organism/$Strain/polished
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
 qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
 done
-```
+``` -->
 
 Contigs were renamed in accordance with ncbi recomendations.
 
 ```bash
   touch tmp.csv
-  for Assembly in $(ls assembly/merged_canu_spades/*/*/polished/pilon.fasta | grep '414_v2'); do
+  for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/pilon_5.fasta); do
     Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
     OutDir=$(dirname $Assembly)
@@ -603,7 +605,7 @@ Quast
 
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -e '414_v2'); do
+  for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/contigs_min_500bp_renamed.fasta); do
     Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
     OutDir=$(dirname $Assembly)
@@ -614,41 +616,47 @@ Quast
 checking using busco
 
 ```bash
-for Assembly in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -e '414_v2' | grep -v 'polished'); do
-  Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-  Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/*.fasta); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $Assembly | rev | cut -d '/' -f5 | rev)
   echo "$Organism - $Strain"
   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
   # BuscoDB="Fungal"
   BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
-  OutDir=gene_pred/busco/$Organism/$Strain/assembly
-  qsub $ProgDir/sub_busco2.sh $Assembly $BuscoDB $OutDir
+  OutDir=$(dirname $Assembly)
+  qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
 done
 ```
 
 ```bash
-  for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep '414_v2'); do
-  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
-  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  for File in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/*/short_summary_*.txt ); do
+  Strain=$(echo $File| rev | cut -d '/' -f5 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f6 | rev)
+  Prefix=$(basename $File)
   Complete=$(cat $File | grep "(C)" | cut -f2)
   Fragmented=$(cat $File | grep "(F)" | cut -f2)
   Missing=$(cat $File | grep "(M)" | cut -f2)
   Total=$(cat $File | grep "Total" | cut -f2)
-  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
+  echo -e "$Organism\t$Strain\t$Prefix\t$Complete\t$Fragmented\t$Missing\t$Total"
   done
 ```
 
 ```
-P.cactorum	414_v2	278	2	23	303
+  P.cactorum	414	short_summary_pilon_1.txt	285	4	14	303
+  P.cactorum	414	short_summary_pilon_2.txt	285	4	14	303
+  P.cactorum	414	short_summary_pilon_3.txt	285	4	14	303
+  P.cactorum	414	short_summary_pilon_4.txt	285	4	14	303
+  P.cactorum	414	short_summary_pilon_5.txt	285	4	14	303
+  P.cactorum	414	short_summary_contigs_min_500bp_renamed.txt	285	4	14	303
 ```
 
 
 Contigs were identified that had blast hits to non-phytophthora genomes
 
 ```bash
-for Assembly in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -e '414_v2' | grep -v 'polished'); do
-Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/contigs_min_500bp_renamed.fasta); do
+Strain=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f5 -d '/' | rev)
 echo "$Organism - $Strain"
 # Exclude_db="bact,virus,hsref"
 Exclude_db="paenibacillus"
@@ -663,18 +671,17 @@ done
 Results were summarised using the commands:
 
 ```bash
-# for File in $(ls assembly/spades/P.*/*/deconseq/log.txt); do
-for File in $(ls assembly/merged_canu_spades/P.*/*/deconseq_Paen/log.txt | grep '414_v2'); do
-  Name=$(echo $File | rev | cut -f3 -d '/' | rev);
-  Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
-  Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
-  Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
-  printf "$Name\t$Good\t$Both\t$Bad\n";
-done
+  for File in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/log.txt | grep '414'); do
+    Name=$(echo $File | rev | cut -f4 -d '/' | rev);
+    Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
+    Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
+    Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
+    printf "$Name\t$Good\t$Both\t$Bad\n";
+  done
 ```
 
 ```
-  414_v2	186	0	0
+  414_v2	222	0	5
 ```
 
 # Preliminary analysis
@@ -682,10 +689,9 @@ done
 ## Checking MiSeq coverage against P414 contigs
 
 ```bash
-for Assembly in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -e '414_v2' | grep -v 'polished'); do
-Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
-Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-# IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+for Assembly in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+Organism=$(echo $Assembly | rev | cut -f5 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 IlluminaDir=$(ls -d qc_dna/paired/$Organism/414)
 echo $Strain
 echo $Organism
@@ -717,20 +723,11 @@ regions with low coverage flagged using a python script flag_low_coverage.py.
 These low coverage regions were visually inspected using IGV.
 
 ```bash
-# for Assembly in $(ls assembly/merged_canu_spades/P.cactorum/414/filtered_contigs/contigs_min_500bp_renamed.fasta); do
-for Assembly in $(ls assembly/canu/P.cactorum/*/filtered_contigs/contigs_min_500bp_renamed.fasta); do
-  Reads=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq)
-  OutDir=analysis/genome_alignment/bwa/P.cactorum/414/vs_414
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/bwa
-  qsub $ProgDir/sub_bwa_pacbio.sh $Assembly $Reads $OutDir
-  #
-  # AlignedBam=$OutDir/414_contigs_renamed.fasta_aligned_sorted.bam.gz
-  # CoverageTxt=$OutDir/414_bp_genome_cov.txt
-  # bedtools genomecov -max 5 -bga -d -ibam $AlignedBam -g $Assembly > $CoverageTxt
-  #
-  # Threshold=5
-  # FlaggedRegions=$OutDir/414_flagged_regions.txt
-  # $ProgDir/flag_low_coverage.py --genomecov $CoverageTxt --min $Threshold > $FlaggedRegions
+  for Assembly in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+    Reads=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq)
+    OutDir=analysis/genome_alignment/bwa/P.cactorum/414/vs_414
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/bwa
+    qsub $ProgDir/sub_bwa_pacbio.sh $Assembly $Reads $OutDir
   done
 ```
 
@@ -743,62 +740,65 @@ Repeat masking was performed and used the following programs:
 The best assemblies were used to perform repeatmasking
 
 ```bash
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
-for BestAss in $(ls assembly/merged_canu_spades/*/*/*/contigs_min_500bp_renamed.fasta | grep -w -e '414_v2' | grep -v 'polished'); do
-qsub $ProgDir/rep_modeling.sh $BestAss
-qsub $ProgDir/transposonPSI.sh $BestAss
-done
-```
-
-The number of bases masked by transposonPSI and Repeatmasker were summarised
-using the following commands:
-
-```bash
-  for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -w -e '414_v2'); do
-    Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
-    RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
-    TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
-    printf "$Organism\t$Strain\n"
-    printf "The number of bases masked by RepeatMasker:\t"
-    sortBed -i $RepMaskGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-    printf "The number of bases masked by TransposonPSI:\t"
-    sortBed -i $TransPSIGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-    printf "The total number of masked bases are:\t"
-    cat $RepMaskGff $TransPSIGff | sortBed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
-    echo
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+  for BestAss in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+    Strain=$(echo $BestAss | rev | cut -f4 -d '/' | rev)
+    Organism=$(echo $BestAss | rev | cut -f5 -d '/' | rev)
+    OutDir=repeat_masked/$Organism/"$Strain"/filtered_contigs_repmask
+    qsub $ProgDir/rep_modeling.sh $BestAss $OutDir
+    qsub $ProgDir/transposonPSI.sh $BestAss $OutDir
   done
 ```
-```
-  P.cactorum	414_v2
-  The number of bases masked by RepeatMasker:	15459761
-  The number of bases masked by TransposonPSI:	4939043
-  The total number of masked bases are:	16794791
-```
+
 
 
 The TransposonPSI masked bases were used to mask additional bases from the
 repeatmasker / repeatmodeller softmasked and hardmasked files.
 
-```bash
 
-  for File in $(ls repeat_masked/*/*/*/*_contigs_softmasked.fa | grep '414_v2'); do
-    OutDir=$(dirname $File)
-    TPSI=$(ls $OutDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
-    OutFile=$(echo $File | sed 's/_contigs_softmasked.fa/_contigs_softmasked_repeatmasker_TPSI_appended.fa/g')
-    echo "$OutFile"
-    bedtools maskfasta -soft -fi $File -bed $TPSI -fo $OutFile
-    echo "Number of masked bases:"
-    cat $OutFile | grep -v '>' | tr -d '\n' | awk '{print $0, gsub("[a-z]", ".")}' | cut -f2 -d ' '
-  done
-  # The number of N's in hardmasked sequence are not counted as some may be present within the assembly and were therefore not repeatmasked.
-  for File in $(ls repeat_masked/*/*/*/*_contigs_softmasked.fa | grep '414_v2'); do
-    OutDir=$(dirname $File)
-    TPSI=$(ls $OutDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
-    OutFile=$(echo $File | sed 's/_contigs_hardmasked.fa/_contigs_hardmasked_repeatmasker_TPSI_appended.fa/g')
-    echo "$OutFile"
-    bedtools maskfasta -fi $File -bed $TPSI -fo $OutFile
-  done
+```bash
+for File in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep -w '414'); do
+OutDir=$(dirname $File)
+TPSI=$(ls $OutDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+OutFile=$(echo $File | sed 's/_contigs_softmasked.fa/_contigs_softmasked_repeatmasker_TPSI_appended.fa/g')
+echo "$OutFile"
+bedtools maskfasta -soft -fi $File -bed $TPSI -fo $OutFile
+echo "Number of masked bases:"
+cat $OutFile | grep -v '>' | tr -d '\n' | awk '{print $0, gsub("[a-z]", ".")}' | cut -f2 -d ' '
+done
+# The number of N's in hardmasked sequence are not counted as some may be present within the assembly and were therefore not repeatmasked.
+for File in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep -w '414'); do
+OutDir=$(dirname $File)
+TPSI=$(ls $OutDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+OutFile=$(echo $File | sed 's/_contigs_hardmasked.fa/_contigs_hardmasked_repeatmasker_TPSI_appended.fa/g')
+echo "$OutFile"
+bedtools maskfasta -fi $File -bed $TPSI -fo $OutFile
+done
+```
+
+```
+Number of masked bases:
+16513494
+```
+
+```bash
+for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -w '414'); do
+Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
+RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
+TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+# printf "The number of bases masked by RepeatMasker:\t"
+RepMaskerBp=$(sortBed -i $RepMaskGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
+# printf "The number of bases masked by TransposonPSI:\t"
+TpsiBp=$(sortBed -i $TransPSIGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
+# printf "The total number of masked bases are:\t"
+Total=$(cat $RepMaskGff $TransPSIGff | sortBed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
+printf "$Organism\t$Strain\t$RepMaskerBp\t$TpsiBp\t$Total\n"
+done
+```
+
+```
+  P.cactorum	414	15270810	4774811	16513494
 ```
 
 # Gene Prediction
@@ -813,7 +813,7 @@ Gene prediction followed three steps:
 		- Gene models were used to predict genes in genomes as part of the the Braker1 pipeline. This used RNAseq data as hints for gene models.
 
 ## Pre-gene prediction
-
+<!--
 Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
 ```bash
   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
@@ -833,7 +833,7 @@ Outputs were summarised using the commands:
 	done > gene_pred/cegma/cegma_results_dna_summary.txt
 
 	less gene_pred/cegma/cegma_results_dna_summary.txt
-```
+``` -->
 
 #Gene prediction
 
@@ -857,22 +857,9 @@ First, RNAseq data was aligned to Fusarium genomes.
 
 * qc of RNA seq data was performed as part of sequencing the 10300 genome:
 
-<!-- ```bash
-  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
-    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-    echo "$Organism - $Strain"
-    for RNA in $(ls qc_rna/raw_rna/genbank/*/*/*_trim.fq.gz); do
-      Timepoint=$(echo $RNA | rev | cut -f1 -d '/' | rev | sed 's/_trim.*//g')
-      echo "$Timepoint"
-      OutDir=alignment/$Organism/$Strain/$Timepoint
-      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-      qsub $ProgDir/tophat_alignment_unpaired.sh $Assembly $RNA $OutDir
-    done
-  done
-``` -->
+
 ```bash
-  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+  for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '414'); do
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     echo "$Organism - $Strain"
@@ -889,6 +876,8 @@ First, RNAseq data was aligned to Fusarium genomes.
 
 
 ### Aligning in house RNAseq data
+
+#### Timecourse of infection
 
 make symbolic links to timecourse data
 
@@ -938,9 +927,59 @@ Perform qc of RNAseq timecourse data
   done
 ```
 
+#### Mycelium
+
+make symbolic links to mycelium data
+
+```bash
+# Create symbolic links for all F read files
+for File in $(ls /data/seq_data/external/20171206_C101HW17030405_novogene/raw_data/CN_P414_*_1.fq.gz); do
+  # echo $File;
+  Sample="mycelium"
+  echo "$Sample"
+  OutDir=raw_rna/paired/mycelium-2017-12-06/$Sample/F
+  mkdir -p "$OutDir"
+  cp -s $File $OutDir/.
+done
+# Create symbolic links for all R read files
+for File in $(ls /data/seq_data/external/20171206_C101HW17030405_novogene/raw_data/CN_P414_*_2.fq.gz); do
+  # echo $File;
+  Sample="mycelium"
+  echo "$Sample"
+  OutDir=raw_rna/paired/mycelium-2017-12-06/$Sample/R
+  mkdir -p "$OutDir"
+  cp -s $File $OutDir/.
+done
+```
+
+
+Perform qc of RNAseq timecourse data
+```bash
+  for FilePath in $(ls -d raw_rna/paired/mycelium-2017-12-06/*); do
+    echo $FilePath
+    FileNum=$(ls $FilePath/F/*.gz | wc -l)
+    for num in $(seq 1 $FileNum); do
+      FileF=$(ls $FilePath/F/*.gz | head -n $num | tail -n1)
+      FileR=$(ls $FilePath/R/*.gz | head -n $num | tail -n1)
+      echo $FileF
+      echo $FileR
+      Jobs=$(qstat | grep 'rna_qc' | grep 'qw' | wc -l)
+      while [ $Jobs -gt 16 ]; do
+        sleep 5m
+        printf "."
+        Jobs=$(qstat | grep 'rna_qc' | grep 'qw' | wc -l)
+      done		
+      printf "\n"
+      IlluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+      qsub $ProgDir/rna_qc_fastq-mcf.sh $FileF $FileR $IlluminaAdapters RNA
+    done
+  done
+```
+
 <!-- Data quality was visualised using fastqc:
 ```bash
-for RawData in $(ls qc_rna/paired/*/*/*/*.fq.gz); do
+for RawData in $(ls qc_rna/paired/mycelium-2017-12-06/*/*/*.fq.gz); do
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
 Jobs=$(qstat | grep 'fastqc' | wc -l)
 while [ $Jobs -gt 20 ]; do
@@ -959,12 +998,15 @@ done
 
 
 ```bash
-  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
+  for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '414'); do
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     echo "$Organism - $Strain"
-    for RNADir in $(ls -d qc_rna/paired/Transcriptome*/*); do
+    # for RNADir in $(ls -d qc_rna/paired/Transcriptome*/*); do
+    # for RNADir in $(ls -d qc_rna/paired/mycelium-2017-12-06*/*); do
+    for RNADir in $(ls -d qc_rna/paired/*/* | grep -e 'mycelium' -e 'Transcriptome'); do
       FileNum=$(ls $RNADir/F/*_trim.fq.gz | wc -l)
+      Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
       for num in $(seq 1 $FileNum); do
         while [ $Jobs -gt 1 ]; do
           sleep 1m
@@ -991,7 +1033,7 @@ done
 Alignment stats were collected:
 
 ```bash
-for File in $(ls alignment/star/P.cactorum/414_v2/*/*/star_aligmentLog.final.out); do
+for File in $(ls alignment/star/P.cactorum/414/*/*/star_aligmentLog.final.out); do
 Sample=$(echo $File | rev | cut -f2 -d '/' | rev);
 ReadNumU=$(cat $File | grep 'Uniquely' | grep 'number' | cut -f2);
 ReadPercU=$(cat $File | grep 'Uniquely' | grep '%' | cut -f2);
@@ -1001,6 +1043,85 @@ echo -e "$Sample""\t""$ReadNumU""\t""$ReadPercU""\t""$ReadNumM""\t""$ReadPercM";
 done
 ```
 
+```
+PRO1467_S1_totRNA_S17_L001	10255	0.04%	10599	0.04%
+PRO1467_S1_totRNA_S17_L002	8343	0.03%	13559	0.06%
+PRO1467_S1_totRNA_S17_L003	8889	0.04%	14371	0.06%
+PRO1467_S1_totRNA_S17_L004	8886	0.04%	14439	0.06%
+PRO1467_S4_totRNA_S18_L001	180245	0.78%	16785	0.07%
+PRO1467_S4_totRNA_S18_L002	206021	0.81%	19872	0.08%
+PRO1467_S4_totRNA_S18_L003	218195	0.82%	21548	0.08%
+PRO1467_S4_totRNA_S18_L004	217925	0.82%	21254	0.08%
+PRO1467_S7_totRNA_S16_L001	2764887	19.69%	243886	1.74%
+PRO1467_S7_totRNA_S16_L002	4005509	20.91%	339579	1.77%
+PRO1467_S7_totRNA_S16_L003	4467883	21.58%	379080	1.83%
+PRO1467_S7_totRNA_S16_L004	4384246	21.41%	371619	1.81%
+PRO1467_S10_totRNA_S15_L001	9955	0.07%	8546	0.06%
+PRO1467_S10_totRNA_S15_L002	12914	0.06%	13870	0.06%
+PRO1467_S10_totRNA_S15_L003	14067	0.06%	15261	0.07%
+PRO1467_S10_totRNA_S15_L004	13891	0.06%	15363	0.07%
+PRO1467_S14_totRNA_S14_L001	74102	0.51%	10017	0.07%
+PRO1467_S14_totRNA_S14_L002	108211	0.56%	16327	0.08%
+PRO1467_S14_totRNA_S14_L003	116590	0.58%	17547	0.09%
+PRO1467_S14_totRNA_S14_L004	115484	0.58%	17590	0.09%
+PRO1467_S17_totRNA_S13_L001	1999995	11.40%	205869	1.17%
+PRO1467_S17_totRNA_S13_L002	2837743	12.21%	281654	1.21%
+PRO1467_S17_totRNA_S13_L003	3038340	12.59%	298553	1.24%
+PRO1467_S17_totRNA_S13_L004	3028789	12.52%	298001	1.23%
+PRO1467_S2_totRNA_S12_L001	6643	0.04%	7372	0.05%
+PRO1467_S2_totRNA_S12_L002	7860	0.04%	12491	0.07%
+PRO1467_S2_totRNA_S12_L003	8129	0.04%	12888	0.06%
+PRO1467_S2_totRNA_S12_L004	8367	0.04%	13501	0.07%
+PRO1467_S5_totRNA_S11_L001	83695	0.51%	9634	0.06%
+PRO1467_S5_totRNA_S11_L002	90814	0.51%	10741	0.06%
+PRO1467_S5_totRNA_S11_L003	97313	0.52%	11835	0.06%
+PRO1467_S5_totRNA_S11_L004	96614	0.52%	11702	0.06%
+PRO1467_S20_totRNA_S10_L001	2923624	16.49%	210906	1.19%
+PRO1467_S20_totRNA_S10_L002	3371582	17.31%	237748	1.22%
+PRO1467_S20_totRNA_S10_L003	3559171	17.69%	250923	1.25%
+PRO1467_S20_totRNA_S10_L004	3544822	17.62%	250461	1.25%
+PRO1467_S11_totRNA_S9_L001	6508	0.04%	5914	0.04%
+PRO1467_S11_totRNA_S9_L002	6921	0.04%	8730	0.05%
+PRO1467_S11_totRNA_S9_L003	7163	0.04%	9429	0.05%
+PRO1467_S11_totRNA_S9_L004	7413	0.04%	9232	0.05%
+PRO1467_S15_totRNA_S8_L001	150639	0.68%	17685	0.08%
+PRO1467_S15_totRNA_S8_L002	180976	0.73%	21402	0.09%
+PRO1467_S15_totRNA_S8_L003	185287	0.75%	22118	0.09%
+PRO1467_S15_totRNA_S8_L004	186996	0.74%	22064	0.09%
+PRO1467_S18_totRNA_S7_L001	1998888	9.95%	172238	0.86%
+PRO1467_S18_totRNA_S7_L002	2055952	10.40%	170827	0.86%
+PRO1467_S18_totRNA_S7_L003	2136219	10.64%	177009	0.88%
+PRO1467_S18_totRNA_S7_L004	2130529	10.58%	176761	0.88%
+PRO1467_S3_totRNA_S6_L001	24019	0.11%	7869	0.04%
+PRO1467_S3_totRNA_S6_L002	26432	0.13%	9017	0.04%
+PRO1467_S3_totRNA_S6_L003	28240	0.13%	9764	0.05%
+PRO1467_S3_totRNA_S6_L004	28394	0.13%	9713	0.05%
+PRO1467_S6_totRNA_S5_L001	153652	0.80%	13802	0.07%
+PRO1467_S6_totRNA_S5_L002	178291	0.83%	16662	0.08%
+PRO1467_S6_totRNA_S5_L003	189636	0.85%	17642	0.08%
+PRO1467_S6_totRNA_S5_L004	187507	0.84%	17299	0.08%
+PRO1467_S9_totRNA_S4_L001	4002919	24.51%	307179	1.88%
+PRO1467_S9_totRNA_S4_L002	4751530	25.39%	354670	1.90%
+PRO1467_S9_totRNA_S4_L003	5062179	25.81%	379081	1.93%
+PRO1467_S9_totRNA_S4_L004	5031070	25.77%	375349	1.92%
+PRO1467_S12_totRNA_S3_L001	13643	0.05%	11112	0.04%
+PRO1467_S12_totRNA_S3_L002	10541	0.04%	13704	0.05%
+PRO1467_S12_totRNA_S3_L003	11487	0.04%	14879	0.05%
+PRO1467_S12_totRNA_S3_L004	11310	0.04%	14505	0.05%
+PRO1467_S22_totRNA_S2_L001	452838	1.79%	41506	0.16%
+PRO1467_S22_totRNA_S2_L002	449314	1.88%	41834	0.18%
+PRO1467_S22_totRNA_S2_L003	478020	1.91%	44425	0.18%
+PRO1467_S22_totRNA_S2_L004	473417	1.92%	43754	0.18%
+PRO1467_S28_totRNA_S1_L001	3514211	16.22%	301729	1.39%
+PRO1467_S28_totRNA_S1_L002	3607261	16.63%	300982	1.39%
+PRO1467_S28_totRNA_S1_L003	3861569	16.90%	321797	1.41%
+PRO1467_S28_totRNA_S1_L004	3805987	16.85%	318339	1.41%
+SRR1206032	9646348	79.33%	1549662	12.74%
+SRR1206033	9593022	78.89%	1561456	12.84%
+CN_P414_1_1_trim.fq.gz	26304225	85.52%	1650241	5.36%
+CN_P414_2_1_trim.fq.gz	25227368	85.40%	1552218	5.25%
+CN_P414_3_1_trim.fq.gz	25453497	85.13%	1893144	6.33%
+```
 
 Alignments were concatenated prior to gene prediction
 
@@ -1017,6 +1138,13 @@ mkdir -p $OutDir
 samtools merge -f $OutDir/12_24hrs_published_concatenated.bam $BamFiles
 ```
 
+Addition of RNAseq data from mycelium:
+
+```bash
+BamFiles=$(ls alignment/star/P.cactorum/414_v2/mycelium/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
+OutDir=alignment/star/P.cactorum/414_v2/concatenated
+samtools merge -f $OutDir/12_24hrs_published_mycelium_concatenated.bam $OutDir/12_24hrs_published_concatenated.bam
+```
 
 
 #### Braker prediction
@@ -1026,7 +1154,7 @@ samtools merge -f $OutDir/12_24hrs_published_concatenated.bam $BamFiles
     	Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     	Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     	echo "$Organism - $Strain"
-    	AcceptedHits=$(ls alignment/star/$Organism/$Strain/concatenated/12_24hrs_published_concatenated.bam)
+    	AcceptedHits=$(ls alignment/star/$Organism/$Strain/concatenated/12_24hrs_published_mycelium_concatenated.bam)
     	OutDir=gene_pred/braker/$Organism/"$Strain"_braker_pacbio
     	GeneModelName="$Organism"_"$Strain"_braker_pacbio
     	rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker_pacbio
@@ -1053,7 +1181,7 @@ therefore features can not be restricted by strand when they are intersected.
     echo "$Organism - $Strain"
     OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
     mkdir -p $OutDir
-    AcceptedHits=$(ls alignment/star/$Organism/$Strain/concatenated/12_24hrs_published_concatenated.bam)
+    AcceptedHits=$(ls alignment/star/$Organism/$Strain/concatenated/12_24hrs_published_mycelium_concatenated.bam)
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
     qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
   done
