@@ -508,7 +508,7 @@ for RepDir in $RepPcac; do
 	cat $RepMaskGff $TransPSIGff  > $RepDir/merged.gff
 	sortBed -i $RepDir/merged.gff > $RepDir/merged_sorted.bed
 	printf "The total number of masked bases are:\t"
-	# bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
+	bedtools merge -i $RepDir/merged_sorted.bed | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}'
 	rm $RepDir/TPSI_sorted.bed
 	rm $RepDir/merged.gff
 	rm $RepDir/merged_sorted.bed
