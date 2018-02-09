@@ -58,11 +58,18 @@ colname5 <- paste("Ppar")
 # label5 <- paste(colname5, ' (26584 genes in ', area5, ' ortholog groups)', sep="" )
 
 # Species abreviation labels
-label1 <- paste(colname1, sep="" )
-label2 <- paste(colname2, sep="" )
-label3 <- paste(colname3, sep="" )
-label4 <- paste(colname4, sep="" )
-label5 <- paste(colname5, sep="" )
+#label1 <- paste(colname1, sep="" )
+#label2 <- paste(colname2, sep="" )
+#label3 <- paste(colname3, sep="" )
+#label4 <- paste(colname4, sep="" )
+#label5 <- paste(colname5, sep="" )
+
+# Full species name labels
+label1 <- paste("P. cactorum")
+label2 <- paste("P. capsici")
+label3 <- paste("P. sojae")
+label4 <- paste("P. infestans")
+label5 <- paste("P. parasitica")
 
 # No label
 #label1 <- paste("", sep="" )
@@ -121,10 +128,10 @@ draw.quintuple.venn(
   fontface = rep("plain", 31),
   fontfamily = rep("serif", 31),
   cat.pos = c(0, 310, 215, 145, 60),
-  cat.dist = rep(0.2, 5),
+  cat.dist = rep(0.25, 5),
   cat.col = rep("black", 5),
   cat.cex = rep(1, 5),
-  cat.fontface = rep("plain", 5),
+  cat.fontface = rep("italic", 5),
   cat.fontfamily = rep("serif", 5),
   cat.just = rep(list(c(0.5, 0.5)), 5),
   rotation.degree = 0,
@@ -136,34 +143,34 @@ draw.quintuple.venn(
 dev.off()
 
 singles = df1[grepl("single*", rownames(df1)), ]
-uniq_1=sum(singles[, label1])
-uniq_2=sum(singles[, label2])
-uniq_3=sum(singles[, label3])
-uniq_4=sum(singles[, label4])
-uniq_5=sum(singles[, label5])
+uniq_1=sum(singles[, colname1])
+uniq_2=sum(singles[, colname2])
+uniq_3=sum(singles[, colname3])
+uniq_4=sum(singles[, colname4])
+uniq_5=sum(singles[, colname5])
 orthogroups = df1[grepl("orthogroup*", rownames(df1)), ]
-inpara_1 = sum(orthogroups[,label1] == 1 & orthogroups[,label2] == 0 & orthogroups[,label3] == 0 & orthogroups[,label4] == 0 & orthogroups[,label5] == 0)
-inpara_2 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 1 & orthogroups[,label3] == 0 & orthogroups[,label4] == 0 & orthogroups[,label5] == 0)
-inpara_3 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 0 & orthogroups[,label3] == 1 & orthogroups[,label4] == 0 & orthogroups[,label5] == 0)
-inpara_4 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 0 & orthogroups[,label3] == 0 & orthogroups[,label4] == 1 & orthogroups[,label5] == 0)
-inpara_5 = sum(orthogroups[,label1] == 0 & orthogroups[,label2] == 0 & orthogroups[,label3] == 0 & orthogroups[,label4] == 0 & orthogroups[,label5] == 1)
-label1
+inpara_1 = sum(orthogroups[,colname1] == 1 & orthogroups[,colname2] == 0 & orthogroups[,colname3] == 0 & orthogroups[,colname4] == 0 & orthogroups[,colname5] == 0)
+inpara_2 = sum(orthogroups[,colname1] == 0 & orthogroups[,colname2] == 1 & orthogroups[,colname3] == 0 & orthogroups[,colname4] == 0 & orthogroups[,colname5] == 0)
+inpara_3 = sum(orthogroups[,colname1] == 0 & orthogroups[,colname2] == 0 & orthogroups[,colname3] == 1 & orthogroups[,colname4] == 0 & orthogroups[,colname5] == 0)
+inpara_4 = sum(orthogroups[,colname1] == 0 & orthogroups[,colname2] == 0 & orthogroups[,colname3] == 0 & orthogroups[,colname4] == 1 & orthogroups[,colname5] == 0)
+inpara_5 = sum(orthogroups[,colname1] == 0 & orthogroups[,colname2] == 0 & orthogroups[,colname3] == 0 & orthogroups[,colname4] == 0 & orthogroups[,colname5] == 1)
+colname1
 area1
 uniq_1
 inpara_1
-label2
+colname2
 area2
 uniq_2
 inpara_2
-label3
+colname3
 area3
 uniq_3
 inpara_3
-label4
+colname4
 area4
 uniq_4
 inpara_4
-label5
+colname5
 area5
 uniq_5
 inpara_5
