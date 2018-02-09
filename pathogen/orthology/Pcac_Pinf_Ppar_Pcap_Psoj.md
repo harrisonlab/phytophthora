@@ -4,7 +4,7 @@
 ```bash
   ProjDir=/home/groups/harrisonlab/project_files/idris
   cd $ProjDir
-  IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj
+  IsolateAbrv=Pcac_Pinf_Ppar_Pcap_Psoj_publication
   WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
   mkdir -p $WorkDir
   mkdir -p $WorkDir/formatted
@@ -17,7 +17,7 @@
 ### for P.cac 10300
 ```bash
   Taxon_code=Pcac
-  Fasta_file=gene_pred/braker/P.cactorum/10300/P.cactorum/augustus.aa
+  Fasta_file=gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta
   Id_field=1
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
   mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
@@ -35,10 +35,10 @@
 ### for P.par 310
 ```bash
   Taxon_code=Ppar
-  Fasta_file=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.pep.all.fa
+  Fasta_file=assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins_parsed.pep.all.fa
   Id_field=1
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
-  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
+  cat "$Taxon_code".fasta | sed 's/*//g' > $WorkDir/formatted/"$Taxon_code".fasta
 ```
 
 ### for P.cap LT1534
@@ -47,7 +47,7 @@
   Fasta_file=assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_proteins.fasta
   Id_field=3
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
-  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
+  cat "$Taxon_code".fasta | sed 's/*//g' > $WorkDir/formatted/"$Taxon_code".fasta
 ```
 
 ### for P.soj 67593
@@ -56,7 +56,7 @@
   Fasta_file=assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_proteins_20110401.aa.fasta
   Id_field=3
   orthomclAdjustFasta $Taxon_code $Fasta_file $Id_field
-  mv "$Taxon_code".fasta $WorkDir/formatted/"$Taxon_code".fasta
+  cat "$Taxon_code".fasta | sed 's/*//g' > $WorkDir/formatted/"$Taxon_code".fasta
 ```
 
 
@@ -84,7 +84,7 @@
   $SplitDir/splitfile_500.py --inp_fasta $Good_proteins_file --out_dir $WorkDir/splitfiles --out_base goodProteins
 
   ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology  
-  for File in $(find $WorkDir/splitfiles); do
+  for File in $(ls $WorkDir/splitfiles/goodProteins_*.fa); do
     Jobs=$(qstat | grep 'blast_500' | grep 'qw' | wc -l)
     while [ $Jobs -gt 1 ]; do
       sleep 10
@@ -112,13 +112,46 @@
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
-  MergeHits="$IsolateAbrv"_blast.tab
+  MergeHits=$WorkDir/"$IsolateAbrv"_blast.tab
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
   qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
+Also try using orthofinder
+
+```bash
+qlogin -pe smp 16
+
+#16 threads used
+orthofinder -f $WorkDir/formatted -t 3
+```
+
+orthofinder results:
+
+```
+OrthoFinder assigned 95739 genes (87.7% of total) to 15162 orthogroups. Fifty percent of all genes were in orthogroups
+with 5 or more genes (G50 was 5) and were contained in the largest 5439 orthogroups (O50 was 5439). There were 9553
+orthogroups with all species present and 6767 of these consisted entirely of single-copy genes.
+```
+
+output files are in:
+```bash
+ls $WorkDir/formatted/Results_Jan09
+```
+
 ## 5) Plot venn diagrams:
 
+Orthofinder output:
+
+```bash
+  GoodProts=$WorkDir/goodProteins/goodProteins.fasta
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  $ProgDir/orthoMCLgroups2tab.py $GoodProts $WorkDir/formatted/Results_Jan09/Orthogroups.txt > $WorkDir/formatted/Results_Jan09/"$IsolateAbrv"_orthogroups.tab
+  ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+  $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r --inp $WorkDir/formatted/Results_Jan09/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/formatted/Results_Jan09/"$IsolateAbrv"_orthogroups.pdf
+```
+
+Orthomcl output:
 ```bash
   ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
   $ProgDir/Pcac_Pinf_Ppar_Pcap_Psoj_venn.r --inp $WorkDir/"$IsolateAbrv"_orthogroups.tab --out $WorkDir/"$IsolateAbrv"_orthogroups.pdf
@@ -163,6 +196,66 @@ Particular orthogroups were analysed for expansion in isolates.
 
 This section details the commands used and the results observed.
 
+
+## Extracting fasta files for orthogroups:
+
+```bash
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  # OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/Orthogroups.txt
+  OrthogrouTxt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/*orthogroups.txt
+  GoodProt=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/goodProteins/goodProteins.fasta
+  # OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/orthogroups_fasta_Pcac
+  OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/orthogroups_fasta_Pcac
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogrouTxt --fasta $GoodProt --out_dir $OutDir
+```
+
+
+## Investigating Crinklers:
+
+Orthogroups were extracted for OrthoMCL OrthoFinder orthogroups. Neither of these were
+found to cluster by functonal domain. Instead, tribeMCL was used for clustering.
+
+```bash
+OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/CRN
+mkdir -p $OutDir
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final2.tsv)
+# AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final2.tsv)
+cat $AnnotTab | grep -w 'CRN' | cut -f23 | sort | uniq | grep -v "^$"  > $OutDir/Pcac_CRN_orthogroups.txt
+mkdir $OutDir/fasta/CRN
+# mkdir $OutDir/fasta/CRN2
+OrthoDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/orthogroups_fasta_Pcac
+# OrthoDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/orthogroups_fasta_Pcac
+FastaFile=$(ls $OrthoDir/orthogroup$Orthogroup.fa)
+for Orthogroup in $(cat $OutDir/Pcac_CRN_orthogroups.txt); do
+  echo $Orthogroup
+  FastaFile=$(ls $OrthoDir/*$Orthogroup.fa)
+  # FastaFile=$(ls $OrthoDir/$Orthogroup.fa)
+  cp $FastaFile $OutDir/fasta/CRN/.
+done
+```
+
+
+## Investigating NLPs
+
+```bash
+OutDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/NLP
+mkdir -p $OutDir
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/subset/10300_gene_table_NLP.tsv)
+cat $AnnotTab | cut -f21 | sort | uniq > $OutDir/Pcac_NLP_orthogroups.txt
+
+mkdir $OutDir/fasta
+OrthoDir=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/orthogroups_fasta_Pcac
+for Orthogroup in $(cat $OutDir/Pcac_NLP_orthogroups.txt); do
+  echo $Orthogroup
+  FastaFile=$(ls $OrthoDir/orthogroup$Orthogroup.fa)
+  cp $FastaFile $OutDir/fasta/.
+done
+```
+
+
+
+<!--
 
 ### 6.1 ) P. cactotum unique gene families
 
@@ -503,4 +596,4 @@ done
   [1] "Ppar"
   [1] 0
   [1] 648
-```
+``` -->
