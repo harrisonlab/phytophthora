@@ -26,13 +26,13 @@ The following genomes were publicly available
 ```
 
 # assess gene space in assemblies
-```bash
+<!-- ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
 	for Genome in $(ls assembly/external_group/*/*/dna/*.genome.fa); do
 		echo $Genome
 		qsub $ProgDir/sub_cegma.sh $Genome dna;
 	done
-```
+``` -->
 
 <!--
 The 310 genome's scaffolds only contained numbers stopping cegma from running properly.
@@ -47,6 +47,28 @@ The script was as ajusted as so:
 	done
 ```
  -->
+
+
+ Numbers of busco genes in each assembly were identified:
+
+ ```bash
+ Pcac=$(ls assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta)
+ Pinf=$(ls assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.fa)
+ Psoj=$(ls assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.genome.fa)
+ Ppar=$(ls assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta)
+
+ for Assembly in $(ls $Pcac $Pinf $Psoj $Ppar); do
+ Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
+ Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
+ echo "$Organism - $Strain"
+ ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ BuscoDB="Eukaryotic"
+ OutDir=gene_pred/busco/$Organism/$Strain/assembly
+ # OutDir=$(dirname $Assembly)
+ qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+ done
+ ```
+
 
 To run the path pipe script all spaces and pipe symbols had to be removed
 from the headers of fasta files. This was performed using the following commands:
@@ -152,6 +174,51 @@ Outputs were summarised using the commands:
  -->
 
 ## Gene prediction
+
+The number of genes in publically available gene models was assessed:
+
+
+ Numbers of busco genes in each assembly were identified:
+
+ ```bash
+ Pcap=$(ls assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_transcripts.fasta)
+ Pinf=$(ls assembly/external_group/P.infestans/T30-4/cds/Phytophthora_infestans.ASM14294v1.26.cds.all.fa)
+ Psoj=$(ls assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_transcripts_20110401.nt.fasta)
+ Ppar=$(ls assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_genes.fasta)
+
+ for Assembly in $(ls $Pcap $Pinf $Psoj $Ppar); do
+ Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
+ Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
+ echo "$Organism - $Strain"
+ ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ BuscoDB="Eukaryotic"
+ OutDir=gene_pred/busco/$Organism/$Strain/genes
+ qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+ done
+ ```
+
+ show number of predicted gene models and proteins in reference gene models:
+
+```bash
+Pcap=$(ls assembly/external_group/P.capsici/LT1534/pep/Phyca11_filtered_transcripts.fasta)
+Pinf=$(ls assembly/external_group/P.infestans/T30-4/cds/Phytophthora_infestans.ASM14294v1.26.cds.all.fa)
+Psoj=$(ls assembly/external_group/P.sojae/P6497/pep/Physo3_GeneCatalog_transcripts_20110401.nt.fasta)
+Ppar=$(ls assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_genes.fasta)
+
+# Pcap data from https://genome.jgi.doe.gov/Phyca11/Phyca11.info.html
+cat $Pcap | grep '>' | wc -l
+
+# Pinf
+cat assembly/external_group/P.infestans/T30-4/pep/Phytophthora_infestans.ASM14294v1.26.pep.all.fa | grep '>' | wc -l
+
+
+# Ppar
+cat assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_genes.fasta | grep '>' | wc -l
+cat assembly/external_group/P.parisitica/310/pep/phytophthora_parasitica_inra-310_2_proteins.fasta | grep '>' | wc -l
+
+```
+
+### in-house gene prediction:
 
 ```bash
 	for Genome in $(ls assembly/external_group/*/*/dna/*.genome.parsed.fa); do
