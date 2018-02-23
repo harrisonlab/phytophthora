@@ -47,11 +47,10 @@ o5 = paste(o, "_total_IG_hist.pdf", sep = "")
 # install.packages("ggplot2")
 library(ggplot2)
 
-
 df1 <- read.delim(file=f_a, header=F, sep="\t")
 colnames(df1) <- c("ID", "five_IG", "three_IG")
 
-density_plot <- ggplot(df1, aes(df1$five_IG, df1$three_IG)) +
+density_plot2 <- ggplot(df1, aes(df1$five_IG, df1$three_IG)) +
     stat_bin2d(bins = 100) +
     scale_y_continuous(trans='log2', limits=c(10,40826)) +
     scale_x_continuous(trans='log2', limits=c(10,40826)) +
@@ -59,11 +58,12 @@ density_plot <- ggplot(df1, aes(df1$five_IG, df1$three_IG)) +
     ylab("3' IG length") +
     scale_fill_gradientn(colours=r)
 ggsave(o1, density_plot, dpi=300, height=10, width=12)
-df2 <- read.delim(file=f_s, header=F, sep="\t")
+df2 <- df1()
+#df2
 colnames(df2) <- c("ID", "five_IG", "three_IG")
-density_plot2 <-  density_plot + scale_fill_gradientn(colours=c("grey", "grey")) +
+density_plot3 <-  density_plot2 + scale_fill_gradientn(colours=c("grey", "grey")) +
     geom_point(data = df2, aes(df2$five_IG, df2$three_IG), colour = "red")
-ggsave(o2, density_plot2, dpi=300, height=10, width=12)
+ggsave(o2, density_plot3, dpi=300, height=10, width=12)
 
 
 #Perform significance testing of the distribution of RxLR proteins in distribution
