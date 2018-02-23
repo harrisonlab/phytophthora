@@ -27,8 +27,11 @@ ap.add_argument('--conversion_list',required=True,type=str,help='list of ncbi ge
 ap.add_argument('--SigP2',required=True,type=str,help='fasta file of genes testing positive for signal peptide using SigP2.0')
 ap.add_argument('--SigP3',required=True,type=str,help='fasta file of genes testing positive for signal peptide using SigP3')
 ap.add_argument('--SigP4',required=True,type=str,help='fasta file of genes testing positive for signal peptide using SigP4.1')
-ap.add_argument('--phobius',required=True,type=str,help='txt file ofheaders from gene testing positive for signal peptide using phobius')
-ap.add_argument('--RxLR_motif',required=True,type=str,help='fasta file of genes testing positive for RxLR-EER motifs')
+ap.add_argument('--phobius',required=True,type=str,help='txt file of headers from gene testing positive for signal peptide using phobius')
+ap.add_argument('--TMHMM',required=True,type=str,help='txt file of headers from gene testing positive for transmembrane proteins using TMHMM')
+ap.add_argument('--GPI',required=True,type=str,help='txt file of headers from gene testing positive for GPI anchors using the GPI webserver')
+ap.add_argument('--RxLR_motif',required=True,type=str,help='fasta file of genes testing positive for RxLR motifs')
+ap.add_argument('--RxLR_EER_motif',required=True,type=str,help='fasta file of genes testing positive for RxLR-EER motifs')
 ap.add_argument('--RxLR_Hmm',required=True,type=str,help='fasta file of genes testing positive for RxLR-EER domains using an hmm model')
 ap.add_argument('--RxLR_WY',required=True,type=str,help='fasta file of genes testing positive for WY domains using an hmm model')
 ap.add_argument('--CRN_LFLAK',required=True,type=str,help='fasta file of genes testing positive for LFLAK domains using an hmm model')
@@ -72,8 +75,17 @@ with open(conf.SigP4) as f:
 with open(conf.phobius) as f:
     phobius_lines = f.readlines()
 
+with open(conf.TMHMM) as f:
+    TMHMM_lines = f.readlines()
+
+with open(conf.GPI) as f:
+    GPI_lines = f.readlines()
+
 with open(conf.RxLR_motif) as f:
     RxLR_motif_lines = f.readlines()
+
+with open(conf.RxLR_EER_motif) as f:
+    RxLR_EER_motif_lines = f.readlines()
 
 with open(conf.RxLR_Hmm) as f:
     RxLR_hmm_lines = f.readlines()
@@ -181,6 +193,24 @@ for line in phobius_lines:
     phobius_set.add(header)
 
 #-----------------------------------------------------
+# Load TMHMM headers into a set
+#-----------------------------------------------------
+
+TMHMM_set = Set()
+for line in TMHMM_lines:
+    header = line.rstrip()
+    TMHMM_set.add(header)
+
+#-----------------------------------------------------
+# Load GPI headers into a set
+#-----------------------------------------------------
+
+GPI_set = Set()
+for line in GPI_lines:
+    header = line.rstrip()
+    GPI_set.add(header)
+
+#-----------------------------------------------------
 # Load RxLR motif +ve proteins into a set
 #-----------------------------------------------------
 
@@ -191,6 +221,18 @@ for line in RxLR_motif_lines:
         split_line = line.split()
         header = split_line[0].replace('>', '')
         RxLR_motif_set.add(header)
+
+#-----------------------------------------------------
+# Load RxLR EER motif +ve proteins into a set
+#-----------------------------------------------------
+
+RxLR_EER_motif_set = Set()
+for line in RxLR_EER_motif_lines:
+    line = line.rstrip()
+    if line.startswith('>'):
+        split_line = line.split()
+        header = split_line[0].replace('>', '')
+        RxLR_EER_motif_set.add(header)
 
 #-----------------------------------------------------
 # Load RxLR hmm +ve proteins into a set
@@ -426,9 +468,10 @@ if conf.gff_format == 'gtf':
 
 header_line = ['transcript_id', 'internal_id']
 header_line.extend(['contig', 'source', 'feature', 'start', 'stop', 'evidence', 'strand', 'codon', 'transcript_id', ])
-#header_line.extend(['sigP2', 'sigP4', 'phobius', 'RxLR_motif', 'RxLR_hmm', 'WY_hmm', 'RxLR_total', 'CRN_LFLAK', 'CRN_DWL', 'CRN_total', 'orthogroup'])
+#header_line.extend(['sigP2', 'sigP4', 'phobius', 'RxLR_EER_motif', 'RxLR_hmm', 'WY_hmm', 'RxLR_total', 'CRN_LFLAK', 'CRN_DWL', 'CRN_total', 'orthogroup'])
 header_line.extend(['sigP2', 'sigP3', 'sigP4', 'phobius'])
-header_line.extend(['RxLR_motif', 'RxLR_hmm', 'putative_RxLR', 'WY_hmm', 'CRN_LFLAK', 'CRN_DWL', 'putative_CRN'])
+header_line.extend(['TMHMM', 'GPI'])
+header_line.extend(['RxLR_motif', 'RxLR_EER_motif', 'RxLR_hmm', 'putative_RxLR', 'WY_hmm', 'CRN_LFLAK', 'CRN_DWL', 'putative_CRN'])
 header_line.append('CAZY')
 header_line.extend(['orthogroup', 'orthogroup summary', 'orthogroup contents'])
 # header_line.extend(['mean_count'])
@@ -446,7 +489,10 @@ for line in transcript_lines:
     sigP3 = ''
     sigP4 = ''
     phobius = ''
+    TMHMM = ''
+    GPI = ''
     RxLR_motif = ''
+    RxLR_EER_motif = ''
     RxLR_hmm = ''
     putative_RxLR = ''
     putative_CRN = ''
@@ -481,8 +527,14 @@ for line in transcript_lines:
         sigP4 = 'Yes'
     if original_id in phobius_set:
         phobius = 'Yes'
+    if transcript_id in TMHMM_set and any('Yes' in y for y in[sigP2, sigP3, sigP4, phobius]):
+        TMHMM = 'Yes'
+    if transcript_id in GPI_set and any('Yes' in y for y in[sigP2, sigP3, sigP4, phobius]):
+        GPI = 'Yes'
     if original_id in RxLR_motif_set:
         RxLR_motif = 'Yes'
+    if original_id in RxLR_EER_motif_set:
+        RxLR_EER_motif = 'Yes'
     if original_id in RxLR_hmm_set:
         RxLR_hmm = 'Yes'
     if original_id in RxLR_WY_set:
@@ -498,7 +550,9 @@ for line in transcript_lines:
         # print transcript_id
         # print orthogroup_dict[transcript_id]
         orthogroup = orthogroup_dict[transcript_id]
-    if any('Yes' in x for x in [sigP2, sigP3, sigP4, phobius]) and any('Yes' in y for y in [RxLR_motif, RxLR_hmm]):
+    if any('Yes' in x for x in [sigP2, sigP3, sigP4, phobius]) and any('Yes' in y for y in [RxLR_EER_motif, RxLR_hmm]):
+        putative_RxLR = 'RxLR'
+    elif any('Yes' in x for x in [sigP2, sigP3, sigP4, phobius]) and RxLR_motif == 'Yes' and WY_hmm == 'Yes':
         putative_RxLR = 'RxLR'
     # elif 'Yes' in RxLR_hmm:
     #     putative_RxLR = 'RxLR'
@@ -551,8 +605,8 @@ for line in transcript_lines:
 
 
     prot_seq = "".join(prot_dict[transcript_id])
-    # outline = [transcript_id, sigP2, phobius ,RxLR_motif, RxLR_hmm, WY_hmm, CRN_LFLAK, CRN_DWL, orthogroup]
-    # # outline = [transcript_id, sigP2, sigP4, phobius ,RxLR_motif, RxLR_hmm, WY_hmm, CRN_LFLAK, CRN_DWL, orthogroup]
+    # outline = [transcript_id, sigP2, phobius ,RxLR_EER_motif, RxLR_hmm, WY_hmm, CRN_LFLAK, CRN_DWL, orthogroup]
+    # # outline = [transcript_id, sigP2, sigP4, phobius ,RxLR_EER_motif, RxLR_hmm, WY_hmm, CRN_LFLAK, CRN_DWL, orthogroup]
     # outline.extend(split_line)
     # outline.append(prot_seq)
     # print "\t".join(outline)
@@ -561,10 +615,10 @@ for line in transcript_lines:
     outline.append(original_id)
     outline.extend(split_line)
     # outline.extend(useful_cols)
-    # outline.extend([sigP2, sigP4, phobius, RxLR_motif, RxLR_hmm, WY_hmm, RxLR_total, CRN_LFLAK, CRN_DWL, CRN_total, orthogroup])
+    # outline.extend([sigP2, sigP4, phobius, RxLR_EER_motif, RxLR_hmm, WY_hmm, RxLR_total, CRN_LFLAK, CRN_DWL, CRN_total, orthogroup])
     outline.extend([sigP2, sigP3, sigP4, phobius])
     # outline.extend([trans_mem, gpi, secreted])
-    outline.extend([RxLR_motif, RxLR_hmm, putative_RxLR, WY_hmm, CRN_LFLAK, CRN_DWL, putative_CRN])
+    outline.extend([RxLR_motif, RxLR_EER_motif, RxLR_hmm, putative_RxLR, WY_hmm, CRN_LFLAK, CRN_DWL, putative_CRN])
     outline.append(cazy_hit)
     # outline.extend([RxLR_total, CRN_total])
     outline.extend(orthogroup)
