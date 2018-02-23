@@ -2223,6 +2223,8 @@ cat gene_pred/ORF_signalp-4.1/P.cactorum/10300/10300_aug_sp.aa | grep '>' | cut 
 
 cat analysis/phobius/P.cactorum/10300/10300_phobius_headers.txt analysis/phobius/P.cactorum/10300/10300_phobius_headers_ORF.txt > $OutDir/10300_phobius_headers_combined.txt
 
+# cat analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_all_secreted_RxLR_regex.fa | grep '>' | cut -f1 | tf -d '>' > $OutDir/10300_RxLR_regex_non-ORF_headers.txt
+
 cat analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_RxLR_EER_regex.fa analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_ORF_RxLR_EER_regex_merged.aa > $OutDir/10300_combined_RxLR_EER_regex.fa
 
 cat analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_RxLR_hmmer.fa analysis/RxLR_effectors/hmmer_RxLR/P.cactorum/10300/10300_ORF_RxLR_hmmer.fa > $OutDir/10300_combined_RxLR_hmmer.fa
@@ -2249,29 +2251,32 @@ GeneGff=gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffe
 GeneFasta=gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta
 OrfGff=$(ls gene_pred/ORF_finder/P.cactorum/10300/10300_ORF.gff3)
 ConversionLog=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_appended_renamed.log)
-SigP2=$OutDir/sigP2_headers_combined.txt
-SigP3=$OutDir/sigP3_headers_combined.txt
-SigP4=$OutDir/sigP4_headers_combined.txt
-PhobiusTxt=$OutDir/10300_phobius_headers_combined.txt
-RxLR_Motif=$OutDir/10300_combined_RxLR_EER_regex.fa
-RxLR_Hmm=$OutDir/10300_combined_RxLR_hmmer.fa
-RxLR_WY=$OutDir/10300_combined_WY_hmmer.fa
-CRN_LFLAK=$OutDir/10300_combined_CRN_LFLAK_hmm.fa
-CRN_DWL=$OutDir/10300_combined_CRN_DWL_hmm.fa
+SigP2=$(ls $OutDir/sigP2_headers_combined.txt)
+SigP3=$(ls $OutDir/sigP3_headers_combined.txt)
+SigP4=$(ls $OutDir/sigP4_headers_combined.txt)
+PhobiusTxt=$(ls $OutDir/10300_phobius_headers_combined.txt)
+TmhmmTxt=$(ls gene_pred/trans_mem/P.cactorum/10300/10300_TM_genes_pos_headers.txt)
+GpiTxt=$(ls gene_pred/trans_mem/P.cactorum/10300/GPIsom/GPI_pos.txt)
+RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/P.cactorum/10300/10300_all_secreted_RxLR_regex.fa)
+RxLR_EER_Motif=$(ls $OutDir/10300_combined_RxLR_EER_regex.fa)
+RxLR_Hmm=$(ls $OutDir/10300_combined_RxLR_hmmer.fa)
+RxLR_WY=$(ls $OutDir/10300_combined_WY_hmmer.fa)
+CRN_LFLAK=$(ls $OutDir/10300_combined_CRN_LFLAK_hmm.fa)
+CRN_DWL=$(ls $OutDir/10300_combined_CRN_DWL_hmm.fa)
 CAZY_Hmm=$(ls gene_pred/CAZY/*/*/*CAZY.out.dm.ps | grep '10300')
 # RawCounts=alignment/star/P.cactorum/10300/DeSeq/V8_raw_counts.txt
 # Fpkm=alignment/star/P.cactorum/10300/DeSeq/V8_fpkm_norm_counts.txt
 PhiHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_phi_accessions_hits_headers.txt)
 AvrHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_appended_oomycete_effectors_hits_headers.txt)
 ChenHits=$(ls analysis/blast_homology/P.cactorum/10300/10300_chen_transcripts_hits_headers.txt)
-InterPro=gene_pred/interproscan/final_incl_ORF/P.cactorum/P.cactorum_interproscan.tsv
-Swissprot=gene_pred/swissprot/P.cactorum/10300/swissprot_vJul2016_tophit_parsed.tbl
+InterPro=$(ls gene_pred/interproscan/final_incl_ORF/P.cactorum/P.cactorum_interproscan.tsv)
+Swissprot=$(ls gene_pred/swissprot/P.cactorum/10300/swissprot_vJul2016_tophit_parsed.tbl)
 OrthoName='Pcac'
 OrthoAll='Pcac Pinf Ppar Pcap Psoj'
-OrthoFile=analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/Orthogroups.txt
+OrthoFile=$(ls analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/formatted/Results_Jan09/Orthogroups.txt)
 # OrthoFile=$(ls analysis/orthology/orthomcl/Pcac_Pinf_Ppar_Pcap_Psoj_publication/*orthogroups.txt)
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
-$ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_all $OrthoAll --ortho_file $OrthoFile --gene_gff $GeneGff --ORF_gff $OrfGff --gene_fasta $GeneFasta --conversion_list $ConversionLog --SigP2 $SigP2 --SigP3 $SigP3 --SigP4 $SigP4 --phobius $PhobiusTxt --RxLR_motif $RxLR_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --CAZY $CAZY_Hmm --PhiHits $PhiHits --AvrHits $AvrHits --ChenHits $ChenHits --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
+$ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_all $OrthoAll --ortho_file $OrthoFile --gene_gff $GeneGff --ORF_gff $OrfGff --gene_fasta $GeneFasta --conversion_list $ConversionLog --SigP2 $SigP2 --SigP3 $SigP3 --SigP4 $SigP4 --phobius $PhobiusTxt --TMHMM $TmhmmTxt --GPI $GpiTxt --RxLR_motif $RxLR_Motif --RxLR_EER_motif $RxLR_EER_Motif --RxLR_Hmm $RxLR_Hmm --RxLR_WY $RxLR_WY --CRN_LFLAK $CRN_LFLAK --CRN_DWL $CRN_DWL --CAZY $CAZY_Hmm --PhiHits $PhiHits --AvrHits $AvrHits --ChenHits $ChenHits --InterPro $InterPro --Swissprot $Swissprot > $OutDir/10300_gene_table_final.tsv
 ```
 
 # Genomic analysis
@@ -2297,8 +2302,8 @@ OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
 # Number of secreted proteases:
 cat $AnnotTab | grep 'IPR001254' | wc -l
-cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,24,25,29,30,34 | grep 'Yes' | wc -l
-cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,24,25,29,30,34 | grep 'Yes' > $OutDir/10300_gene_table_protease.tsv
+cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,25,26,30,31,35 | grep 'Yes' | wc -l
+cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,25,26,30,31,35 | grep 'Yes' > $OutDir/10300_gene_table_protease.tsv
 # Number with homologs in Chen 2014:
 cat $OutDir/10300_gene_table_protease.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_protease.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
@@ -2368,18 +2373,18 @@ cat $AnnotTab | grep -w 'RxLR' > $OutDir/10300_gene_table_RxLR.tsv
 cat $OutDir/10300_gene_table_RxLR.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_RxLR.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
 
-cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,19 | grep 'Yes' | wc -l
-cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,34 | sort | uniq -c | sort -nr
-cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,24,25,26,30,34 | grep ";" > $OutDir/RxLR_notable_annotations.tsv
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,20 | grep 'Yes' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,35 | sort | uniq -c | sort -nr
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,25,26,27,31,35 | grep ";" > $OutDir/RxLR_notable_annotations.tsv
 cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Pinf(1)' | wc -l
 cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Psoj(1)' | wc -l
 cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Ppar(1)' | wc -l
 cat $OutDir/10300_gene_table_RxLR.tsv | grep -w 'Pcac(1)' | grep -w 'Pcap(1)' | wc -l
 
-cat $OutDir/10300_gene_table_RxLR.tsv | cut -f24,25,26 | sort | uniq -c | sort -nr | less -S
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f25,26,27 | sort | uniq -c | sort -nr | less -S
 
-cat $OutDir/10300_gene_table_RxLR.tsv | grep -i 'Avr' | cut -f1,24,25,26,29,30,34 | wc -l
-cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,29 | grep -i 'Avr' | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | grep -i 'Avr' | cut -f1,25,26,27,30,31,35 | wc -l
+cat $OutDir/10300_gene_table_RxLR.tsv | cut -f1,30 | grep -i 'Avr' | wc -l
 ```
 
 ```bash
@@ -2427,16 +2432,16 @@ CAZY proteins:
 AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
 OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
-cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' | wc -l
-cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
-cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' | grep 'Yes' | wc -l
-cat $AnnotTab | cut -f1,12,13,14,23,30 | grep 'CAZY' | grep 'Yes' > $OutDir/10300_gene_table_CAZY_secreted.tsv
+cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' | wc -l
+cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
+cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' | grep 'Yes' | wc -l
+cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' | grep 'Yes' > $OutDir/10300_gene_table_CAZY_secreted.tsv
 
 cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
 
 
-cat $AnnotTab | cut -f1,12,13,14,23 | grep 'CAZY' | grep 'Yes' | cut -f5 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
+cat $AnnotTab | cut -f1,12,13,14,24 | grep 'CAZY' | grep 'Yes' | cut -f5 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'GH'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep -v 'GH' | grep 'CBM'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'AA'
@@ -2451,8 +2456,8 @@ Avr gene homologs:
 AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
 OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
-cat $AnnotTab | cut -f1,29 | grep '_' | wc -l
-cat $AnnotTab | cut -f1,18,22,24,25,29,34 | grep -P "_.*\t" > $OutDir/10300_gene_table_avr.tsv
+cat $AnnotTab | cut -f1,30 | grep '_' | wc -l
+cat $AnnotTab | cut -f1,19,23,25,26,30,35 | grep -P "_.*\t" > $OutDir/10300_gene_table_avr.tsv
 ```
 
 
@@ -2460,7 +2465,6 @@ cat $AnnotTab | cut -f1,18,22,24,25,29,34 | grep -P "_.*\t" > $OutDir/10300_gene
 # Determine lengths of intergenic regions
 
 ```bash
-
 AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
 OutDir=analysis/intergenic_regions/P.cactorum/10300
 mkdir -p $OutDir
@@ -2474,7 +2478,7 @@ RxLR_list=$OutDir/RxLR_headers.txt
 cat $AnnotTab | grep -w 'RxLR' | cut -f1 | cut -f1 -d '.' | sort | uniq > $RxLR_list
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $RxLR_list > $OutDir/10300_RxLR_intergenic_regions.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
-# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_RxLR_intergenic_regions.txt --prefix $OutDir/10300_RxLR
+$ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_RxLR_intergenic_regions.txt --prefix $OutDir/10300_RxLR
 
 #[1] 0
 #[1] 2
@@ -2494,7 +2498,7 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # Elicitin IG distance plots and test
 Effector="elicitin"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep 'IPR002200' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep 'IPR002200' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
@@ -2504,10 +2508,11 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # [1] 9947
 
 
-# Elicitin IG distance plots and test
+# Protease Inhibitor IG distance plots and test
 Effector="EPI"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+# cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e'EPIC._' -e 'IPR001314' -e 'IPR032048' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
@@ -2519,7 +2524,7 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # NLP IG distance plots and test
 Effector="NLP"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep -e 'NPP1' -e 'AF356840' -e 'AF352031' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep -e 'NPP1' -e 'AF356840' -e 'AF352031' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
@@ -2587,10 +2592,23 @@ for File in $(ls $OutDir/10300_*_intergenic_regions.txt); do
   cat $File | sed "s/$/\t$Effector/g"  | cut -f1,2,3,5 >> $OutDir/10300_IG_matrix_table.txt
 done
 
+# Creat a table of the 'Total' values repeated for each effector to act as a
+# background for the IG density plots
+cat $OutDir/10300_intergenic_regions.txt | sed "s/$/\tTotal/g"  | cut -f1,2,3,5 > $OutDir/10300_IG_matrix_table_for_plot_background.txt
+for File in $(ls $OutDir/10300_*_intergenic_regions.txt); do
+  Filename=$(basename $File)
+  Effector=$(echo $Filename | sed 's/10300_//g' | sed 's/_intergenic_regions.txt//g' | sed 's/elicitin/Elicitin/g' | sed 's/CAZY_non_sec/Non-secreted CAZyme/g' | sed 's/CAZY/Secreted CAZyme/g' | sed 's/Busco/BUSCO/g' | sed 's/EPI/PI/g')
+  echo $File
+  echo $Effector
+  cat $OutDir/10300_intergenic_regions.txt | sed "s/$/\t$Effector/g"  | cut -f1,2,3,5 >> $OutDir/10300_IG_matrix_table_for_plot_background.txt
+done
 
+# Scratch=/data/scratch/armita
+# OutDir=$Scratch/analysis/intergenic_regions/P.cactorum/10300
+# mkdir -p $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors_publication.r --inp_all $OutDir/10300_intergenic_regions.txt --rxlr_subset $rxlr --crn_subset $crn --cazy_sec_subset $cazy_sec --PI_subset $pi --busco_subset $busco --cazy_nonsec_subset $cazy_nonsec --elicitin_subset $elicitin --prefix $OutDir/10300_IG_matrix_plot
-$ProgDir/plot_intergenic_regions_with_effectors_publication2.r --inp_all $OutDir/10300_IG_matrix_table.txt --prefix $OutDir/10300_IG_matrix_plot
+$ProgDir/plot_intergenic_regions_with_effectors_publication2.r --inp_all $OutDir/10300_IG_matrix_table.txt --background_table $OutDir/10300_IG_matrix_table_for_plot_background.txt --prefix $OutDir/10300_IG_matrix_plot
 
 
 
