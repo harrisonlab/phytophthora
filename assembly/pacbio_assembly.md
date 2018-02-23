@@ -82,6 +82,167 @@ This allowed estimation of sequencing depth and total genome size
 
 ### Canu assembly
 
+
+### Read correction using Canu
+
+```bash
+Run1=$(ls ../../../../home/groups/harrisonlab/project_files/idris/raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
+Run2=$(ls ../../../../home/groups/harrisonlab/project_files/idris/raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
+Reads=../../../../home/groups/harrisonlab/project_files/idris/raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_both.fastq.gz
+cat $Run1 $Run2 > $Reads
+GenomeSz="72m"
+Organism=$(echo $Reads | rev | cut -f4 -d '/' | rev)
+Strain=$(echo $Reads | rev | cut -f3 -d '/' | rev)
+OutDir=assembly/canu-1.6/$Organism/"$Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/canu
+qsub $ProgDir/sub_canu_correction.sh $Reads $GenomeSz $Strain $OutDir
+```
+
+### Assembbly using SMARTdenovo
+
+```bash
+for CorrectedReads in $(ls assembly/canu-1.6/*/*/*.trimmedReads.fasta.gz); do
+Organism=$(echo $CorrectedReads | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $CorrectedReads | rev | cut -f2 -d '/' | rev)
+Prefix="$Strain"_smartdenovo
+OutDir=assembly/SMARTdenovo/$Organism/"$Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/SMARTdenovo
+qsub $ProgDir/sub_SMARTdenovo.sh $CorrectedReads $Prefix $OutDir
+done
+```
+
+
+Quast
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+for Assembly in $(ls assembly/SMARTdenovo/P.cactorum/414/414_smartdenovo.dmo.lay.utg); do
+Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+OutDir=$(dirname $Assembly)
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
+```
+
+checking using busco
+
+```bash
+for Assembly in $(ls assembly/SMARTdenovo/P.cactorum/414/414_smartdenovo.dmo.lay.utg); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f4 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f5 | rev)
+echo "$Organism - $Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# BuscoDB="Fungal"
+BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+OutDir=$(dirname $Assembly)
+# OutDir=/data/scratch/armita/idris/busco
+qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+Results were summarised using the commands:
+
+```bash
+  for File in $(ls data/scratch/armita/idris/busco/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt ); do
+  Strain='P414'
+  Organism='P.cactorum'
+  Prefix=$(basename $File)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Single=$(cat $File | grep "(S)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Prefix\t$Complete\t$Single\t$Fragmented\t$Missing\t$Total"
+  done
+```
+
+
+The falcon assembly was polished using Pilon
+
+```bash
+for Assembly in $(ls assembly/SMARTdenovo/P.cactorum/414/414_smartdenovo.dmo.lay.utg); do
+Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/$Organism/$Strain)
+echo $Strain
+echo $Organism
+TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+OutDir=$(dirname $Assembly)/polished
+# OutDir=assembly/falcon/P.cactorum/414/v2
+Iterations='5'
+Ploidy='diploid'
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
+qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir $Iterations $Ploidy
+done
+```
+
+
+Contigs were renamed in accordance with ncbi recomendations.
+
+```bash
+  touch tmp.csv
+  for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/pilon_5.fasta); do
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    OutDir=$(dirname $Assembly)
+    ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+    $ProgDir/remove_contaminants.py --inp $Assembly --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file tmp.csv
+  done
+  rm tmp.csv
+```
+
+Quast
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/contigs_min_500bp_renamed.fasta); do
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    OutDir=$(dirname $Assembly)
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
+```
+
+checking using busco
+
+```bash
+for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/*.fasta); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $Assembly | rev | cut -d '/' -f5 | rev)
+  echo "$Organism - $Strain"
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+  # BuscoDB="Fungal"
+  BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+  OutDir=$(dirname $Assembly)
+  qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/polished/*/short_summary_*.txt ); do
+  Strain=$(echo $File| rev | cut -d '/' -f5 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f6 | rev)
+  Prefix=$(basename $File)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Prefix\t$Complete\t$Fragmented\t$Missing\t$Total"
+  done
+```
+
+
 <!--
 ```bash
   Reads=$(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq.gz)
@@ -377,10 +538,10 @@ done
 The falcon assembly was polished using Pilon
 
 ```bash
-for Assembly in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/p_ctg.fa); do
+for Assembly in $(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/v2/p_ctg.fa); do
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/$Organism/$Strain)
 echo $Strain
 echo $Organism
 TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
@@ -395,7 +556,8 @@ echo $TrimF2_Read
 echo $TrimR2_Read
 echo $TrimF3_Read
 echo $TrimR3_Read
-OutDir=$(dirname $Assembly)/polished
+# OutDir=$(dirname $Assembly)/polished
+OutDir=assembly/falcon/P.cactorum/414/v2
 Iterations='5'
 Ploidy='diploid'
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
@@ -403,189 +565,6 @@ qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Re
 done
 ```
 
-
-
-<!--
-### Canu assembly
-
-```bash
-  Run1=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
-  Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
-  GenomeSz="75m"
-  Strain=$(echo $Run1 | rev | cut -f3 -d '/' | rev)
-  Organism=$(echo $Run1 | rev | cut -f4 -d '/' | rev)
-  Prefix="$Strain"_canu
-  OutDir=assembly/canu/$Organism/"$Strain"_modified_script
-  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
-  qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
-```
--->
-<!--
-Data quality was visualised once again following trimming:
-
-```bash
-for RawData in $(ls assembly/canu/P.cactorum/414_modified_script/414_canu.trimmedReads.fasta.gz); do
-echo $RawData;
-GenomeSz=65
-OutDir=$(dirname $RawData)
-qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
-done
-``` -->
-<!--
-```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
-    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
-    OutDir=$(dirname $Assembly)
-    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-  done
-```
-
-Assemblies were polished using Pilon
-
-```bash
-  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
-    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
-    IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
-    echo $Strain
-    echo $Organism
-    TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
-    TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
-    TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
-    TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
-    TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
-    TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
-    echo $TrimF1_Read
-    echo $TrimR1_Read
-    echo $TrimF2_Read
-    echo $TrimR2_Read
-    echo $TrimF3_Read
-    echo $TrimR3_Read
-    OutDir=assembly/canu/$Organism/$Strain/polished
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
-    qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
-  done
-```
-
-```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-  for Assembly in $(ls assembly/canu/*/*/polished/pilon.fasta); do
-    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
-    OutDir=assembly/canu/$Organism/$Strain/polished
-    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-  done
-```
-
-### Spades Assembly
-
-For P. cactorum
-
-```bash
-  # for PacBioDat in $(ls raw_dna/pacbio/*/*/extracted/concatenated_pacbio.fastq); do
-for PacBioDat in $(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz); do
-echo $StrainPath
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
-Organism=$(echo $PacBioDat | rev | cut -f4 -d '/' | rev)
-Strain=$(echo $PacBioDat | rev | cut -f3 -d '/' | rev)
-IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
-echo $Strain
-echo $Organism
-TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
-TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
-TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
-TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
-TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
-TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
-echo $TrimF1_Read
-echo $TrimR1_Read
-echo $TrimF2_Read
-echo $TrimR2_Read
-echo $TrimF3_Read
-echo $TrimR3_Read
-# OutDir=assembly/spades_pacbio/$Organism/$Strain
-OutDir=assembly/spades_pacbio/$Organism/"$Strain"_auto_cuttoff
-qsub $ProgDir/subSpades_3lib_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
-done
-```
-
-Contigs shorter than 500bp were removed from the assembly
-
-```bash
-for Contigs in $(ls assembly/spades_pacbio/*/*/contigs.fasta); do
-AssemblyDir=$(dirname $Contigs)
-mkdir $AssemblyDir/filtered_contigs
-FilterDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
-$FilterDir/filter_abyss_contigs.py $Contigs 500 > $AssemblyDir/filtered_contigs/contigs_min_500bp.fasta
-done
-```
-
-Quast
-
-```bash
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-for Assembly in $(ls assembly/spades_pacbio/*/*/filtered_contigs/contigs_min_500bp.fasta); do
-Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
-OutDir=assembly/spades_pacbio/$Organism/$Strain/filtered_contigs
-qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-done
-```
-
-
-
-## Merging pacbio and hybrid assemblies
-
-```bash
-  # for PacBioAssembly in $(ls assembly/canu/*/*/polished/pilon.fasta); do
-    # Organism=$(echo $PacBioAssembly | rev | cut -f4 -d '/' | rev)
-    # Strain=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
-Jobs=$(qstat | grep 'sub_pilon' | wc -l)
-while [ $Jobs -gt 0 ]; do
-printf "."
-sleep 5m
-Jobs=$(qstat | grep 'sub_pilon' | wc -l)
-done		
-for PacBioAssembly in $(ls assembly/canu/P.cactorum/414/414_canu.contigs.fasta); do
-Organism=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
-Strain=$(echo $PacBioAssembly | rev | cut -f2 -d '/' | rev)
-# HybridAssembly=$(ls assembly/spades_pacbio/$Organism/$Strain/contigs.fasta)
-HybridAssembly=$(ls assembly/spades_pacbio/P.cactorum/414/contigs.fasta)
-OutDir=assembly/merged_canu_spades/$Organism/$Strain
-AnchorLength=500000
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/quickmerge
-qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir $AnchorLength
-done
-```
-
-This merged assembly was polished using Pilon
-
-```bash
-for Assembly in $(ls -d assembly/merged_canu_spades/P.*/*/filtered_contigs/contigs_min_500bp_renamed.fasta | grep -w -e '414_v2'); do
-Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
-Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-IlluminaDir=$(ls -d qc_dna/paired/$Organism/414)
-echo $Strain
-echo $Organism
-TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
-TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
-TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
-TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
-TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
-TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
-echo $TrimF1_Read
-echo $TrimR1_Read
-echo $TrimF2_Read
-echo $TrimR2_Read
-echo $TrimF3_Read
-echo $TrimR3_Read
-OutDir=assembly/merged_canu_spades/$Organism/$Strain/polished
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
-qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
-done
-``` -->
 
 Contigs were renamed in accordance with ncbi recomendations.
 
@@ -684,17 +663,249 @@ Results were summarised using the commands:
   414_v2	222	0	5
 ```
 
+
+Quast
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+for Assembly in $(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+# OutDir=$(dirname $Assembly)
+OutDir=/data/scratch/armita/idris/quast
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
+```
+
+checking using busco
+
+```bash
+for Assembly in $(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f4 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f5 | rev)
+echo "$Organism - $Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# BuscoDB="Fungal"
+BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+# OutDir=$(dirname $Assembly)
+OutDir=/data/scratch/armita/idris/busco
+qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+Results were summarised using the commands:
+
+```bash
+  for File in $(ls data/scratch/armita/idris/busco/run_contigs_min_500bp_filtered_renamed/short_summary_contigs_min_500bp_filtered_renamed.txt ); do
+  Strain='P414'
+  Organism='P.cactorum'
+  Prefix=$(basename $File)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Single=$(cat $File | grep "(S)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Prefix\t$Complete\t$Single\t$Fragmented\t$Missing\t$Total"
+  done
+```
+
+```
+P.cactorum	P414	short_summary_contigs_min_500bp_filtered_renamed.txt	265 258	5	33	303
+```
+
+<!--
+### Canu assembly
+
+```bash
+  Run1=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq.gz)
+  Run2=$(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz)
+  GenomeSz="75m"
+  Strain=$(echo $Run1 | rev | cut -f3 -d '/' | rev)
+  Organism=$(echo $Run1 | rev | cut -f4 -d '/' | rev)
+  Prefix="$Strain"_canu
+  OutDir=assembly/canu/$Organism/"$Strain"_modified_script
+  ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/canu
+  qsub $ProgDir/submit_canu_2lib.sh $Run1 $Run2 $GenomeSz $Prefix $OutDir
+```
+-->
+<!--
+Data quality was visualised once again following trimming:
+
+```bash
+for RawData in $(ls assembly/canu/P.cactorum/414_modified_script/414_canu.trimmedReads.fasta.gz); do
+echo $RawData;
+GenomeSz=65
+OutDir=$(dirname $RawData)
+qsub $ProgDir/sub_count_nuc.sh $GenomeSz $RawData $OutDir
+done
+``` -->
+<!--
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
+    OutDir=$(dirname $Assembly)
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
+```
+
+Assemblies were polished using Pilon
+
+```bash
+  for Assembly in $(ls assembly/canu/*/*/*.contigs.fasta | grep -v 'old' | grep -w '414'); do
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    IlluminaDir=$(ls -d qc_dna/paired/$Organism/$Strain)
+    echo $Strain
+    echo $Organism
+    TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+    TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+    TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+    TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+    TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+    TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+    echo $TrimF1_Read
+    echo $TrimR1_Read
+    echo $TrimF2_Read
+    echo $TrimR2_Read
+    echo $TrimF3_Read
+    echo $TrimR3_Read
+    OutDir=assembly/canu/$Organism/$Strain/polished
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
+    qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
+  done
+```
+
+```bash
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+  for Assembly in $(ls assembly/canu/*/*/polished/pilon.fasta); do
+    Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+    Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)  
+    OutDir=assembly/canu/$Organism/$Strain/polished
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+  done
+```
+-->
+
+
+### Spades Assembly
+
+For P. cactorum
+
+```bash
+# for PacBioDat in $(ls raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_extra_coverage.fastq.gz); do
+for PacBioDat in $(ls ../../../../home/groups/harrisonlab/project_files/idris/raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio_both.fastq.gz); do
+echo $StrainPath
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+Organism=$(echo $PacBioDat | rev | cut -f4 -d '/' | rev)
+Strain=$(echo $PacBioDat | rev | cut -f3 -d '/' | rev)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/$Organism/$Strain)
+echo $Strain
+echo $Organism
+TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+# CuttOff="50"
+CuttOff="20"
+# OutDir=assembly/spades_pacbio/$Organism/$Strain
+# OutDir=assembly/spades_pacbio/$Organism/"$Strain"_50x
+OutDir=assembly/spades_pacbio/$Organism/"$Strain"_20x
+qsub $ProgDir/subSpades_3lib_pacbio.sh $PacBioDat $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir $CuttOff
+done
+```
+
+Contigs shorter than 500bp were removed from the assembly
+
+```bash
+for Contigs in $(ls assembly/spades_pacbio/*/*/contigs.fasta); do
+AssemblyDir=$(dirname $Contigs)
+mkdir $AssemblyDir/filtered_contigs
+FilterDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/abyss
+$FilterDir/filter_abyss_contigs.py $Contigs 500 > $AssemblyDir/filtered_contigs/contigs_min_500bp.fasta
+done
+```
+
+Quast
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+for Assembly in $(ls assembly/spades_pacbio/*/*/filtered_contigs/contigs_min_500bp.fasta); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
+OutDir=assembly/spades_pacbio/$Organism/$Strain/filtered_contigs
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
+```
+
+
+
+## Merging pacbio and hybrid assemblies
+
+```bash
+# for PacBioAssembly in $(ls assembly/canu/P.cactorum/414/414_canu.contigs.fasta); do
+for PacBioAssembly in $(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/2-asm-falcon/polished/contigs_min_500bp_renamed.fasta); do
+Organism=$(echo $PacBioAssembly | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $PacBioAssembly | rev | cut -f2 -d '/' | rev)
+# HybridAssembly=$(ls assembly/spades_pacbio/$Organism/$Strain/contigs.fasta)
+HybridAssembly=$(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/spades_pacbio/P.cactorum/414/contigs.fasta)
+OutDir=assembly/merged_falcon_spades/$Organism/$Strain
+AnchorLength=500000
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/quickmerge
+qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir $AnchorLength
+done
+```
+
+This merged assembly was polished using Pilon
+
+```bash
+for Assembly in $(ls -d assembly/merged_canu_spades/P.*/*/filtered_contigs/contigs_min_500bp_renamed.fasta | grep -w -e '414_v2'); do
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+IlluminaDir=$(ls -d qc_dna/paired/$Organism/414)
+echo $Strain
+echo $Organism
+TrimF1_Read=$(ls $IlluminaDir/F/414_run1_F_trim.fq.gz);
+TrimR1_Read=$(ls $IlluminaDir/R/414_run1_R_trim.fq.gz);
+TrimF2_Read=$(ls $IlluminaDir/F/414_run2_F_trim.fq.gz);
+TrimR2_Read=$(ls $IlluminaDir/R/414_run2_R_trim.fq.gz);
+TrimF3_Read=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz);
+TrimR3_Read=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+OutDir=assembly/merged_canu_spades/$Organism/$Strain/polished
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/pilon
+qsub $ProgDir/sub_pilon_3_libs.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
+done
+```
+-->
+
+
 # Preliminary analysis
 
 ## Checking MiSeq coverage against P414 contigs
 
 ```bash
-for Assembly in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+# for Assembly in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e '414'); do
+for Assembly in $(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/2-asm-falcon/polished/contigs_min_500bp_renamed.fasta); do
 Organism=$(echo $Assembly | rev | cut -f5 -d '/' | rev)
 Strain=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
-IlluminaDir=$(ls -d qc_dna/paired/$Organism/414)
-echo $Strain
-echo $Organism
+# IlluminaDir=$(ls -d qc_dna/paired/$Organism/414)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/$Organism/414)
+echo "$Organism - $Strain"
 TrimF1_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n1 | tail -n1);
 TrimR1_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n1 | tail -n1);
 TrimF2_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n2 | tail -n1);
@@ -708,11 +919,166 @@ echo $TrimR2_Read
 echo $TrimF3_Read
 echo $TrimR3_Read
 InDir=$(dirname $Assembly)
-OutDir=$InDir/aligned_MiSeq
+# OutDir=$InDir/aligned_MiSeq
+OutDir=alignment
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
 qsub $ProgDir/bowtie/sub_bowtie_3lib.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
 done
 ```
+
+Determine read depth over each bp.
+
+```bash
+qlogin -pe smp 8
+# cd /home/groups/harrisonlab/project_files/idris
+cd /data/scratch/armita/idris
+# for Bam in $(ls assembly/falcon/P.cactorum/414/2-asm-falcon/deconseq_Paen/aligned_MiSeq/contigs_min_500bp_filtered_renamed.fasta_aligned.bam); do
+for Bam in $(ls alignment/contigs_min_500bp_renamed.fasta_aligned.bam); do
+# Strain=$(echo $Bam | rev | cut -f5 -d '/' | rev)
+# Organism=$(echo $Bam | rev | cut -f6 -d '/' | rev)
+# echo "$Organism - $Strain"
+OutDir=$(dirname $Bam)/read_depth
+# Region="5:500000-1100000" # <chr:from-to>
+# OutDir=/data/scratch/armita/idris/read_depth
+mkdir -p $OutDir
+samtools sort -@ 8 -o $OutDir/P414_illumina_vs_pre-deconseq_assembly_sorted.bam $Bam
+samtools depth -aa $OutDir/P414_illumina_vs_pre-deconseq_assembly_sorted.bam > $OutDir/P414_illumina_vs_pre-deconseq_assembly_depth.tsv
+
+
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/coverage_analysis
+$ProgDir/cov_by_window.py --cov $OutDir/P414_illumina_vs_pre-deconseq_assembly_depth.tsv | sed "s/$/\tP414/g" | sed 's/contig_//g'> $OutDir/P414_illumina_vs_pre-deconseq_assembly_depth_10kb.tsv
+$ProgDir/coverage_by_contig.py --cov $OutDir/P414_illumina_vs_pre-deconseq_assembly_depth.tsv | sort -k3 -n > $OutDir/coverage_by_conitg.tsv
+cat $OutDir/coverage_by_conitg.tsv | grep "0$"
+done
+```
+
+
+```R
+library(readr)
+appended_df <- read_delim("alignment/read_depth/P414_illumina_vs_pre-deconseq_assembly_depth_10kb.tsv",
+     "\t", escape_double = FALSE, col_names = FALSE,
+     trim_ws = TRUE)
+colnames(appended_df) <- c("contig","position", "depth", "strain")
+appended_df$depth_mod <- ifelse(appended_df$depth > 150, 150, appended_df$depth)
+# appended_df$contig <- paste("Chr", appended_df$contig, sep = "")
+# appended_df$strain <- factor(appended_df$strain, levels = c("12008", "12251", "12253", "12158", "12161"))
+
+
+# install.packages("ggplot2")
+library(ggplot2)
+require(scales)
+
+
+
+for (i in 1:227){
+  paste(i)
+  # contig = paste("Chr", i, sep = "")
+  contig = paste(i, sep = "")
+  p0 <- ggplot(data=appended_df[appended_df$contig == contig, ], aes(x=`position`, y=`depth_mod`, group=1)) +
+    geom_line() +
+    labs(x = "Position", y = "Coverage") +
+    scale_y_continuous(breaks=seq(0,150,25), limits=c(0,150))
+  outfile = paste("contig", i, "cov.tiff", sep = "_")
+  ggsave(outfile , plot = p0, device = 'tiff', path = '/data/scratch/armita/idris/alignment/read_depth/',
+    scale = 1, width = 250, height = 100, units = 'mm',
+    dpi = 150, limitsize = TRUE)
+  }
+
+for (i in 1:227){
+  paste(i)
+  # contig = paste("Chr", i, sep = "")
+  contig = paste(i, sep = "")
+  p0 <- ggplot(data=appended_df[appended_df$contig == contig, ], aes(x=`position`, y=`depth_mod`, group=1)) +
+    geom_line() +
+    labs(x = "Position", y = "Coverage") +
+    scale_y_continuous(breaks=seq(0,150,25), limits=c(0,150))
+  outfile = paste("contig", i, "cov.tiff", sep = "_")
+  ggsave(outfile , plot = p0, device = 'tiff', path = '/data/scratch/armita/idris/alignment/read_depth/',
+    scale = 1, width = 250, height = 100, units = 'mm',
+    dpi = 150, limitsize = TRUE)
+  }
+```
+
+
+
+## Merging pacbio and hybrid assemblies
+
+```bash
+for PacBioAssembly in $(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/falcon/P.cactorum/414/2-asm-falcon/polished/contigs_min_500bp_renamed.fasta); do
+Organism=$(echo $PacBioAssembly | rev | cut -f5 -d '/' | rev)
+Strain=$(echo $PacBioAssembly | rev | cut -f4 -d '/' | rev)
+# HybridAssembly=$(ls assembly/spades_pacbio/$Organism/$Strain/contigs.fasta)
+HybridAssembly=$(ls ../../../../home/groups/harrisonlab/project_files/idris/assembly/spades_pacbio/P.cactorum/414/filtered_contigs/contigs_min_500bp.fasta)
+OutDir=assembly/merged_canu_spades/$Organism/$Strain
+AnchorLength=500000
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/quickmerge
+qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir $AnchorLength
+done
+```
+
+Quast
+
+```bash
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+for Assembly in $(ls assembly/merged_canu_spades/P.cactorum/414/merged.fasta); do
+Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+OutDir=$(dirname $Assembly)
+# OutDir=/data/scratch/armita/idris/quast
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
+```
+
+checking using busco
+
+```bash
+for Assembly in $(ls assembly/merged_canu_spades/P.cactorum/414/merged.fasta); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f2 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f3 | rev)
+echo "$Organism - $Strain"
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# BuscoDB="Fungal"
+BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+OutDir=$(dirname $Assembly)
+# OutDir=/data/scratch/armita/idris/busco
+qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+
+Contigs were identified that had blast hits to non-phytophthora genomes
+
+```bash
+for Assembly in $(ls assembly/merged_canu_spades/P.cactorum/414/merged.fasta); do
+Strain=$(echo $Assembly | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+# Exclude_db="bact,virus,hsref"
+Exclude_db="paenibacillus"
+Good_db="phytoph"
+AssemblyDir=$(dirname $Assembly)
+OutDir=$AssemblyDir/../deconseq_Paen
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+done
+```
+
+Results were summarised using the commands:
+
+```bash
+  for File in $(ls assembly/falcon/P.*/*/*/deconseq_Paen/log.txt | grep '414'); do
+    Name=$(echo $File | rev | cut -f4 -d '/' | rev);
+    Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
+    Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
+    Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
+    printf "$Name\t$Good\t$Both\t$Bad\n";
+  done
+```
+
+```
+  414_v2	222	0	5
+```
+
 
 ## Checking PacBio coverage against P414 contigs
 
