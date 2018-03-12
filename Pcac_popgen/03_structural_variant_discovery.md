@@ -3,6 +3,12 @@
 
 Structural variant discovery in P.cactorum and P. idae genomes.
 
+.vcf file formats are complicated. Documentations should be read to understand
+outputs from SNP and SV calling:
+https://samtools.github.io/hts-specs/VCFv4.2.pdf
+
+
+
 Work was performed in the following directory:
 
 ```bash
@@ -201,7 +207,7 @@ cat gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv | grep
 
 # structural variant discovery:
 
- lumpy and svaba are specifically geared toward identifying indels and structural variants and uses more lines of evidence that gatk. Also, GATK will detect only small indels, whereas lumpy can detect bigger structural variants.
+ lumpy and svaba are specifically geared toward identifying indels and structural variants and uses more lines of evidence that gatk. Also, GATK will detect only small indels, whereas lumpy and svaba can detect bigger structural variants. Lumpy is an alignment based SV caller and svaba is an assembly based SV caller.
 
 
 <!--
@@ -239,8 +245,12 @@ done
 
 ```bash
   CurDir=$PWD
-  AlignDir=analysis/popgen/indel_calling/alignments
+  AlignDir=analysis/popgen/indel_calling/alignments2
   cd $AlignDir
+  ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+  qsub $ProgDir/sub_lumpy.sh lumpy_out
+
+
   for Strain in $(ls *_sorted.bam | grep -v -e 'split' -e 'discordant' | sed 's/_sorted.bam//g'); do
     # Jobs=$(qstat | grep 'sub_lumpy' | wc -l)
     # while [ $Jobs -gt 0 ]; do
@@ -254,6 +264,11 @@ done
   done
   cd $CurDir
 ``` -->
+
+
+
+
+
 
 For this analysis svaba was used.
 
@@ -290,8 +305,35 @@ done
   qsub $ProgDir/sub_svaba.sh $Prefix $Reference $AlignDir $OutDir
 ```
 
+Total number of SVs:
+
+```bash
+for Vcf in $(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.*.vcf | grep -v -e 'unfiltered' -e 'filtered' -e 'no_errors'); do
+  echo "$Vcf"
+cat $Vcf | grep -v '#' | grep -v 'FILTER' | wc -l
+cat $Vcf | grep -v -e '#' -e 'FILTER' | cut -f7 | sort | uniq -c | sort -nr
+done
+```
+
+```
+analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel.vcf
+73684
+analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv.vcf
+4676
+```
+
 Filter vcf files to remove low quality calls.
 
+```bash
+for Vcf in $(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.*.vcf | grep -v -e 'unfiltered' -e 'filtered' -e 'no_errors'); do
+  OutName=$(echo $Vcf | sed 's/.vcf/.filtered.vcf/g')
+  echo "$OutName"
+  cat $Vcf | grep -e '#' -e 'FILTER' -e 'PASS' > $OutName
+  cat $OutName | grep -v -e '#' -e 'FILTER' | wc -l
+done
+```
+
+<!--
 Only retain biallelic high-quality SNPS with no missing data (for any individual) for genetic analyses below (in some cases, may allow some missing data in order to retain more SNPs, or first remove poorly sequenced individuals with too much missing data and then filter the SNPs).
 
 ```bash
@@ -305,6 +347,8 @@ done
 ```bash
 mv 414_v2_contigs_unmasked_filtered.vcf analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered.vcf
 ```
+ -->
+
 
 
 ```bash
@@ -322,7 +366,7 @@ java -jar $SnpEff/snpEff.jar build -gff3 -v P414v1.0
 ## Remove sequencing errors from vcf files:
 
 ```bash
-for Vcf in $(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.*.vcf | grep -v 'unfiltered'); do
+for Vcf in $(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.*.vcf | grep -v 'unfiltered' | grep 'filtered'); do
 OutDir=$(dirname $Vcf)
 Prefix=$(basename $Vcf .vcf)
 Errors=$OutDir/${Prefix}_errors.tsv
@@ -351,20 +395,20 @@ These have been removed from the vcf file
 General VCF stats (remember that vcftools needs to have the PERL library exported)
 
 ```bash
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  export PERL5LIB="$VcfTools:$PERL5LIB"
-  for Vcf in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unfiltered'); do
-    OutDir=$(dirname $Vcf)
-    Prefix=$(basename $Vcf .vcf)
-    echo $Prefix
-    perl $VcfTools/vcf-stats $Vcf > $OutDir/$Prefix.stats
-  done
+VcfTools=/home/sobczm/bin/vcftools/bin
+export PERL5LIB="$VcfTools:$PERL5LIB"
+for Vcf in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unfiltered' | grep 'filtered' | grep 'no_errors'); do
+OutDir=$(dirname $Vcf)
+Prefix=$(basename $Vcf .vcf)
+echo $Prefix
+perl $VcfTools/vcf-stats $Vcf > $OutDir/$Prefix.stats
+done
 ```
 
 Calculate the index for percentage of shared SNP alleles between the individuals.
 
 ```bash
-  for Vcf in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unfiltered'); do
+  for Vcf in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unfiltered' | grep 'filtered' | grep 'no_errors'); do
       ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
       $ProgDir/similarity_percentage.py $Vcf
   done
@@ -372,7 +416,7 @@ Calculate the index for percentage of shared SNP alleles between the individuals
 
 # Visualise the output as heatmap and clustering dendrogram
 ```bash
-for Log in $(ls analysis/popgen/indel_calling/svaba/*distance.log); do
+for Log in $(ls analysis/popgen/indel_calling/svaba/*distance.log | grep -v 'unfiltered' | grep 'filtered' | grep 'no_errors'); do
   OutDir=$(dirname $Log)
   Prefix=$(basename $Log .log)
   echo $Prefix
@@ -383,7 +427,7 @@ done
 ```
 
 
-# Identify SNPs in gene models:
+# Identify SVs in gene models:
 
 Create custom SnpEff genome database
 
@@ -429,7 +473,7 @@ http://snpeff.sourceforge.net/SnpEff_manual.html#run
 ```bash
 CurDir=/home/groups/harrisonlab/project_files/idris
 cd $CurDir
-for a in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unfiltered'); do
+for a in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unfiltered' | grep 'filtered' | grep 'no_errors'); do
     echo $a
     filename=$(basename "$a")
     Prefix=${filename%.vcf}
