@@ -2281,6 +2281,7 @@ $ProgDir/10300_gene_tables.py --gff_format gff3 --ortho_name $OrthoName --ortho_
 
 # Genomic analysis
 
+
 Identification of NLP necrosis inducing proteins:
 
 ```bash
@@ -2289,7 +2290,10 @@ OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
 cat $AnnotTab | grep 'NPP1' | wc -l
 cat $AnnotTab | grep 'NPP1' > $OutDir/10300_gene_table_NLP.tsv
-cat $OutDir/10300_gene_table_NLP.tsv | grep "GBGX" | wc -l
+cat $OutDir/10300_gene_table_NLP.tsv | grep 'secreted' | wc -l
+cat $OutDir/10300_gene_table_NLP.tsv | grep '#NPP1#' | wc -l
+cat $OutDir/10300_gene_table_NLP.tsv | grep '#NPP1#' | grep 'secreted' | wc -l
+cat $OutDir/10300_gene_table_NLP.tsv | grep 'secreted' | grep "GBGX" | wc -l
 cat $AnnotTab | grep -e 'AF356840' -e 'AF352031' > $OutDir/10300_gene_table_NLP_Avr_homologs.tsv
 
 ```
@@ -2302,8 +2306,8 @@ OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
 # Number of secreted proteases:
 cat $AnnotTab | grep 'IPR001254' | wc -l
-cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,25,26,30,31,35 | grep 'Yes' | wc -l
-cat $AnnotTab | grep 'IPR001254' | cut -f1,12,13,14,25,26,30,31,35 | grep 'Yes' > $OutDir/10300_gene_table_protease.tsv
+cat $AnnotTab | grep 'IPR001254' | grep 'secreted' | wc -l
+cat $AnnotTab | grep 'IPR001254' | grep 'secreted' > $OutDir/10300_gene_table_protease.tsv
 # Number with homologs in Chen 2014:
 cat $OutDir/10300_gene_table_protease.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_protease.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
@@ -2318,15 +2322,19 @@ mkdir -p $OutDir
 cat $AnnotTab | grep -i 'kazal' | wc -l
 cat $AnnotTab | grep 'IPR002350' | wc -l
 cat $AnnotTab | grep 'IPR002350' > $OutDir/10300_gene_table_EPI_kazal.tsv
+cat $OutDir/10300_gene_table_EPI_kazal.tsv | grep 'secreted' | wc -l
 cat $AnnotTab | grep -i 'cathepsin' | wc -l
 cat $AnnotTab | grep 'IPR013201' | wc -l
 cat $AnnotTab | grep 'IPR013201' > $OutDir/10300_gene_table_EPI_cathepsin.tsv
+cat $OutDir/10300_gene_table_EPI_cathepsin.tsv | grep 'secreted' | wc -l
 cat $AnnotTab | grep -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e "EPIC._" | wc -l
 cat $AnnotTab | grep -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e "EPIC._"  > $OutDir/10300_gene_table_EPI_cysteine.tsv
+cat $OutDir/10300_gene_table_EPI_cysteine.tsv | grep 'secreted' | wc -l
 # Number identified by BLAST searches:
 cat $AnnotTab | grep "GIP._P" | wc -l
 cat $AnnotTab | grep 'IPR001314' | wc -l
 cat $OutDir/10300_gene_table_protease.tsv | grep "GIP._P" | wc -l
+cat $AnnotTab | grep "GIP._P" | grep 'secreted' | wc -l
 cat $AnnotTab | grep -e 'PITG_13636' -e 'PITG_21456' > $OutDir/10300_gene_table_GIP.tsv
 
 # Number with homologs in Chen 2014:
@@ -2334,6 +2342,14 @@ cat $OutDir/10300_gene_table_EPI_kazal.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_EPI_kazal.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
 cat $OutDir/10300_gene_table_EPI_cathepsin.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_EPI_cathepsin.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+```
+
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep 'PF09461' | wc -l
 ```
 
 Elicitins:
@@ -2345,6 +2361,7 @@ mkdir -p $OutDir
 cat $AnnotTab | grep -i 'elicitin' | wc -l
 cat $AnnotTab | grep 'IPR002200' | wc -l
 cat $AnnotTab | grep 'IPR002200' > $OutDir/10300_gene_table_elicitin.tsv
+cat $AnnotTab | grep 'IPR002200' | grep 'secreted' | wc -l
 cat $OutDir/10300_gene_table_elicitin.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_elicitin.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
 ```
@@ -2358,6 +2375,7 @@ mkdir -p $OutDir
 cat $AnnotTab | grep -i 'elicitor' | wc -l
 cat $AnnotTab | grep 'IPR032048' | wc -l
 cat $AnnotTab | grep 'IPR032048' > $OutDir/10300_gene_table_TGase.tsv
+cat $AnnotTab | grep 'IPR032048' | grep 'secreted' | wc -l
 cat $OutDir/10300_gene_table_TGase.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_TGase.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
 ```
@@ -2432,22 +2450,33 @@ CAZY proteins:
 AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
 OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
-cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' | wc -l
-cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
-cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' | grep 'Yes' | wc -l
-cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' | grep 'Yes' > $OutDir/10300_gene_table_CAZY_secreted.tsv
+cat $AnnotTab | grep 'CAZY' | wc -l
+# cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
+cat $AnnotTab | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
+cat $AnnotTab | grep 'CAZY' | grep 'secreted' | tail -n+2 | wc -l
+cat $AnnotTab | grep 'CAZY' | grep 'secreted' > $OutDir/10300_gene_table_CAZY_secreted.tsv
 
 cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | wc -l
-cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | cut -f8 | sort | uniq -c | wc -l
+cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | tail -n+2 | cut -f '34' | sort | uniq -c | wc -l
 
 
-cat $AnnotTab | cut -f1,12,13,14,24 | grep 'CAZY' | grep 'Yes' | cut -f5 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
+cat $OutDir/10300_gene_table_CAZY_secreted.tsv | cut -f27 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'GH'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep -v 'GH' | grep 'CBM'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'AA'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'CE'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep -v 'GH' | grep 'GT'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'PL'
+```
+
+Cutinases:
+
+```bash
+AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
+OutDir=$(dirname $AnnotTab)/subset
+mkdir -p $OutDir
+cat $AnnotTab | grep 'PF01083' | wc -l
+cat $AnnotTab | grep 'PF01083' | grep 'secreted' | wc -l
 ```
 
 Avr gene homologs:
