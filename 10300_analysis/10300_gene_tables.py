@@ -470,7 +470,7 @@ header_line = ['transcript_id', 'internal_id']
 header_line.extend(['contig', 'source', 'feature', 'start', 'stop', 'evidence', 'strand', 'codon', 'transcript_id', ])
 #header_line.extend(['sigP2', 'sigP4', 'phobius', 'RxLR_EER_motif', 'RxLR_hmm', 'WY_hmm', 'RxLR_total', 'CRN_LFLAK', 'CRN_DWL', 'CRN_total', 'orthogroup'])
 header_line.extend(['sigP2', 'sigP3', 'sigP4', 'phobius'])
-header_line.extend(['TMHMM', 'GPI'])
+header_line.extend(['TMHMM', 'GPI', 'putative_secreted'])
 header_line.extend(['RxLR_motif', 'RxLR_EER_motif', 'RxLR_hmm', 'putative_RxLR', 'WY_hmm', 'CRN_LFLAK', 'CRN_DWL', 'putative_CRN'])
 header_line.append('CAZY')
 header_line.extend(['orthogroup', 'orthogroup summary', 'orthogroup contents'])
@@ -491,6 +491,7 @@ for line in transcript_lines:
     phobius = ''
     TMHMM = ''
     GPI = ''
+    secreted = ''
     RxLR_motif = ''
     RxLR_EER_motif = ''
     RxLR_hmm = ''
@@ -527,10 +528,12 @@ for line in transcript_lines:
         sigP4 = 'Yes'
     if original_id in phobius_set:
         phobius = 'Yes'
-    if transcript_id in TMHMM_set and any('Yes' in y for y in[sigP2, sigP3, sigP4, phobius]):
+    if transcript_id in TMHMM_set and any('Yes' in y for y in [sigP2, sigP3, sigP4, phobius]):
         TMHMM = 'Yes'
-    if transcript_id in GPI_set and any('Yes' in y for y in[sigP2, sigP3, sigP4, phobius]):
+    if transcript_id in GPI_set and any('Yes' in y for y in [sigP2, sigP3, sigP4, phobius]):
         GPI = 'Yes'
+    if any('Yes' in y for y in [sigP2, sigP3, sigP4]) and not any('Yes' in y for y in [TMHMM, GPI]):
+        secreted = 'secreted'
     if original_id in RxLR_motif_set:
         RxLR_motif = 'Yes'
     if original_id in RxLR_EER_motif_set:
@@ -617,7 +620,7 @@ for line in transcript_lines:
     # outline.extend(useful_cols)
     # outline.extend([sigP2, sigP4, phobius, RxLR_EER_motif, RxLR_hmm, WY_hmm, RxLR_total, CRN_LFLAK, CRN_DWL, CRN_total, orthogroup])
     outline.extend([sigP2, sigP3, sigP4, phobius])
-    # outline.extend([trans_mem, gpi, secreted])
+    outline.extend([TMHMM, GPI, secreted])
     outline.extend([RxLR_motif, RxLR_EER_motif, RxLR_hmm, putative_RxLR, WY_hmm, CRN_LFLAK, CRN_DWL, putative_CRN])
     outline.append(cazy_hit)
     # outline.extend([RxLR_total, CRN_total])
