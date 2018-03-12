@@ -23,6 +23,7 @@ The following genomes were publicly available
 	assembly/external_group/P.parisitica/p1976/dna/phyt_para_p1976.1.scaffolds.genome.fa
 	assembly/external_group/P.ramorum/164328/dna/Phytophthora_ramorum.ASM14973v1.26.dna.genome.fa
 	assembly/external_group/P.sojae/67593/dna/Phytophthora_sojae.ASM14975v1.26.dna.genome.fa
+	assembly/external_group/P.cactorum/LV007/dna/Phytophthora_cactorum-LV007.fa
 ```
 
 # assess gene space in assemblies
@@ -56,8 +57,10 @@ The script was as ajusted as so:
  Pinf=$(ls assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.fa)
  Psoj=$(ls assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.genome.fa)
  Ppar=$(ls assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta)
+ Pcac=$(ls assembly/external_group/P.cactorum/LV007/dna/Phytophthora_cactorum-LV007.fa)
 
- for Assembly in $(ls $Pcac $Pinf $Psoj $Ppar); do
+ # for Assembly in $(ls $Pcac $Pinf $Psoj $Ppar); do
+ for Assembly in $(ls assembly/external_group/P.cactorum/LV007/dna/Phytophthora_cactorum-LV007.fa); do
  Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
  Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
  echo "$Organism - $Strain"
@@ -86,7 +89,8 @@ Rpeatmasking was performed on assemblies:
 
 
 ```bash
-	for Genome in $(ls assembly/external_group/P.*/*/dna/*.genome.parsed.fa | grep -v 'rm'); do
+	# for Genome in $(ls assembly/external_group/P.*/*/dna/*.genome.parsed.fa | grep -v 'rm'); do
+	for Genome in $(ls assembly/external_group/P.cactorum/LV007/dna/Phytophthora_cactorum-LV007.fa); do
 		ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
 		qsub $ProgDir/rep_modeling.sh $Genome
 		qsub $ProgDir/transposonPSI.sh $Genome
