@@ -3,6 +3,13 @@
 
 # 1 Find single copy busco genes in P.cactorum assemblies
 
+Firstly, busco results from P414 in /data/scratch/armita/idris
+was copied into the idris project folder
+
+```bash
+mkdir -p gene_pred/busco/P.cactorum/414/assembly
+cp -r /data/scratch/armita/idris/assembly/merged_SMARTdenovo_spades/P.cactorum/414/filtered/run_filtered_contigs_renamed gene_pred/busco/P.cactorum/414/assembly/.
+```
 
 Create a list of all BUSCO IDs
 
@@ -27,7 +34,7 @@ for Busco in $(cat analysis/popgen/busco_phylogeny/all_buscos_*.txt); do
 echo $Busco
 OutDir=analysis/popgen/busco_phylogeny/$Busco
 mkdir -p $OutDir
-for Fasta in $(ls gene_pred/busco/*/*/assembly/run_contigs_min_500bp*/single_copy_busco_sequences/$Busco*.fna | grep -v -w '414'); do
+for Fasta in $(ls gene_pred/busco/*/*/assembly/*/single_copy_busco_sequences/$Busco*.fna | grep -e 'run_contigs_min_500bp' -e 'filtered_contigs_renamed' | grep -v -e '414_old' -e '414_v2'); do
 Strain=$(echo $Fasta | rev | cut -f5 -d '/' | rev)
 Organism=$(echo $Fasta | rev | cut -f6 -d '/' | rev)
 FileName=$(basename $Fasta)
@@ -38,7 +45,6 @@ SingleBuscoNum=$(cat $OutDir/"$Busco"_appended.fasta | grep '>' | wc -l)
 printf "$Busco\t$SingleBuscoNum\n" >> analysis/popgen/busco_phylogeny/single_hits.txt
 done
 ```
-
 
 If all isolates have a single copy of a busco gene, move the appended fasta to
 a new folder
