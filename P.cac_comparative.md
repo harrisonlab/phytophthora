@@ -677,11 +677,26 @@ SCRP370	5355	2	1
 SCRP376	5312	1	2
 ``` -->
 
+```bash
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+for Exclude_db in "stenotrophomonas"; do
+Good_db="phytoph"
+AssemblyDir=$(dirname $Assembly)
+OutDir=$AssemblyDir/../deconseq_$Exclude_db
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+done
+done
+```
+
 Those contigs that were not identified as contaminants in each of the filtering
 steps were retained.
 
 ```bash
-for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep -e '11-40' -e '17-21' -e 'P421'); do
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep -e '11-40' -e '17-21' -e 'P421' | grep -v 'P421'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -697,6 +712,50 @@ ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_cont
 $ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $StrainDir/deconseq_appended/contigs_min_500bp_renamed.fasta --coord_file $Instructions
 done
 ```
+
+Strain P421 was searched against an additional database.
+
+```bash
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' |  grep 'P421'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+StrainDir=$(ls -d assembly/spades/$Organism/$Strain)
+mkdir -p $StrainDir/deconseq_appended
+for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen" -e "stenotrophomonas" ); do
+cat $File | grep '>'
+done | sort | uniq | tr -d '>' > $StrainDir/deconseq_appended/exclude_list.txt
+Instructions=$StrainDir/deconseq_appended/exclude_instructions.txt
+printf "Exclude:\nSequence name, length, apparent source\n" > $Instructions
+cat $StrainDir/deconseq_appended/exclude_list.txt | sed -r 's/$/\t.\tcontaminant/g' >> $Instructions
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+$ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $StrainDir/deconseq_appended/contigs_min_500bp_renamed.fasta --coord_file $Instructions
+done
+```
+
+The number of reads aligning from P421 to potential contaminants were identified.
+
+
+```bash
+Fusarium=$(ls ../fusarium/assembly/external_group/F.oxysporum_fsp_lycopersici/4287_chromosomal/ensembl/Fusarium_oxysporum_chromosome_and_additional_contigs.fa)
+Stenotrophomonas=$(ls ../../../../../home/armita/prog/deconseq-standalone-0.4.3/database/stenotrophomonas/all_complete_GbStenotrophomonas.fasta)
+for Reference in $(ls $Fusarium $Stenotrophomonas); do
+for StrainPath in $(ls -d qc_dna/paired/*/* | grep '421'); do
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+F_Read=$(ls $StrainPath/F/*_trim.fq.gz)
+R_Read=$(ls $StrainPath/R/*_trim.fq.gz)
+echo $F_Read
+echo $R_Read
+Prefix=$(basename $Reference | sed 's/.fasta//g' | sed 's/.fa//g' | sed 's/.fna//g')
+OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_${Prefix}
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
+qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
+done
+done
+```
+
 
 Assembly stats were collected on filtered assemblies:
 
@@ -924,7 +983,7 @@ The number of bases masked by transposonPSI and Repeatmasker were summarised
 using the following commands:
 
 ```bash
-for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -e 'P.cactorum' -e 'P.idaei' | grep -v '12420'); do
+for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
 RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
@@ -995,7 +1054,7 @@ Quality of genome assemblies was assessed by looking for the gene space in the a
 Busco has replaced CEGMA and was run to check gene space in assemblies
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '_v2' -e 'falcon'); do
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -e '2003' -e '376'); do
 # Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 # Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
