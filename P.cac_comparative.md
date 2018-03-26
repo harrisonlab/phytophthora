@@ -533,7 +533,7 @@ Contigs were identified that had blast hits to non-phytophthora genomes
 ``` -->
 
 ```bash
-  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421' | grep 'P421_v2'); do
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -678,7 +678,7 @@ SCRP376	5312	1	2
 ``` -->
 
 ```bash
-for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421' | grep 'P421_v2'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -696,7 +696,7 @@ Those contigs that were not identified as contaminants in each of the filtering
 steps were retained.
 
 ```bash
-for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep -e '11-40' -e '17-21' -e 'P421' | grep -v 'P421'); do
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep -e '11-40' -e '17-21' -e 'P421' | grep -v -w 'P421'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -722,7 +722,7 @@ Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
 StrainDir=$(ls -d assembly/spades/$Organism/$Strain)
 mkdir -p $StrainDir/deconseq_appended
-for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen" -e "stenotrophomonas" ); do
+for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen" -e "stenotrophomonas"); do
 cat $File | grep '>'
 done | sort | uniq | tr -d '>' > $StrainDir/deconseq_appended/exclude_list.txt
 Instructions=$StrainDir/deconseq_appended/exclude_instructions.txt
@@ -756,25 +756,114 @@ done
 done
 ```
 
+P241 was reassembled:
+
+```bash
+for StrainPath in $(ls -d analysis/genome_alignment/bowtie/P.*/* | grep 'P421'); do
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
+Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
+F_Read=$(ls $StrainPath/vs_all_complete_GbStenotrophomonas/*.fq.1.gz)
+R_Read=$(ls $StrainPath/vs_all_complete_GbStenotrophomonas/*.fq.2.gz)
+OutDir=assembly/spades/$Organism/${Strain}_v2
+echo $F_Read
+echo $R_Read
+qsub $ProgDir/submit_SPAdes_HiMem.sh $F_Read $R_Read $OutDir correct
+done
+```
+
+Assembly results were summarised using Quast:
+
+```bash
+  for Assembly in $(ls assembly/spades/*/*/filtered_contigs*/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
+    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
+    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
+    OutDir=$(dirname $Assembly)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
+  done
+```
+
+
+```bash
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+for Exclude_db in "bacillus" "delftia" "paenibacillus" "stenotrophomonas"; do
+Good_db="phytoph"
+AssemblyDir=$(dirname $Assembly)
+OutDir=$AssemblyDir/../deconseq_$Exclude_db
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
+done
+done
+```
+
+Results were summarised using the commands:
+
+```bash
+for Exclude_db in "bacillus" "delftia" "paenibacillus" "stenotrophomonas"; do
+echo $Exclude_db
+for File in $(ls assembly/spades/P.*/*/*/log.txt | grep "_${Exclude_db}" | grep 'P421_v2'); do
+Name=$(echo $File | rev | cut -f3 -d '/' | rev);
+Good=$(cat $File |cut -f2 | head -n1 | tail -n1);
+Both=$(cat $File |cut -f2 | head -n2 | tail -n1);
+Bad=$(cat $File |cut -f2 | head -n3 | tail -n1);
+printf "$Name\t$Good\t$Both\t$Bad\n";
+done
+done
+```
+
+```
+bacillus
+P421_v2	7706	2	8
+delftia
+P421_v2	7536	2	178
+paenibacillus
+P421_v2	7699	2	15
+stenotrophomonas
+P421_v2	7058	5	653
+```
+
+Those contigs that were not identified as contaminants in each of the filtering
+steps were retained.
+
+```bash
+for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -w 'P421_v2'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+StrainDir=$(ls -d assembly/spades/$Organism/$Strain)
+mkdir -p $StrainDir/deconseq_appended
+for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen" -e "stenotrophomonas"); do
+cat $File | grep '>'
+done | sort | uniq | tr -d '>' > $StrainDir/deconseq_appended/exclude_list.txt
+Instructions=$StrainDir/deconseq_appended/exclude_instructions.txt
+printf "Exclude:\nSequence name, length, apparent source\n" > $Instructions
+cat $StrainDir/deconseq_appended/exclude_list.txt | sed -r 's/$/\t.\tcontaminant/g' >> $Instructions
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+$ProgDir/remove_contaminants.py --keep_mitochondria --inp $Assembly --out $StrainDir/deconseq_appended/contigs_min_500bp_renamed.fasta --coord_file $Instructions
+done
+```
 
 Assembly stats were collected on filtered assemblies:
 
 ```bash
-  # for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
-  for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep -e '11-40' -e '17-21' -e 'P421'); do
-    Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
-    Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
-    OutDir=$(dirname $Assembly)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
-    qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-  done
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep 'P421_v2'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+OutDir=$(dirname $Assembly)
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+done
 ```
 
 Assembly stats were summarised and compared to previous assembly results using:
 
 ```bash
 # for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/report.tsv); do  
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/report.tsv| grep -e '11-40' -e '17-21' -e 'P421'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/report.tsv); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/'| rev);
 Size=$(cat $Assembly | grep 'Total length' | head -n1 | cut -f2);
 OldAssembly=$(ls assembly/spades/P.*/$Strain/filtered_contigs*/report.tsv)
@@ -784,9 +873,11 @@ done
 ```
 
 ```
+  11-40	59726247	59731760
   12420	60315503	66488881
   15_13	60703463	60708976
   15_7	60797060	60806527
+  17-21	59761502	59767015
   2003_3	60800281	67797455
   4032	61561706	70105079
   4040	60657148	65177765
@@ -796,21 +887,20 @@ done
   416	60502157	64802670
   62471	61265225	62823426
   P295	60707114	67293243
+  P421	64527586	65473778
+  P421_v2	60335997	64856938
   PC13_15	61130682	67857120
   R36_14	61656467	68350251
   371	60474213	60483665
   SCRP370	60582725	60561664
   SCRP376	60610468	60615981
-  11-40	59726247	59731760
-  17-21	59761502	59767015
-  P421	64527586	65473778
 ```
 
 Numbers of busco genes in each assembly were identified:
 
 ```bash
 # for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep -e '11-40' -e '17-21' -e 'P421'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep 'P421_v2'); do
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
@@ -847,7 +937,7 @@ used to correct the assembly to NCBI standards.
 NCBI reports (FCSreport.txt) were manually downloaded to the following loactions:
 
 ```bash
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)  
 NCBI_report_dir=genome_submission/$Organism/$Strain/initial_submission
@@ -868,7 +958,7 @@ sed -i 's/Trim:/Exclude:/g' $NCBI_report
 These downloaded files were used to correct assemblies:
 
 ```bash
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e 'P421_v2'); do
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -889,11 +979,14 @@ done
 
 ```bash
 echo "Strain P421 has further edits to be made"
-NCBI_report_dir=genome_submission/$Organism/$Strain/second_submission
+NCBI_report_dir=genome_submission/P.cactorum/P421_v2/second_submission
 echo "$PWD/$NCBI_report_dir"
 mkdir -p $NCBI_report_dir
 # Move downloaded contamination report into this directory
-for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421'); do
+for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
 Round1Name=$(echo $Assembly | sed 's/contigs_min_500bp_renamed.fasta/round1.fasta/g')
 mv $Assembly $Round1Name
 NCBI_report=genome_submission/$Organism/$Strain/second_submission/Contamination*.txt
@@ -907,10 +1000,10 @@ NCBI_report_dir=genome_submission/$Organism/$Strain/third_submission
 echo "$PWD/$NCBI_report_dir"
 mkdir -p $NCBI_report_dir
 # Move downloaded contamination report into this directory
-for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421'); do
+for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
 Round2Name=$(echo $Assembly | sed 's/contigs_min_500bp_renamed.fasta/round2.fasta/g')
 mv $Assembly $Round2Name
-NCBI_report=genome_submission/$Organism/$Strain/second_submission/Contamination*.txt
+NCBI_report=genome_submission/$Organism/$Strain/third_submission/Contamination*.txt
 OutDir=assembly/spades/$Organism/$Strain/ncbi_edits
 mkdir -p $OutDir
 ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
