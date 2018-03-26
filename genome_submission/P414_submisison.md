@@ -65,11 +65,11 @@ For genomic reads:
   # Bioproject="PRJNA338236"
   SubFolder="FoC_PRJNA338256"
   mkdir $SubFolder
-  for Read in $(ls raw_dna/paired/F.*/*/*/*.fastq.gz | grep -w -e '125' -e 'A23' -e 'A13' -e 'A28' -e 'CB3' -e 'PG' -e 'A8' -e '414_v2' | grep -v s_6_*_sequence.fastq.gz); do
+  for Read in $(ls raw_dna/paired/F.*/*/*/*.fastq.gz | grep -w -e '125' -e 'A23' -e 'A13' -e 'A28' -e 'CB3' -e 'PG' -e 'A8' -e '414' | grep -v s_6_*_sequence.fastq.gz); do
     echo $Read;
     cp $Read $SubFolder/.
   done
-  cp raw_dna/pacbio/P.cactorum/414_v2/extracted/concatenated_pacbio.fastq $SubFolder/.
+  cp raw_dna/pacbio/P.cactorum/414/extracted/concatenated_pacbio.fastq $SubFolder/.
   cd $SubFolder
   gzip concatenated_pacbio.fastq
   ftp ftp-private.ncbi.nlm.nih.gov
@@ -116,7 +116,7 @@ be searched later to extract locus tags for particular strains.
 ```bash
 mkdir -p genome_submission/
 printf \
-"BFJ65 SAMN05529097 FoC_414_v2
+"BFJ65 SAMN05529097 FoC_414
 BFJ66 SAMN05529098 FoC_125
 BFJ67 SAMN05529099 FoC_A23
 BFJ68 SAMN05529100 Fo_A28
@@ -136,9 +136,9 @@ These commands were used in the final submission of the Pcac P414 genome:
 An output and working directory was made for genome submission:
 
 ```bash
-  ProjDir=/home/groups/harrisonlab/project_files/idris
+  ProjDir=/data/scratch/armita/idris/
   cd $ProjDir
-  OutDir="genome_submission/P.cactorum/414_v2"
+  OutDir="genome_submission/P.cactorum/414"
   mkdir -p $OutDir
 ```
 
@@ -155,13 +155,12 @@ Vairables containing locations of files and options for scripts were set:
 AnnieDir="/home/armita/prog/annie/genomeannotation-annie-c1e848b"
 ProgDir="/home/armita/git_repos/emr_repos/tools/genbank_submission"
 # File locations:
-SbtFile="genome_submission/P.cactorum/414_v2/template.sbt"
-Assembly=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
-InterProTab=$(ls gene_pred/interproscan/P.cactorum/414_v2/414_v2_interproscan.tsv)
-SwissProtBlast=$(ls gene_pred/swissprot/P.cactorum/414_v2/swissprot_vJul2016_tophit_parsed.tbl)
+SbtFile="/home/groups/harrisonlab/project_files/idris/genome_submission/P.cactorum/414_v2/template.sbt"
+Assembly=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
+InterProTab=$(ls gene_pred/interproscan/P.cactorum/414/414_interproscan.tsv)
+SwissProtBlast=$(ls gene_pred/swissprot/P.cactorum/414/swissprot_vJul2016_tophit_parsed.tbl)
 SwissProtFasta=$(ls /home/groups/harrisonlab/uniprot/swissprot/uniprot_sprot.fasta)
-# GffFile=$(ls gene_pred/final_genes/P.cactorum/414_v2/final/final_genes_appended.gff3)
-GffFile=$(ls gene_pred/final_ncbi/P.cactorum/414_v2/final_ncbi/414_v2_genes_incl_ORFeffectors_renamed.gff3)
+GffFile=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 # tbl2asn options:
 Organism="Phytophthora cactorum"
 Strain="P414"
@@ -172,7 +171,7 @@ LabID="NIAB-EMR"
 # IDSource='similar to AA sequence:SwissProt:2016_07'
 # IDSource='similar to AA sequence:UniProtKB/Swiss-Prot'
 # Final submisison file name:
-FinalName="Pcac_P414_2017"
+FinalName="Pcac_P414_2018"
 ```
 
 <!-- ## Preparing Gff input file
@@ -204,8 +203,11 @@ Note - It is important that transcripts have been re-labelled as mRNA by this
 point.
 
 ```bash
+  export PYTHONPATH="/home/armita/.local/lib/python3.5/site-packages"
   python3 $AnnieDir/annie.py -ipr $InterProTab -g $GffFile -b $SwissProtBlast -db $SwissProtFasta -o $OutDir/annie_output.csv --fix_bad_products
   $ProgDir/edit_tbl_file/annie_corrector.py --inp_csv $OutDir/annie_output.csv --out_csv $OutDir/annie_corrected_output.csv
+  # re-load your python path variable
+  . ~/.profile
 ```
 
 ### Running GAG
@@ -279,7 +281,7 @@ them as incomplete ('unknown_UTR').
 ```bash
 printf "StructuredCommentPrefix\t##Genome-Annotation-Data-START##
 Annotation Provider\tHarrison Lab NIAB-EMR
-Annotation Date\tMay-2017
+Annotation Date\tMarch-2018
 Annotation Version\tRelease 1.00
 Annotation Method\tAb initio gene prediction: Braker 1.9 and CodingQuary 2.0; Functional annotation: Swissprot (July 2016 release) and Interproscan 5.18-57.0" \
 > $OutDir/gag/edited/annotation_methods.strcmt.txt
@@ -296,7 +298,6 @@ and that runs of N's longer than 10 bp should be labelled as gaps.
 
 ```bash
   cp $Assembly $OutDir/gag/edited/genome.fsa
-  # cat $Assembly | sed 's/>contig_23_pilon/>contig_23_pilon [location=mitochondrion]/g' | sed 's/>contig_26_pilon/>contig_26_pilon [location=ribosome]/g' > $OutDir/gag/edited/genome.fsa
   cp $SbtFile $OutDir/gag/edited/genome.sbt
   mkdir $OutDir/tbl2asn/final
   tbl2asn -p $OutDir/gag/edited/. -t $OutDir/gag/edited/genome.sbt -r $OutDir/tbl2asn/final -M n -X E -Z $OutDir/tbl2asn/final/discrep.txt -j "[organism=$Organism] [strain=$Strain]" -l paired-ends -a r10k -w $OutDir/gag/edited/annotation_methods.strcmt.txt
