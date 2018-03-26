@@ -61,9 +61,9 @@ for line in inp_lines:
         filtered_out.append(line)
 
 f = open(f_errors,"w")
-f.write("\n".join(errors_out))
+f.write("\n".join(errors_out) + "\n")
 f.close()
 
 f = open(f_filtered,"w")
-f.write("\n".join(filtered_out))
+f.write("\n".join(filtered_out) + "\n")
 f.close()
