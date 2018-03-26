@@ -128,10 +128,11 @@ output="${filename%.*}.dict"
 
 ```bash
 Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+OutName=$(echo $Reference | sed 's/.fa/.dict/g')
 OutDir=$(dirname $Reference)
 mkdir -p $OutDir
 ProgDir=/home/sobczm/bin/picard-tools-2.5.0
-java -jar $ProgDir/picard.jar CreateSequenceDictionary R=$Reference O=$OutDir/414_contigs_unmasked.dict
+java -jar $ProgDir/picard.jar CreateSequenceDictionary R=$Reference O=$OutName
 samtools faidx $Reference
 ```
 
@@ -167,8 +168,8 @@ cd $CurDir
 Only retain biallelic high-quality SNPS with no missing data (for any individual) for genetic analyses below (in some cases, may allow some missing data in order to retain more SNPs, or first remove poorly sequenced individuals with too much missing data and then filter the SNPs).
 
 ```bash
-cp analysis/popgen/SNP_calling/414_v2_contigs_unmasked_temp.vcf analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf
-Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked.vcf)
+# cp analysis/popgen/SNP_calling/414_contigs_unmasked_temp.vcf analysis/popgen/SNP_calling/414_contigs_unmasked.vcf
+Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended.vcf)
 ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
 # mq=40
 # qual=30
@@ -182,26 +183,27 @@ qsub $ProgDir/sub_vcf_parser.sh $Vcf 40 30 10 30 1 Y
 ```
 
 ```bash
-mv 414_v2_contigs_unmasked_filtered.vcf analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered.vcf
+mv 414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
 ```
 
 
 ## Remove sequencing errors from vcf files:
 
 ```bash
-Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered.vcf)
+Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf)
 OutDir=$(dirname $Vcf)
 Errors=$OutDir/414_error_SNPs.tsv
-FilteredVcf=$OutDir/414_v2_contigs_unmasked_filtered_no_errors.vcf
+FilteredVcf=$OutDir/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
 $ProgDir/flag_error_SNPs.py --inp_vcf $Vcf --ref_isolate 414 --errors $Errors --filtered $FilteredVcf
 echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
-cat $Errors | wc -l
+cat $Errors
+# cat $Errors | wc -l
 echo "These have been removed from the vcf file"
 ```
 
 ```
-  7
+
 ```
 
 <!--
@@ -223,7 +225,7 @@ General VCF stats (remember that vcftools needs to have the PERL library exporte
   # Vcf=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors.vcf)
   # Stats=$(echo $Vcf | sed 's/.vcf/.stat/g')
   # perl $VcfTools/vcf-stats $Vcf > $Stats
-  VcfFiltered=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors.vcf)
+  VcfFiltered=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
   Stats=$(echo $VcfFiltered | sed 's/.vcf/.stat/g')
   perl $VcfTools/vcf-stats $VcfFiltered > $Stats
 ```
@@ -231,7 +233,7 @@ General VCF stats (remember that vcftools needs to have the PERL library exporte
 Calculate the index for percentage of shared SNP alleles between the individuals.
 
 ```bash
-  for Vcf in $(ls analysis/popgen/SNP_calling/*_unmasked_filtered_no_errors.vcf); do
+  for Vcf in $(ls analysis/popgen/SNP_calling/*filtered_no_errors.vcf); do
       ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
       $ProgDir/similarity_percentage.py $Vcf
   done
@@ -252,7 +254,7 @@ done
 This step could not be carried out due to problems installing dependancies
 
 ```bash
-for Vcf in $(ls analysis/popgen/SNP_calling/*_unmasked_filtered_no_errors.vcf); do
+for Vcf in $(ls analysis/popgen/SNP_calling/*filtered_no_errors.vcf); do
     echo $Vcf
     ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
     # Out=$(basename $Vcf)
