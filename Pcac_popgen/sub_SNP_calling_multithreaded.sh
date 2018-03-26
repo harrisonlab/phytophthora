@@ -15,10 +15,10 @@
 # Each new BAM file has to be specified after a separate -I
 
 # Project=/home/groups/harrisonlab/project_files/idris
-Project=/scratch/data/armita/idris
+Project=/data/scratch/armita/idris
 OutDir=analysis/popgen/SNP_calling
 # Reference=$(ls /home/groups/harrisonlab/project_files/idris/repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
-Reference=$(ls /data/scratch/armita/idris/repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
+Reference=$(ls /data/scratch/armita/idris/repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_softmasked_repeatmasker_TPSI_appended.fa)
 
 RefName=$(basename "$Reference")
 Out1="${RefName%.*}_temp.vcf"
