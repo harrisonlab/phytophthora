@@ -16,7 +16,7 @@ OutDir=analysis/popgen/indel_calling
 mkdir -p $OutDir
 
 ```
-
+<!--
 # Extension of the GATK SNP discovery pipeline
 
 
@@ -203,7 +203,7 @@ The four genes were identified as:
 
 ```
 cat gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv | grep -w -e 'g7540' -e 'g9518' -e 'g20514' -e 'g22621' | less -S
-```
+``` -->
 
 # structural variant discovery:
 
@@ -271,7 +271,7 @@ done
 
 
 For this analysis svaba was used.
-
+<!--
 Run BWA-mem
 
 ```bash
@@ -294,12 +294,28 @@ OutDir=analysis/popgen/indel_calling/alignments3
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment/bwa
 qsub $ProgDir/sub_bwa.sh $Strain $CurDir/$Reference $ConcatF $ConcatR $OutDir
 done
+``` -->
+
+Alignments from SNP calling commands (detailed in 01_Pcac_alignments.md) were used.
+
+Symbolic links were made, putting a link to each alignment in a single directory.
+
+```bash
+  OutDir=analysis/popgen/indel_calling/alignments
+  mkdir -p $OutDir
+  for File in $(ls analysis/genome_alignment/bowtie/*/*/vs_414/*sorted); do
+    Strain=$(echo $File | rev | cut -f3 -d '/' | rev)
+    Organism=$(echo $File | rev | cut -f4 -d '/' | rev)
+    echo "$Organism - $Strain"
+    cp -s $PWD/$File $OutDir/"$Strain"_vs_414_aligned_sorted.bam
+    samtools index -@ 4 $OutDir/"$Strain"_vs_414_aligned_sorted.bam
+  done
 ```
 
 ```bash
   Prefix=Pcac_svaba
-  Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
-  AlignDir=analysis/popgen/indel_calling/alignments3
+  Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+  AlignDir=analysis/popgen/indel_calling/alignments
   OutDir=analysis/popgen/indel_calling/svaba
   ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
   qsub $ProgDir/sub_svaba.sh $Prefix $Reference $AlignDir $OutDir
