@@ -3628,78 +3628,69 @@ done
 
 
 ## RNAseq
-<!--
-```bash
-for Transcriptome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta | grep '414'); do
-Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
-Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
-echo "$Organism - $Strain"
-for RNADir in $(ls -d alignment/star/fvesca/v1.1/*/* | grep 'mycelium'); do
-FileF=$(ls $RNADir/*.mate1.fq.gz)
-FileR=$(ls $RNADir/*.mate2.fq.gz)
-echo $FileF
-echo $FileR
-Prefix=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
-Timepoint=$(echo $RNADir | rev | cut -f2 -d '/' | rev)
-echo "$Timepoint"
-OutDir=alignment/salmon/$Organism/"$Strain"/$Timepoint/$Prefix
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-qsub $ProgDir/sub_salmon.sh $Transcriptome $FileF $FileR $OutDir
-done
-done
-``` -->
 
+Perform RNAseq pseudo-alignment using Salmon
 
 ```bash
 for Transcriptome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta | grep '414'); do
 Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
-for RNADir in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/* | grep -e 'mycelium' -e '_no_vesca'); do
-FileNum=$(ls $RNADir/F/*.mate1.fq.gz | wc -l)
+for RNADir in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/* | grep -e 'mycelium'); do
+FileNum=$(ls $RNADir/F/*.fq.gz | wc -l)
 Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
 for num in $(seq 1 $FileNum); do
 printf "\n"
-FileF=$(ls $RNADir/F/*.mate1.fq.gz | head -n $num | tail -n1)
-FileR=$(ls $RNADir/R/*.mate2.fq.gz | head -n $num | tail -n1)
+FileF=$(ls $RNADir/F/*.fq.gz | head -n $num | tail -n1)
+FileR=$(ls $RNADir/R/*.fq.gz | head -n $num | tail -n1)
 echo $FileF
 echo $FileR
-Prefix=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
+Prefix=$(echo $FileF | rev | cut -f1 -d '/' | rev | sed 's/_1_trim.fq.gz//g')
 Timepoint=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
-echo "$Timepoint"
+echo "$Timepoint - $Prefix"
 OutDir=alignment/salmon/$Organism/"$Strain"/$Timepoint/$Prefix
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 qsub $ProgDir/sub_salmon.sh $Transcriptome $FileF $FileR $OutDir
 done
+done
+done
+
+TreatmentList=$(ls ../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07_no_vesca/* | grep -e '_no_vesca' | sed 's&../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07_no_vesca/&&g' | sed "s/_totRNA.*//g" | sort | uniq)
+
+for Transcriptome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta | grep '414'); do
+Strain=$(echo $Transcriptome| rev | cut -d '/' -f2 | rev)
+Organism=$(echo $Transcriptome | rev | cut -d '/' -f3 | rev)
+echo "$Organism - $Strain"
+for Treatment in $TreatmentList; do
+echo $Treatment
+FileListF=$(ls /home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/${Treatment}_*/F/*.mate1.fq.gz | sed 's/.gz/.gz /g' | tr -d '\n' | sed 's/ /,/g' | sed "s/,$//g")
+FileListR=$(ls /home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/${Treatment}_*/R/*.mate2.fq.gz | sed 's/.gz/.gz /g' | tr -d '\n' | sed 's/ /,/g' | sed "s/,$//g")
+Prefix=$Treatment
+OutDir=alignment/salmon/$Organism/$Strain/$Treatment/$Prefix
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+qsub $ProgDir/sub_salmon_multi_libs.sh $Transcriptome $FileListF $FileListR $OutDir
 done
 done
 ```
+Convert Salmon quasi-quanitifcations to gene counts using an awk script:
 
+https://bioconductor.org/packages/3.7/bioc/vignettes/tximport/inst/doc/tximport.html
 
 ```bash
-for RNADir in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/* | grep -e 'mycelium' -e '_no_vesca' | grep 'mycelium'); do
-FileNum=$(ls $RNADir/F/*.mate1.fq.gz | wc -l)
-Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
-for num in $(seq 1 $FileNum); do
-while [ $Jobs -gt 1 ]; do
-sleep 1m
-printf "."
-Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+mkdir -p alignment/salmon/DeSeq2
+for File in $(ls alignment/salmon/*/*/*/*/quant.sf | head -n1); do
+  cat $File | awk -F"\t" '{c=$1;sub(".t.*","",$1);print c,$1}' OFS="\t" > alignment/salmon/DeSeq2/trans2gene.txt
 done
-printf "\n"
-FileF=$(ls $RNADir/F/*.mate1.fq.gz | head -n $num | tail -n1)
-FileR=$(ls $RNADir/R/*.mate2.fq.gz | head -n $num | tail -n1)
-echo $FileF
-echo $FileR
-# Prefix=$(echo $FileF | rev | cut -f2 -d '/' | rev | sed "s/_R.*_trim.fq.gz//g")
-Prefix=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
-Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
-Timepoint=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
-echo "$Timepoint"
-OutDir=alignment/star/$Organism/$Strain/$Timepoint/$Prefix
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
+# Put files in a convenient location for DeSeq. Analysis was not performed on
+# Strawberry control samples.
+for File in $(ls alignment/salmon/*/*/*/*/quant.sf | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_'); do
+  # cat $File | grep 'g6.t1'
+  Prefix=$(echo $File | cut -f6 -d '/' --output-delimiter '_')
+  mkdir -p alignment/salmon/DeSeq2/$Prefix
+  cp $PWD/$File alignment/salmon/DeSeq2/$Prefix/quant.sf
+  # rm alignment/salmon/DeSeq2/$Prefix/quant.sf
 done
-done
-done
+
+# cp /home/groups/harrisonlab/project_files/idris/alignment/star/P.cactorum/414_v2/DeSeq/P.cactorum_RNAseq_design_parsed.txt alignment/salmon/DeSeq2/.
+nano alignment/salmon/DeSeq2/P.cactorum_RNAseq_design_parsed.txt
 ```
