@@ -790,7 +790,8 @@ for Assembly in $(ls assembly/spades/*/*/filtered_contigs/contigs_min_500bp.fast
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
-for Exclude_db in "bacillus" "delftia" "paenibacillus" "stenotrophomonas"; do
+# for Exclude_db in "bacillus" "delftia" "paenibacillus" "stenotrophomonas" "FoL"; do
+for Exclude_db in "FoL"; do
 Good_db="phytoph"
 AssemblyDir=$(dirname $Assembly)
 OutDir=$AssemblyDir/../deconseq_$Exclude_db
@@ -803,7 +804,7 @@ done
 Results were summarised using the commands:
 
 ```bash
-for Exclude_db in "bacillus" "delftia" "paenibacillus" "stenotrophomonas"; do
+for Exclude_db in "bacillus" "delftia" "paenibacillus" "stenotrophomonas" "FoL"; do
 echo $Exclude_db
 for File in $(ls assembly/spades/P.*/*/*/log.txt | grep "_${Exclude_db}" | grep 'P421_v2'); do
 Name=$(echo $File | rev | cut -f3 -d '/' | rev);
@@ -824,6 +825,8 @@ paenibacillus
 P421_v2	7699	2	15
 stenotrophomonas
 P421_v2	7058	5	653
+FoL
+P421_v2	7189	45	482
 ```
 
 Those contigs that were not identified as contaminants in each of the filtering
@@ -836,7 +839,7 @@ Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 echo "$Organism - $Strain"
 StrainDir=$(ls -d assembly/spades/$Organism/$Strain)
 mkdir -p $StrainDir/deconseq_appended
-for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen" -e "stenotrophomonas"); do
+for File in $(ls $StrainDir/deconseq_*/*cont.fa | grep -e "bacillus" -e "delftia" -e "Paen" -e "stenotrophomonas" -e "FoL"); do
 cat $File | grep '>'
 done | sort | uniq | tr -d '>' > $StrainDir/deconseq_appended/exclude_list.txt
 Instructions=$StrainDir/deconseq_appended/exclude_instructions.txt
@@ -995,20 +998,23 @@ mkdir -p $OutDir
 ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
 $ProgDir/remove_contaminants.py --inp $Round1Name --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
 done
-
-NCBI_report_dir=genome_submission/$Organism/$Strain/third_submission
-echo "$PWD/$NCBI_report_dir"
-mkdir -p $NCBI_report_dir
-# Move downloaded contamination report into this directory
-for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
-Round2Name=$(echo $Assembly | sed 's/contigs_min_500bp_renamed.fasta/round2.fasta/g')
-mv $Assembly $Round2Name
-NCBI_report=genome_submission/$Organism/$Strain/third_submission/Contamination*.txt
-OutDir=assembly/spades/$Organism/$Strain/ncbi_edits
-mkdir -p $OutDir
-ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
-$ProgDir/remove_contaminants.py --inp $Round2Name --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
-done
+#
+# NCBI_report_dir=genome_submission/P.cactorum/P421_v2/third_submission
+# echo "$PWD/$NCBI_report_dir"
+# mkdir -p $NCBI_report_dir
+# # Move downloaded contamination report into this directory
+# for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
+# Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+# Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+# echo "$Organism - $Strain"
+# Round2Name=$(echo $Assembly | sed 's/contigs_min_500bp_renamed.fasta/round2.fasta/g')
+# mv $Assembly $Round2Name
+# NCBI_report=genome_submission/$Organism/$Strain/third_submission/Contamination*.txt
+# OutDir=assembly/spades/$Organism/$Strain/ncbi_edits
+# mkdir -p $OutDir
+# ProgDir=~/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+# $ProgDir/remove_contaminants.py --inp $Round2Name --out $OutDir/contigs_min_500bp_renamed.fasta --coord_file $NCBI_report > $OutDir/log.txt
+# done
 ```
 
 
@@ -1191,21 +1197,134 @@ First, RNAseq data was aligned to Fusarium genomes.
 * qc of RNA seq data was performed as part of sequencing the 10300 genome:
 
 
-#### Aligning
+### Aligning in house RNAseq data
+
+#### Timecourse of infection
+
+Maria performed alignment of RNAseq data vs the F. vesca and those reads that did not align were
+used for alignment vs the P.cactorum genome.
+
+make symbolic links to timecourse data
 
 ```bash
-  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e 'P.fragariae' | grep 'A4'); do
-    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-    echo "$Organism - $Strain"
-    for RNA in $(ls qc_rna/raw_rna/genbank/*/*/*_trim.fq.gz); do
-      Timepoint=$(echo $RNA | rev | cut -f1 -d '/' | rev | sed 's/_trim.*//g')
-      echo "$Timepoint"
-      OutDir=alignment/$Organism/$Strain/$Timepoint
-      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-      qsub $ProgDir/tophat_alignment_unpaired.sh $Assembly $RNA $OutDir
-    done
+  for File in $(ls /home/sobczm/popgen/rnaseq/vesca_*/*.mate1.fq.gz); do
+    Sample=$(echo $File | rev | cut -d '/' -f2 | rev | sed 's/vesca_//g')
+    echo "$Sample"
+    OutDir=qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07_no_vesca/$Sample/F
+    mkdir -p "$OutDir"
+    cp -s $File $OutDir/.
   done
+  for File in $(ls /home/sobczm/popgen/rnaseq/vesca_*/*.mate2.fq.gz); do
+    Sample=$(echo $File | rev | cut -d '/' -f2 | rev | sed 's/vesca_//g')
+    echo "$Sample"
+    OutDir=qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07_no_vesca/$Sample/R
+    mkdir -p "$OutDir"
+    cp -s $File $OutDir/.
+  done
+```
+
+#### Mycelium
+
+Qc of RNAseq data from mycelium and in-plant infection is detailed in commands for gene prediction of the PacBio assmbly under:
+assembly/pacbio_assembly.md
+
+Performed alignment of RNAseq data vs the F. vesca genome and those reads that did not align were
+used for alignment vs the P.cactorum genome.
+
+#### Aligning
+
+Aligning mycelium data
+
+```bash
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+for RNADir in $(ls -d ../../../../../data/scratch/armita/idris/alignment/star/fvesca/v1.1/*/* | grep 'mycelium'); do
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+done
+printf "\n"
+FileF=$(ls $RNADir/*.mate1.fq.gz)
+FileR=$(ls $RNADir/*.mate2.fq.gz)
+echo $FileF
+echo $FileR
+Prefix=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
+Timepoint=$(echo $RNADir | rev | cut -f2 -d '/' | rev)
+echo "$Timepoint"
+OutDir=../../../../../data/scratch/armita/idris/alignment/star/$Organism/$Strain/$Timepoint/$Prefix
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
+done
+done
+```
+
+Aligning timecourse data
+
+```bash
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+for RNADir in $(ls -d qc_rna/paired/*/* | grep -e '_no_vesca'); do
+FileNum=$(ls $RNADir/F/*.mate1.fq.gz | wc -l)
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+for num in $(seq 1 $FileNum); do
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+done
+printf "\n"
+FileF=$(ls $RNADir/F/*.mate1.fq.gz | head -n $num | tail -n1)
+FileR=$(ls $RNADir/R/*.mate2.fq.gz | head -n $num | tail -n1)
+echo $FileF
+echo $FileR
+Prefix=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
+Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
+Timepoint=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
+echo "$Timepoint"
+OutDir=../../../../../data/scratch/armita/idris/alignment/star/$Organism/$Strain/$Timepoint/$Prefix
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
+done
+done
+done
+```
+<!--
+Alignment stats were collected:
+
+```bash
+for File in $(ls alignment/star/P.cactorum/414/*/*/star_aligmentLog.final.out); do
+Sample=$(echo $File | rev | cut -f2 -d '/' | rev);
+ReadNumU=$(cat $File | grep 'Uniquely' | grep 'number' | cut -f2);
+ReadPercU=$(cat $File | grep 'Uniquely' | grep '%' | cut -f2);
+ReadNumM=$(cat $File | grep 'multiple' | grep 'Number' | cut -f2);
+ReadPercM=$(cat $File | grep 'multiple' | grep '%' | cut -f2);
+echo -e "$Sample""\t""$ReadNumU""\t""$ReadPercU""\t""$ReadNumM""\t""$ReadPercM";  
+done
+```
+
+```
+
+``` -->
+
+Alignments were concatenated prior to gene prediction
+
+```bash
+qlogin -pe smp 8
+cd /home/groups/harrisonlab/project_files/idris
+for StrainDir in $(ls -d ../../../../../data/scratch/armita/idris/alignment/star/P.*/*); do
+echo $StrainDir
+BamFiles=$(ls $StrainDir/*/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
+OutDir=$StrainDir/concatenated
+mkdir -p $OutDir
+samtools merge -@ 8 -f $OutDir/concatenated.bam $BamFiles
+done
+logout
 ```
 
 
