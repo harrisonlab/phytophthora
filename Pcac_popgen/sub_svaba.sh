@@ -1,9 +1,10 @@
 #!/bin/bash
 #$ -S /bin/bash
 #$ -cwd
-#$ -pe smp 16
-#$ -l virtual_free=5.9G
-#$ -l h=blacklace01.blacklace
+#$ -pe smp 8
+#$ -l virtual_free=1G
+#$ -l h=blacklace02.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace07.blacklace|blacklace08.blacklace|blacklace09.blacklace|blacklace10.blacklace
+
 
 # # Prefix="PcacP414"
 # Prefix="Pi_SCRP370"
@@ -53,12 +54,12 @@ bwa index $As
 # svaba run -t "$Prefix".bam -G $As -a "$Prefix"_sv -p 16
 # svaba run -t "$Prefix".sorted.bam -n control.sorted.bam -G $As -a "$Prefix"_sv -p 24
 BamFiles=$(ls *.bam | sed -E "s/$/ -t /g" | tr -d '\n' | sed -E "s/ -t $/ /g")
-svaba run -t $BamFiles -G $As -a "$Prefix"_sv -p 16
+svaba run -t $BamFiles -G $As -a "$Prefix"_sv -p 8
 
 rm $As*
 rm $BamFiles
 rm *.bam.bai
-mkdir -p $OutDir
+mkdir -p $CWD/$OutDir
 cp -r $WorkDir/* $CWD/$OutDir/.
 # wget "https://data.broadinstitute.org/snowman/dbsnp_indel.vcf" ## get a DBSNP known indel file
 # DBSNP=dbsnp_indel.vcf
