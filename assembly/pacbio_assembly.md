@@ -3377,9 +3377,9 @@ for GeneGff in $(ls gene_pred/final/*/*/final/final_genes_appended_renamed.gff3)
   GffOrfCRN=$(ls analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.bed)
   Assembly=$(ls repeat_masked/$Organism/$Strain/*/*_contigs_unmasked_wrapped.fa)
   # Identify RxLR ORFs intersecting non-RxLR gene models
-  bedtools intersect -wo -a $GeneGff -b $GffOrfRxLR | grep -e "AUGUSTUS.gene" | grep "ORF_RxLR.gene"| cut -f1,9,18 | sed 's/ID=//g' | tr -d ';' > $OutDir/RxLR_ORFs_intersecting_non-RxLR_genes.txt
+  bedtools intersect -wo -a $GeneGff -b $GffOrfRxLR | grep -e "AUGUSTUS.gene" -e "CodingQuarry_v2.0.gene" -e 'PGNCodingQuarry_v2.0' | grep "ORF_RxLR.gene"| cut -f1,9,18 | sed 's/ID=//g' | tr -d ';' > $OutDir/RxLR_ORFs_intersecting_non-RxLR_genes.txt
   # Identify CRN ORFs intersecting non-CRN gene models
-  bedtools intersect -wo -a $GeneGff -b $GffOrfCRN | grep -e "AUGUSTUS.gene" | grep "CRN_HMM.gene"| cut -f1,9,18 | sed 's/ID=//g' | tr -d ';' > $OutDir/CRN_ORFs_intersecting_non-CRN_genes.txt
+  bedtools intersect -wo -a $GeneGff -b $GffOrfCRN | grep -e "AUGUSTUS.gene" -e "CodingQuarry_v2.0.gene" -e 'PGNCodingQuarry_v2.0' | grep "CRN_HMM.gene"| cut -f1,9,18 | sed 's/ID=//g' | tr -d ';' > $OutDir/CRN_ORFs_intersecting_non-CRN_genes.txt
 done
 
 ```
@@ -3633,8 +3633,8 @@ Perform RNAseq pseudo-alignment using Salmon
 
 ```bash
 for Transcriptome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta | grep '414'); do
-Strain=$(echo $Transcriptome| rev | cut -d '/' -f3 | rev)
-Organism=$(echo $Transcriptome | rev | cut -d '/' -f4 | rev)
+Strain=$(echo $Transcriptome| rev | cut -d '/' -f2 | rev)
+Organism=$(echo $Transcriptome | rev | cut -d '/' -f3 | rev)
 echo "$Organism - $Strain"
 for RNADir in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/* | grep -e 'mycelium'); do
 FileNum=$(ls $RNADir/F/*.fq.gz | wc -l)
@@ -3683,7 +3683,7 @@ for File in $(ls alignment/salmon/*/*/*/*/quant.sf | head -n1); do
 done
 # Put files in a convenient location for DeSeq. Analysis was not performed on
 # Strawberry control samples.
-for File in $(ls alignment/salmon/*/*/*/*/quant.sf | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_'); do
+for File in $(ls alignment/salmon/*/*/*/*/quant.sf | grep -v -e 'PRO1467_S1/' -e 'PRO1467_S2/' -e 'PRO1467_S3/' -e 'PRO1467_S10/' -e 'PRO1467_S11/' -e 'PRO1467_S12/' | grep 'mycelium'); do
   # cat $File | grep 'g6.t1'
   Prefix=$(echo $File | cut -f6 -d '/' --output-delimiter '_')
   mkdir -p alignment/salmon/DeSeq2/$Prefix
