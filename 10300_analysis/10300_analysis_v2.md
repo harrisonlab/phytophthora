@@ -674,8 +674,8 @@ CazyGff=$OutDir/"$Strain"_CAZY.gff
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $CazyHeaders $Gff CAZyme ID > $CazyGff
 
-SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
-# SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_final_sp_no_trans_mem_no_GPI.aa)
+# SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
+SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_final_sp_no_trans_mem_no_GPI.aa)
 SecretedHeaders=$(echo $SecretedProts | sed 's/.fa/_headers.txt/g' | sed 's/.aa/_headers.txt/g')
 cat $SecretedProts | grep '>' | tr -d '>' > $SecretedHeaders
 CazyGffSecreted=$OutDir/"$Strain"_CAZY_secreted.gff
@@ -2450,16 +2450,18 @@ CAZY proteins:
 AnnotTab=$(ls analysis/gene_tables/P.cactorum/10300/10300_gene_table_final.tsv)
 OutDir=$(dirname $AnnotTab)/subset
 mkdir -p $OutDir
-cat $AnnotTab | grep 'CAZY' | wc -l
+cat $AnnotTab | grep 'CAZY' | tail -n+2 | wc -l
 # cat $AnnotTab | cut -f1,12,13,14,24,31 | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
 cat $AnnotTab | grep 'CAZY' > $OutDir/10300_gene_table_CAZY.tsv
-cat $AnnotTab | grep 'CAZY' | grep 'secreted' | tail -n+2 | wc -l
+cat $AnnotTab | grep 'CAZY' | cut -f12,13,14 | grep 'Yes' | tail -n+2 | wc -l
+cat $AnnotTab | grep 'CAZY' | cut -f12,13,14,27 | grep 'Yes' | tail -n+2 > $OutDir/10300_gene_table_CAZY_secreted.tsv
 cat $AnnotTab | grep 'CAZY' | grep 'secreted' > $OutDir/10300_gene_table_CAZY_secreted.tsv
 
 cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | wc -l
 cat $OutDir/10300_gene_table_CAZY_secreted.tsv | grep 'GBGX' | tail -n+2 | cut -f '34' | sort | uniq -c | wc -l
 
-
+# cat $OutDir/10300_gene_table_CAZY.tsv | cut -f27 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
+# cat $AnnotTab | grep 'CAZY' | cut -f12,13,14,27 | grep 'Yes' | tail -n+2 | cut -f4 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
 cat $OutDir/10300_gene_table_CAZY_secreted.tsv | cut -f27 | sort | uniq -c | sort -nr > $OutDir/10300_gene_table_CAZY_hmm_models.txt
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep 'GH'
 cat $OutDir/10300_gene_table_CAZY_hmm_models.txt | sed 's/.hmm//g' | sed 's/CAZY://g' | grep -v 'GH' | grep 'CBM'
