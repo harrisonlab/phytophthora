@@ -9,9 +9,48 @@ fasta file of contigs and the gff file of annotations must be combined to form a
 files and gff files to be formatted correctly. In the case of the gff file, this
 means parsing it to a .tbl file.
 
-The commands used to parse these files and prepare the Alternaria spp. genomes
+The commands used to parse these files and prepare the Pc 10300 genome
 for submisson are shown below.
 
+
+# SRA archive
+
+A bioproject and biosample was created at ncbi.
+Following this a metadata file was created for the dataset. This was copied
+into the following folder:
+
+```bash
+mkdir -p genome_submission/P.cactorum/10300
+ls genome_submission/P.cactorum/10300/Pc_10300_SRA_metadata_acc.txt
+```
+
+read data was copied to this location in preperation for submission to ncbi:
+
+```bash
+OutDir=genome_submission/P.cactorum/10300/SRA
+mkdir -p $OutDir
+for File in $(ls raw_dna/paired/P.cactorum/10300/*/Pcact*.fastq); do
+ cp $File $OutDir/.
+done
+for File in $(ls raw_dna/mate-paired/P.cactorum/10300/*/Pcact*.fastq.gz | grep -v 'concat'); do
+ cp $File $OutDir/.
+done
+gzip $OutDir/*.fastq
+tar -cz -f genome_submission/P.cactorum/10300/pc_10300_SRA.tar.gz genome_submission/P.cactorum/10300/SRA
+```
+
+FTP upload of data
+
+```bash
+cd genome_submission/P.cactorum/10300
+ftp ftp-private.ncbi.nlm.nih.gov
+# User is: subftp
+# Password is given in the FTP upload instrucitons during SRA submission
+cd uploads/andrew.armitage@emr.ac.uk_6L2oakBI
+mkdir Pcac_10300_PRJNA343457
+cd Pcac_10300_PRJNA343457
+put pc_10300_SRA.tar.gz
+```
 
 # Preliminary submission
 

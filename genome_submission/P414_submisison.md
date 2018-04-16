@@ -12,6 +12,44 @@ means parsing it to a .tbl file.
 The commands used to parse these files and prepare the F. oxysporum f. sp.
 cepae genome for submisson are shown below.
 
+A Bioproject and biosample number was prepared for the genome submission at:
+https://submit.ncbi.nlm.nih.gov
+Following this a metadata file was created for the dataset. This was copied
+into the following folder:
+
+```bash
+mkdir -p genome_submission/P.cac_comparative
+ls genome_submission/P.cac_comparative/Pc_Pi_SRA_metadata_acc.txt
+```
+
+read data was copied to this location in preperation for submission to ncbi:
+
+```bash
+screen -a
+OutDir=/data/scratch/armita/idris/genome_submission/P.cac_P414/SRA
+mkdir -p $OutDir
+for File in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep '414'); do
+ cp $File $OutDir/.
+done
+for File in $(ls raw_dna/pacbio/P.cactorum/414/extracted/*.fastq.gz | grep -v 'both'); do
+ cp $File $OutDir/.
+done
+cd /data/scratch/armita/idris/genome_submission/P.cac_P414
+tar -cz -f Pc_P414_SRA.tar.gz SRA
+```
+
+FTP upload of data
+
+```bash
+cd /data/scratch/armita/idris/genome_submission/P.cac_P414
+ftp ftp-private.ncbi.nlm.nih.gov
+# User is: subftp
+# Password is given in the FTP upload instrucitons during SRA submission
+cd uploads/andrew.armitage@emr.ac.uk_6L2oakBI
+mkdir Pcac_P414_PRJNA383548
+cd Pcac_P414_PRJNA383548
+put Pc_P414_SRA.tar.gz
+```
 
 # Preliminary submission
 
@@ -158,7 +196,7 @@ ProgDir="/home/armita/git_repos/emr_repos/tools/genbank_submission"
 SbtFile="/home/groups/harrisonlab/project_files/idris/genome_submission/P.cactorum/414_v2/template.sbt"
 Assembly=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
 InterProTab=$(ls gene_pred/interproscan/P.cactorum/414/414_interproscan.tsv)
-SwissProtBlast=$(ls gene_pred/swissprot/P.cactorum/414/swissprot_vJul2016_tophit_parsed.tbl)
+SwissProtBlast=$(ls gene_pred/swissprot/P.cactorum/414/swissprot_vMar2018_tophit_parsed.tbl)
 SwissProtFasta=$(ls /home/groups/harrisonlab/uniprot/swissprot/uniprot_sprot.fasta)
 GffFile=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 # tbl2asn options:
@@ -272,7 +310,7 @@ them as incomplete ('unknown_UTR').
 
 ```bash
   mkdir -p $OutDir/gag/edited
-  $ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $SubmissionID --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --remove_product_locus_tags "True" --out_tbl $OutDir/gag/edited/genome.tbl
+  $ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $SubmissionID --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --remove_product_locus_tags "True" --del_name_from_prod True --out_tbl $OutDir/gag/edited/genome.tbl
 ```
 
 
@@ -301,5 +339,5 @@ and that runs of N's longer than 10 bp should be labelled as gaps.
   cp $SbtFile $OutDir/gag/edited/genome.sbt
   mkdir $OutDir/tbl2asn/final
   tbl2asn -p $OutDir/gag/edited/. -t $OutDir/gag/edited/genome.sbt -r $OutDir/tbl2asn/final -M n -X E -Z $OutDir/tbl2asn/final/discrep.txt -j "[organism=$Organism] [strain=$Strain]" -l paired-ends -a r10k -w $OutDir/gag/edited/annotation_methods.strcmt.txt
-  cat $OutDir/tbl2asn/final/genome.sqn | sed 's/_pilon//g' | sed 's/\. subunit/kDa subunit/g' | sed 's/, mitochondrial//g' > $OutDir/tbl2asn/final/$FinalName.sqn
+  cat $OutDir/tbl2asn/final/genome.sqn > $OutDir/tbl2asn/final/$FinalName.sqn
 ```

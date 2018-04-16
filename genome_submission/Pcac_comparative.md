@@ -13,6 +13,48 @@ The commands used to parse these files and prepare the F. oxysporum f. sp.
 cepae genome for submisson are shown below.
 
 
+# SRA archive
+
+A Bioproject and biosample number was prepared for the genome submission at:
+https://submit.ncbi.nlm.nih.gov
+Following this a metadata file was created for the dataset. This was copied
+into the following folder:
+
+```bash
+mkdir -p genome_submission/P.cac_comparative
+ls genome_submission/P.cac_comparative/Pc_Pi_SRA_metadata_acc.txt
+```
+
+read data was copied to this location in preperation for submission to ncbi:
+
+```bash
+screen -a
+OutDir=/data/scratch/armita/idris/genome_submission/P.cac_comparative/SRA
+mkdir -p $OutDir
+for File in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '414'); do
+ cp $File $OutDir/.
+done
+for File in $(ls raw_dna/paired/P.idaei/*/*/*.fastq.gz); do
+ cp $File $OutDir/.
+done
+cd /data/scratch/armita/idris/genome_submission/P.cac_comparative
+tar -cz -f Pc_SRA.tar.gz SRA
+```
+
+FTP upload of data
+
+```bash
+cd /data/scratch/armita/idris/genome_submission/P.cac_comparative
+ftp ftp-private.ncbi.nlm.nih.gov
+# User is: subftp
+# Password is given in the FTP upload instrucitons during SRA submission
+cd uploads/andrew.armitage@emr.ac.uk_6L2oakBI
+mkdir Pcac_comparative_PRJNA391273
+cd Pcac_comparative_PRJNA391273
+put Pc_SRA.tar.gz
+```
+
+
 # Preliminary submission
 
 A Bioproject and biosample number was prepared for the genome submission at:
