@@ -195,7 +195,7 @@ OutDir=$(dirname $Vcf)
 Errors=$OutDir/414_error_SNPs.tsv
 FilteredVcf=$OutDir/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-$ProgDir/flag_error_SNPs.py --inp_vcf $Vcf --ref_isolate 414 --errors $Errors --filtered $FilteredVcf
+$ProgDir/flag_error_SNPs.py --ploidy 'diploid' --inp_vcf $Vcf --ref_isolate 414 --errors $Errors --filtered $FilteredVcf
 echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
 cat $Errors
 # cat $Errors | wc -l
