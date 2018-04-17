@@ -19,12 +19,17 @@ ap.add_argument('--inp_vcf',required=True,type=str,help='input vcf file')
 ap.add_argument('--ref_isolate',required=True,type=str,help='The isolate id in the input vcf that should be investigated')
 ap.add_argument('--errors',required=True,type=str,help='tsv file of contig and location of error SNPs')
 ap.add_argument('--filtered',required=True,type=str,help='filtered vcf file with error SNP lines removed')
+ap.add_argument('--ploidy',required=True,type=str,help='ploidy of genotypes (GT) in the vcf file: haploid or diploid')
+
 
 conf = ap.parse_args()
 
 ref_isolate = conf.ref_isolate
 f_errors = conf.errors
 f_filtered = conf.filtered
+ploidy = conf.ploidy
+if not any(ploidy != x for x in ['haploid', 'diploid']):
+    sys.exit("ploidy error")
 
 with open(conf.inp_vcf) as f:
     inp_lines = f.readlines()
@@ -53,12 +58,19 @@ for line in inp_lines:
     location = split_line[1]
     ref_SNP = split_line[ref_index]
     GT = ref_SNP.split(':')[0]
-    if GT == '1/1' or GT == '1|1':
-        # print "\t".join([contig, location, ref_SNP])
-        # print "\t".join([contig, location])
-        errors_out.append("\t".join([contig, location]))
+    if ploidy == 'diploid':
+        if GT == '1/1' or GT == '1|1':
+            errors_out.append("\t".join([contig, location]))
+        else:
+            filtered_out.append(line)
+    elif ploidy == 'haploid':
+        if GT == '1':
+            errors_out.append("\t".join([contig, location]))
+        else:
+            filtered_out.append(line)
     else:
-        filtered_out.append(line)
+        print "ploidy error"
+        exit()
 
 f = open(f_errors,"w")
 f.write("\n".join(errors_out) + "\n")
