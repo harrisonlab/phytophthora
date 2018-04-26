@@ -1943,7 +1943,7 @@ of approaches:
  Proteins that were predicted to contain signal peptides were identified using
  the following commands:
 
- ```bash
+```bash
 for Proteome in $(ls gene_pred/final/*/*/*/final_genes_appended_renamed.pep.fasta); do
 SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
 Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
@@ -2170,192 +2170,6 @@ done
   2129
   Number of gene models:
   2118
-```
-
-
-
-### C) From Augustus gene models - Effector-like structure identification using EffectorP
-
-Required programs:
-* EffectorP.py
-
-```bash
-for Proteome in $(ls gene_pred/final/*/*/*/final_genes_appended_renamed.pep.fasta | grep '414'); do
-Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-echo "$Organism - $Strain"
-BaseName="$Organism"_"$Strain"_EffectorP
-OutDir=analysis/effectorP/$Organism/$Strain
-ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation/fungal_effectors
-qsub $ProgDir/pred_effectorP.sh $Proteome $BaseName $OutDir
-done
-```
-
-Those genes that were predicted as secreted and tested positive by effectorP
-were identified:
-
-Note - this doesnt exclude proteins with TM domains or GPI anchors
-
-```bash
- for File in $(ls analysis/effectorP/*/*/*_EffectorP.txt | grep '414'); do
-   Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
-   Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
-   echo "$Organism - $Strain"
-   Headers=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_headers.txt/g')
-   cat $File | grep 'Effector' | cut -f1 > $Headers
-   printf "EffectorP headers:\t"
-   cat $Headers | wc -l
-   Secretome=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
-   OutFile=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.aa/g')
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-   $ProgDir/extract_from_fasta.py --fasta $Secretome --headers $Headers > $OutFile
-   OutFileHeaders=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted_headers.txt/g')
-   cat $OutFile | grep '>' | tr -d '>' > $OutFileHeaders
-   printf "Secreted effectorP headers:\t"
-   cat $OutFileHeaders | wc -l
-   Gff=$(ls gene_pred/final/$Organism/$Strain/*/final_genes_appended_renamed.gff3)
-   EffectorP_Gff=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.gff/g')
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-   $ProgDir/extract_gff_for_sigP_hits.pl $OutFileHeaders $Gff effectorP ID > $EffectorP_Gff
- done
-```
-```
-P.cactorum - 414
-EffectorP headers:	19602
-Secreted effectorP headers:	925
-```
-
-## D) CAZY proteins
-
-Carbohydrte active enzymes were idnetified using CAZYfollowing recomendations
-at http://csbl.bmb.uga.edu/dbCAN/download/readme.txt :
-
-```bash
-for Proteome in $(ls gene_pred/final/*/*/*/final_genes_appended_renamed.pep.fasta | grep '414'); do
-Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-echo "$Organism - $Strain"
-OutDir=gene_pred/CAZY/$Organism/$Strain
-mkdir -p $OutDir
-Prefix="$Strain"_CAZY
-CazyHmm=../../dbCAN/dbCAN-fam-HMMs.txt
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
-qsub $ProgDir/sub_hmmscan.sh $CazyHmm $Proteome $Prefix $OutDir
-done
-```
-
-The Hmm parser was used to filter hits by an E-value of E1x10-5 or E 1x10-e3 if they had a hit over a length of X %.
-
-Those proteins with a signal peptide were extracted from the list and gff files
-representing these proteins made.
-
-```bash
-for File in $(ls gene_pred/CAZY/*/*/*CAZY.out.dm | grep '414'); do
-Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
-Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
-OutDir=$(dirname $File)
-echo "$Organism - $Strain"
-ProgDir=/home/groups/harrisonlab/dbCAN
-$ProgDir/hmmscan-parser.sh $OutDir/"$Strain"_CAZY.out.dm > $OutDir/"$Strain"_CAZY.out.dm.ps
-CazyHeaders=$(echo $File | sed 's/.out.dm/_headers.txt/g')
-cat $OutDir/"$Strain"_CAZY.out.dm.ps | cut -f3 | sort | uniq > $CazyHeaders
-printf "number of CAZY genes identified:\t"
-cat $CazyHeaders | wc -l
-Gff=$(ls gene_pred/final/$Organism/$Strain/final/final_genes_appended_renamed.gff3)
-CazyGff=$OutDir/"$Strain"_CAZY.gff
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-$ProgDir/extract_gff_for_sigP_hits.pl $CazyHeaders $Gff CAZyme ID > $CazyGff
-
-SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
-# SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_final_sp_no_trans_mem_no_GPI.aa)
-SecretedHeaders=$(echo $SecretedProts | sed 's/.fa/_headers.txt/g' | sed 's/.aa/_headers.txt/g')
-cat $SecretedProts | grep '>' | tr -d '>' > $SecretedHeaders
-CazyGffSecreted=$OutDir/"$Strain"_CAZY_secreted.gff
-$ProgDir/extract_gff_for_sigP_hits.pl $SecretedHeaders $CazyGff Secreted_CAZyme ID > $CazyGffSecreted
-printf "number of Secreted CAZY genes identified:\t"
-cat $CazyGffSecreted | grep -w 'mRNA' | cut -f9 | tr -d 'ID=' | cut -f1 -d ';' > $OutDir/"$Strain"_CAZY_secreted_headers.txt
-cat $OutDir/"$Strain"_CAZY_secreted_headers.txt | wc -l
-done
-```
-
-```
-P.cactorum - 10300
-number of CAZY genes identified:	697
-number of Secreted CAZY genes identified:	372
-```
-
-or, if those secreted proteins with TM domains or GPI anchors are removed:
-
-```
-P.cactorum - 10300
-number of CAZY genes identified:	697
-number of Secreted CAZY genes identified:	236
-```
-
-
-Note - the CAZY genes identified may need further filtering based on e value and
-cuttoff length - see below:
-
-Cols in yourfile.out.dm.ps:
-1. Family HMM
-2. HMM length
-3. Query ID
-4. Query length
-5. E-value (how similar to the family HMM)
-6. HMM start
-7. HMM end
-8. Query start
-9. Query end
-10. Coverage
-
-* For fungi, use E-value < 1e-17 and coverage > 0.45
-
-* The best threshold varies for different CAZyme classes (please see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4132414/ for details). Basically to annotate GH proteins, one should use a very relax coverage cutoff or the sensitivity will be low (Supplementary Tables S4 and S9); (ii) to annotate CE families a very stringent E-value cutoff and coverage cutoff should be used; otherwise the precision will be very low due to a very high false positive rate (Supplementary Tables S5 and S10)
-
-### Summary of CAZY families by organism
-
-
-```bash
-for CAZY in $(ls gene_pred/CAZY/*/*/*_CAZY.out.dm.ps | grep '10300'); do
- Strain=$(echo $CAZY | rev | cut -f2 -d '/' | rev)
- Organism=$(echo $CAZY | rev | cut -f3 -d '/' | rev)
- OutDir=$(dirname $CAZY)
- echo "$Organism - $Strain"
- Secreted=$(ls gene_pred/combined_sigP/$Organism/$Strain/*_sp_no_trans_mem_no_GPI_headers.txt)
- Gff=$(ls gene_pred/final/$Organism/$Strain/final/final_genes_appended_renamed.gff3)
- ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/CAZY
- $ProgDir/summarise_CAZY.py --cazy $CAZY --inp_secreted $Secreted --inp_gff $Gff --summarise_family --trim_gene_id 2 --kubicek_2014
-done
-```
-
-```
- P.cactorum - 10300
- Polygalacturonase - 17
- A-Arabinosidases - 5
- Xylanases - 12
- Polygalacturonate lyases - 34
- B-Glycosidases - 16
- Cellulases - 26
- other - 126
-```
-
-The following commands were used to identify b-glucan binding proteins as described in:
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3627985/
-
-```bash
- for File in $(ls gene_pred/CAZY/*/*/*CAZY.out.dm | grep '10300'); do
-   cat $File | grep -w -e 'GH5' -e 'GH55' -e 'GH81' -e 'GH16' -e 'GH3' -e 'GH17' -e 'GH72' | sed -r "s/\s+/\t/g" | cut -f1,4 |  sort | uniq > tmp1.txt
-   cat tmp1.txt | cut -f2 > tmp2.txt
-   cat tmp1.txt | grep -f tmp3.txt | cut -f1 | sort | uniq -c
- done
-```
-
-```
- 2 GH16.hmm
- 18 GH17.hmm
- 14 GH3.hmm
- 14 GH5.hmm
- 11 GH81.hmm
 ```
 
 # D) Prediction of RxLRs from - Augustus/CodingQuary gene models
@@ -3627,7 +3441,229 @@ done
 ```
 
 
-## RNAseq
+# Genes with transcription factor annotations:
+
+
+A list of PFAM domains, superfamily annotations used as part of the DBD database
+and a further set of interproscan annotations listed by Shelest et al 2017 were made
+http://www.transcriptionfactor.org/index.cgi?Domain+domain:all
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5415576/
+
+```bash
+for Interpro in $(ls gene_pred/interproscan/*/*/*_interproscan.tsv | grep '414'); do
+Organism=$(echo $Interpro | rev | cut -f3 -d '/' | rev)
+Strain=$(echo $Interpro | rev | cut -f2 -d '/' | rev)
+# echo "$Organism - $Strain"
+OutDir=analysis/transcription_factors/$Organism/$Strain
+mkdir -p $OutDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/transcription_factors
+$ProgDir/interpro2TFs.py --InterPro $Interpro > $OutDir/"$Strain"_TF_domains.tsv
+# echo "total number of transcription factors"
+cat $OutDir/"$Strain"_TF_domains.tsv | cut -f1 | sort | uniq > $OutDir/"$Strain"_TF_gene_headers.txt
+NumTF=$(cat $OutDir/"$Strain"_TF_gene_headers.txt | wc -l)
+printf "$Organism\t$Strain\t$NumTF\n"
+done
+```
+
+```
+P.cactorum	414	1215
+```
+
+
+
+### Effector-like structure identification using EffectorP
+
+Required programs:
+* EffectorP.py
+
+```bash
+for Proteome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414'); do
+Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+BaseName="$Organism"_"$Strain"_EffectorP
+OutDir=analysis/effectorP/$Organism/$Strain
+ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation/fungal_effectors
+qsub $ProgDir/pred_effectorP.sh $Proteome $BaseName $OutDir
+done
+```
+
+Those genes that were predicted as secreted and tested positive by effectorP
+were identified:
+
+Note - this doesnt exclude proteins with TM domains or GPI anchors
+
+```bash
+ for File in $(ls analysis/effectorP/*/*/*_EffectorP.txt | grep '414'); do
+   Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+   Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+   echo "$Organism - $Strain"
+   Headers=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_headers.txt/g')
+   cat $File | grep 'Effector' | cut -f1 > $Headers
+   printf "EffectorP headers:\t"
+   cat $Headers | wc -l
+#    Secretome=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
+#    OutFile=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.aa/g')
+#    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+#    $ProgDir/extract_from_fasta.py --fasta $Secretome --headers $Headers > $OutFile
+#    OutFileHeaders=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted_headers.txt/g')
+#    cat $OutFile | grep '>' | tr -d '>' > $OutFileHeaders
+#    printf "Secreted effectorP headers:\t"
+#    cat $OutFileHeaders | wc -l
+#    Gff=$(ls gene_pred/final/$Organism/$Strain/*/final_genes_appended_renamed.gff3)
+#    EffectorP_Gff=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.gff/g')
+#    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+#    $ProgDir/extract_gff_for_sigP_hits.pl $OutFileHeaders $Gff effectorP ID > $EffectorP_Gff
+done
+```
+```
+P.cactorum - 414
+EffectorP headers:	19602
+```
+
+## CAZY proteins
+
+Carbohydrte active enzymes were idnetified using CAZYfollowing recomendations
+at http://csbl.bmb.uga.edu/dbCAN/download/readme.txt :
+
+```bash
+for Proteome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta | grep '414'); do
+Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+echo "$Organism - $Strain"
+OutDir=gene_pred/CAZY/$Organism/$Strain
+mkdir -p $OutDir
+Prefix="$Strain"_CAZY
+CazyHmm=../../../../home/groups/harrisonlab/dbCAN/dbCAN-fam-HMMs.txt
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
+qsub $ProgDir/sub_hmmscan.sh $CazyHmm $Proteome $Prefix $OutDir
+done
+```
+
+The Hmm parser was used to filter hits by an E-value of E1x10-5 or E 1x10-e3 if they had a hit over a length of X %.
+
+Those proteins with a signal peptide were extracted from the list and gff files
+representing these proteins made.
+
+```bash
+for File in $(ls gene_pred/CAZY/*/*/*CAZY.out.dm | grep '414'); do
+Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+OutDir=$(dirname $File)
+echo "$Organism - $Strain"
+ProgDir=/home/groups/harrisonlab/dbCAN
+$ProgDir/hmmscan-parser.sh $OutDir/"$Strain"_CAZY.out.dm > $OutDir/"$Strain"_CAZY.out.dm.ps
+CazyHeaders=$(echo $File | sed 's/.out.dm/_headers.txt/g')
+cat $OutDir/"$Strain"_CAZY.out.dm.ps | cut -f3 | sort | uniq > $CazyHeaders
+printf "number of CAZY genes identified:\t"
+cat $CazyHeaders | wc -l
+Gff=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+CazyGff=$OutDir/"$Strain"_CAZY.gff
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_gff_for_sigP_hits.pl $CazyHeaders $Gff CAZyme ID > $CazyGff
+
+# SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
+# # SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_final_sp_no_trans_mem_no_GPI.aa)
+# SecretedHeaders=$(echo $SecretedProts | sed 's/.fa/_headers.txt/g' | sed 's/.aa/_headers.txt/g')
+# cat $SecretedProts | grep '>' | tr -d '>' > $SecretedHeaders
+# CazyGffSecreted=$OutDir/"$Strain"_CAZY_secreted.gff
+# $ProgDir/extract_gff_for_sigP_hits.pl $SecretedHeaders $CazyGff Secreted_CAZyme ID > $CazyGffSecreted
+# printf "number of Secreted CAZY genes identified:\t"
+# cat $CazyGffSecreted | grep -w 'mRNA' | cut -f9 | tr -d 'ID=' | cut -f1 -d ';' > $OutDir/"$Strain"_CAZY_secreted_headers.txt
+# cat $OutDir/"$Strain"_CAZY_secreted_headers.txt | wc -l
+done
+```
+
+```
+P.cactorum - 414
+number of CAZY genes identified:	674
+```
+<!--
+or, if those secreted proteins with TM domains or GPI anchors are removed:
+
+```
+P.cactorum - 10300
+number of CAZY genes identified:	697
+number of Secreted CAZY genes identified:	236
+``` -->
+
+
+Note - the CAZY genes identified may need further filtering based on e value and
+cuttoff length - see below:
+
+Cols in yourfile.out.dm.ps:
+1. Family HMM
+2. HMM length
+3. Query ID
+4. Query length
+5. E-value (how similar to the family HMM)
+6. HMM start
+7. HMM end
+8. Query start
+9. Query end
+10. Coverage
+
+* For fungi, use E-value < 1e-17 and coverage > 0.45
+
+* The best threshold varies for different CAZyme classes (please see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4132414/ for details). Basically to annotate GH proteins, one should use a very relax coverage cutoff or the sensitivity will be low (Supplementary Tables S4 and S9); (ii) to annotate CE families a very stringent E-value cutoff and coverage cutoff should be used; otherwise the precision will be very low due to a very high false positive rate (Supplementary Tables S5 and S10)
+
+### Summary of CAZY families by organism
+
+
+The following commands were used to identify b-glucan binding proteins as described in:
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3627985/
+
+```bash
+ for File in $(ls gene_pred/CAZY/*/*/*CAZY.out.dm | grep '414'); do
+   cat $File | grep -w -e 'GH5' -e 'GH55' -e 'GH81' -e 'GH16' -e 'GH3' -e 'GH17' -e 'GH72' | sed -r "s/\s+/\t/g" | cut -f1,4 |  sort | uniq > tmp1.txt
+   cat tmp1.txt | cut -f2 > tmp2.txt
+   cat tmp1.txt | grep -f tmp2.txt | cut -f1 | sort | uniq -c
+ done
+```
+
+```
+  28 GH16.hmm
+  30 GH17.hmm
+  22 GH3.hmm
+  55 GH5.hmm
+  13 GH72.hmm
+  21 GH81.hmm
+```
+
+## PhiBase genes:
+
+
+Identifying PHIbase homologs
+
+```bash
+qlogin -pe smp 4
+cd /data/scratch/armita/idris
+dbFasta=$(ls /home/groups/harrisonlab/phibase/v4.4/phi_accessions.fa)
+dbType="prot"
+QueryFasta=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+Prefix="414_phi_accessions"
+Eval="1e-30"
+ # WorkDir=$TMPDIR
+ OutDir=analysis/blast_homology/P.cactorum/414
+ mkdir -p $OutDir
+ #-------------------------------------------------------
+ # 		Step 1.		Make database
+ #-------------------------------------------------------
+ makeblastdb -in $dbFasta -input_type fasta -dbtype $dbType -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+ #-------------------------------------------------------
+ # 		Step 2.		Blast Search
+ #-------------------------------------------------------
+ blastx -num_threads 4 -db $OutDir/$Prefix.db -query $QueryFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+ #-------------------------------------------------------
+ # 		Step 3.		Summarise hits
+ #-------------------------------------------------------
+ cat $OutDir/${Prefix}_hits.txt | grep 'effector' | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+```
+
+
+
+
+# RNAseq
 
 Perform RNAseq pseudo-alignment using Salmon
 
@@ -3638,8 +3674,13 @@ Organism=$(echo $Transcriptome | rev | cut -d '/' -f3 | rev)
 echo "$Organism - $Strain"
 for RNADir in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_rna/paired/*/* | grep -e 'mycelium'); do
 FileNum=$(ls $RNADir/F/*.fq.gz | wc -l)
-Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
 for num in $(seq 1 $FileNum); do
+Jobs=$(qstat | grep 'sub_salmon' | grep 'qw' | wc -l)
+while [ $Jobs -gt 0 ]; do
+sleep 2
+printf "."
+Jobs=$(qstat | grep 'sub_salmon' | grep 'qw' | wc -l)
+done
 printf "\n"
 FileF=$(ls $RNADir/F/*.fq.gz | head -n $num | tail -n1)
 FileR=$(ls $RNADir/R/*.fq.gz | head -n $num | tail -n1)
@@ -3683,14 +3724,122 @@ for File in $(ls alignment/salmon/*/*/*/*/quant.sf | head -n1); do
 done
 # Put files in a convenient location for DeSeq. Analysis was not performed on
 # Strawberry control samples.
-for File in $(ls alignment/salmon/*/*/*/*/quant.sf | grep -v -e 'PRO1467_S1/' -e 'PRO1467_S2/' -e 'PRO1467_S3/' -e 'PRO1467_S10/' -e 'PRO1467_S11/' -e 'PRO1467_S12/' | grep 'mycelium'); do
+for File in $(ls alignment/salmon/*/*/*/*/quant.sf | grep -v -e 'PRO1467_S1/' -e 'PRO1467_S2/' -e 'PRO1467_S3/' -e 'PRO1467_S10/' -e 'PRO1467_S11/' -e 'PRO1467_S12/'); do
   # cat $File | grep 'g6.t1'
   Prefix=$(echo $File | cut -f6 -d '/' --output-delimiter '_')
   mkdir -p alignment/salmon/DeSeq2/$Prefix
   cp $PWD/$File alignment/salmon/DeSeq2/$Prefix/quant.sf
-  # rm alignment/salmon/DeSeq2/$Prefix/quant.sf
 done
 
 # cp /home/groups/harrisonlab/project_files/idris/alignment/star/P.cactorum/414_v2/DeSeq/P.cactorum_RNAseq_design_parsed.txt alignment/salmon/DeSeq2/.
 nano alignment/salmon/DeSeq2/P.cactorum_RNAseq_design_parsed.txt
+```
+
+
+
+# Building Annotation Tables
+
+
+
+
+```bash
+for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep '414'); do
+  Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
+  Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
+  OutDir=gene_pred/annotation/$Organism/$Strain
+  mkdir -p $OutDir
+
+  # combine sigP2 headers
+  cat gene_pred/final_sigP/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' > $OutDir/sigP2_headers_combined.txt
+  cat gene_pred/ORF_sigP/$Organism/$Strain/${Strain}_ORF_sp_names.txt | tr -d ' ' >> $OutDir/sigP2_headers_combined.txt
+
+  # combine sigP3 headers
+  cat gene_pred/final_signalp-3.0/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP3_headers_combined.txt
+  cat gene_pred/ORF_signalp-3.0/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP3_headers_combined.txt
+
+  # combine sigP4 headers
+  cat gene_pred/final_signalp-4.1/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP4_headers_combined.txt
+  cat gene_pred/ORF_signalp-4.1/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP4_headers_combined.txt
+
+  cat analysis/phobius/$Organism/$Strain/${Strain}_phobius_headers.txt analysis/phobius/$Organism/$Strain/${Strain}_phobius_headers_ORF.txt | sed "s/^g_/contig_/g" > $OutDir/phobius_headers_combined.txt
+
+  cat analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_RxLR_EER_regex.fa analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_ORF_RxLR_EER_regex_merged.aa > $OutDir/${Strain}_combined_RxLR_EER_regex.fa
+
+  cat analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/${Strain}_RxLR_hmmer.fa analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/${Strain}_ORF_RxLR_hmmer.fa > $OutDir/${Strain}_combined_RxLR_hmmer.fa
+
+  cat analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/${Strain}_Aug_WY_hmmer.fa analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/${Strain}_ORF_WY_hmmer.fa > $OutDir/${Strain}_combined_WY_hmmer.fa
+
+  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.bed \
+  	| grep -w 'transcript' | cut -f5 -d '=' | cut -f1 -d ';' \
+  	> analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.txt
+  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORF_CRN_LFLAK_unmerged_hmmer.fa \
+  	| grep -A1 -f analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.txt \
+  	| grep -v '\-\-' \
+  	> analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.fa
+
+  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.fa > $OutDir/${Strain}_combined_CRN_LFLAK_hmm.fa
+
+  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_pub_CRN_DWL_hmm.fa analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORF_CRN_DWL_unmerged_hmmer.fa > $OutDir/${Strain}_combined_CRN_DWL_hmm.fa
+
+  Fasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta)
+  OrfGff=$(ls gene_pred/ORF_finder/$Organism/$Strain/${Strain}_ORF.gff3)
+  GeneConversion=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_appended_renamed.log)
+  TFs=$(ls analysis/transcription_factors/$Organism/$Strain/"$Strain"_TF_domains.tsv)
+  SigP2=$(ls $OutDir/sigP2_headers_combined.txt)
+  SigP3=$(ls $OutDir/sigP3_headers_combined.txt)
+  SigP4=$(ls $OutDir/sigP4_headers_combined.txt)
+  Phobius=$(ls $OutDir/phobius_headers_combined.txt)
+  TM_out=$(ls gene_pred/trans_mem/$Organism/$Strain/"$Strain"_TM_genes_pos.txt)
+  GPI_out=$(ls gene_pred/trans_mem/$Organism/$Strain/GPIsom/GPI_pos.fa)
+  RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_all_secreted_RxLR_regex.fa)
+  # RxLR_EER_Motif=$(ls $OutDir/${Strain}_combined_RxLR_EER_regex.fa)
+  RxLR_Hmm=$(ls $OutDir/${Strain}_combined_RxLR_hmmer.fa)
+  RxLR_WY=$(ls $OutDir/${Strain}_combined_WY_hmmer.fa)
+  CRN_LFLAK=$(ls $OutDir/${Strain}_combined_CRN_LFLAK_hmm.fa)
+  CRN_DWL=$(ls $OutDir/${Strain}_combined_CRN_DWL_hmm.fa)
+  # CAZY_Hmm=$(ls gene_pred/CAZY/*/*/*CAZY.out.dm.ps | grep "$Strain")
+  EffP_list=$(ls analysis/effectorP/$Organism/$Strain/"$Organism"_"$Strain"_EffectorP_headers.txt)
+  CAZY_list=$(ls gene_pred/CAZY/$Organism/$Strain/"$Strain"_CAZY.out.dm.ps)
+  PhiHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_phi_accessions_hits_headers.txt)
+  # ToxinHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_CDC_genes_hits_headers.txt)
+  InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
+  SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vMar2018_tophit_parsed.tbl)
+  # Orthology=$(ls analysis/orthology/orthomcl/At_Aa_Ag_all_isolates/formatted/Results_Apr10/Orthogroups.txt)
+  # OrthoStrainID='At_1'
+  # echo $OrthoStrainID
+  # OrthoStrainAll='At_1 At_2 At_3 At_4 At_5 At_6 At_6 At_7 At_8 Aa_1 Aa_2 Aa_3 Ag_1'
+  DEGs=$(ls alignment/salmon/DeSeq2/*_DEGs.txt | sed "s/.txt/.txt /g" | tr -d "\n")
+  fpkm=$(ls alignment/salmon/DeSeq2/fpkm_norm_counts.txt)
+  SNPs=$(ls analysis/popgen/SNP_calling/*annotated.vcf)
+  Indels=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel.filtered_no_errors_annotated.vcf)
+  SVs=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv.filtered_no_errors_annotated.vcf)
+
+  ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
+  $ProgDir/P414_annotation_table.py \
+  --protein_fasta $Fasta \
+  --conversion_log $GeneConversion \
+  --ORF_gff $OrfGff \
+  --genes_gff $GeneGff \
+  --SigP2 $SigP2 \
+  --SigP3 $SigP3 \
+  --SigP4 $SigP4 \
+  --phobius $Phobius \
+  --TM_list $TM_out \
+  --RxLR_regex $RxLR_Motif \
+  --RxLR_hmm $RxLR_Hmm \
+  --CRN_dwl $CRN_DWL \
+  --CRN_lflak $CRN_LFLAK \
+  --EffP_list $EffP_list \
+  --PhiHits $PhiHits \
+  --CAZY $CAZY_list \
+  --TFs $TFs \
+  --DEGs $DEGs \
+  --fpkm $fpkm \
+  --InterPro $InterPro \
+  --Swissprot $SwissProt \
+  --SNPs $SNPs \
+  --InDels $Indels \
+  --SVs $SVs \
+  > $OutDir/"$Strain"_annotation_ncbi.tsv
+done
 ```
