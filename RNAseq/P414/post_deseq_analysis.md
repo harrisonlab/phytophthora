@@ -12,8 +12,31 @@ for UpFile in $(ls alignment/salmon/DeSeq2/*_up.txt); do
   echo $DegFile
   cat $DegFile | wc -l
 done
+```
 
 ```
+alignment/salmon/DeSeq2/Emily12h_vs_Emily48h_DEGs.txt
+5979
+alignment/salmon/DeSeq2/Emily12h_vs_Fenella12h_DEGs.txt
+50
+alignment/salmon/DeSeq2/Emily12h_vs_Fenella48h_DEGs.txt
+4819
+alignment/salmon/DeSeq2/Emily48h_vs_Fenella48h_DEGs.txt
+652
+alignment/salmon/DeSeq2/Fenella12h_vs_Emily48h_DEGs.txt
+6034
+alignment/salmon/DeSeq2/Fenella12h_vs_Fenella48h_DEGs.txt
+4819
+alignment/salmon/DeSeq2/Mycelium_vs_Emily12h_DEGs.txt
+9678
+alignment/salmon/DeSeq2/Mycelium_vs_Emily48h_DEGs.txt
+9612
+alignment/salmon/DeSeq2/Mycelium_vs_Fenella12h_DEGs.txt
+10069
+alignment/salmon/DeSeq2/Mycelium_vs_Fenella48h_DEGs.txt
+10068
+```
+
 
 ```bash
 cd /data/scratch/armita/idris
