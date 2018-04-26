@@ -902,8 +902,8 @@ done
 Numbers of busco genes in each assembly were identified:
 
 ```bash
-# for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
-for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep 'P421_v2'); do
+for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filtered_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'); do
+# for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei'| grep 'P421_v2'); do
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
@@ -1020,11 +1020,10 @@ done
 
 
 ```bash
-  for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421'); do
+  for Assembly in $(ls assembly/spades/*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep 'P421_v2'); do
     Kmer=$(echo $Assembly | rev | cut -f2 -d '/' | rev);
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
-    # OutDir=assembly/spades/$Organism/$Strain/filtered_contigs;
     OutDir=$(dirname $Assembly)
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
@@ -1340,20 +1339,17 @@ directory:
 ```
 
 ```bash
-    for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep 'A4'); do
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     	Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
     	Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     	echo "$Organism - $Strain"
     	mkdir -p alignment/$Organism/$Strain/concatenated
-    	samtools merge -f alignment/$Organism/$Strain/concatenated/concatenated.bam \
-      alignment/$Organism/$Strain/SRR1206032/accepted_hits.bam \
-    	alignment/$Organism/$Strain/SRR1206033/accepted_hits.bam
-    	# OutDir=gene_pred/braker/$Organism/"$Strain"_braker
-    	# AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
-    	# GeneModelName="$Organism"_"$Strain"_braker
-    	# rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker
-    	# ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
-    	# qsub $ProgDir/sub_braker_fungi.sh $Assembly $OutDir $AcceptedHits $GeneModelName
+    	OutDir=gene_pred/braker/$Organism/"$Strain"_braker
+    	AcceptedHits=$(ls ../../../../../data/scratch/armita/idris/alignment/$Organism/$Strain/concatenated/concatenated.bam)
+    	GeneModelName="$Organism"_"$Strain"_braker
+    	rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker
+    	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
+    	qsub $ProgDir/sub_braker.sh $Assembly $OutDir $AcceptedHits $GeneModelName
   	done
 ```
 
@@ -1369,27 +1365,34 @@ Note - cufflinks doesn't always predict direction of a transcript and
 therefore features can not be restricted by strand when they are intersected.
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep 'A4'); do
-Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
-Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-echo "$Organism - $Strain"
-OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
-mkdir -p $OutDir
-AcceptedHits=alignment/$Organism/$Strain/concatenated/concatenated.bam
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
-qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
-done
+  for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+    Jobs=$(qstat | grep 'sub_cuff' | grep 'qw'| wc -l)
+    while [ $Jobs -gt 1 ]; do
+    sleep 1m
+    printf "."
+    Jobs=$(qstat | grep 'sub_cuff' | grep 'qw'| wc -l)
+    done
+    printf "\n"
+    echo "$Organism - $Strain"
+    OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
+    mkdir -p $OutDir
+    AcceptedHits=$(ls ../../../../../data/scratch/armita/idris/alignment/star/$Organism/$Strain/concatenated/concatenated.bam)
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+    qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
+  done
 ```
 
 Secondly, genes were predicted using CodingQuary:
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked.fa | grep 'A4'); do
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
 OutDir=gene_pred/codingquary/$Organism/$Strain
-CufflinksGTF=gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf
+CufflinksGTF=$(ls gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf)
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 qsub $ProgDir/sub_CodingQuary.sh $Assembly $CufflinksGTF $OutDir
 done
@@ -2924,4 +2927,3 @@ unique RxLRs were identified from motif and Hmm searches within gene models.
 
 Details on the commands run to identify this can be found within this repository
 in 10300_analysis/effector_charactisation.md
- -->
