@@ -2503,14 +2503,17 @@ mkdir -p $OutDir
 GeneGff=$(ls gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/intergenic_regions
 $ProgDir/find_intergenic_regions.py --Gff $GeneGff > $OutDir/10300_intergenic_regions.txt
+cat $OutDir/10300_intergenic_regions.txt | wc -l
+# 18843
 
 # RxLR IG distance plots and test
 RxLR_list=$OutDir/RxLR_headers.txt
 cat $AnnotTab | grep -w 'RxLR' | cut -f1 | cut -f1 -d '.' | sort | uniq > $RxLR_list
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $RxLR_list > $OutDir/10300_RxLR_intergenic_regions.txt
+cat $OutDir/10300_RxLR_intergenic_regions.txt | wc -l
+# 138
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_RxLR_intergenic_regions.txt --prefix $OutDir/10300_RxLR
-
 #[1] 0
 #[1] 2
 #[1] 0
@@ -2519,8 +2522,10 @@ $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_interg
 CRN_list=$OutDir/CRN_headers.txt
 cat $AnnotTab | grep -w 'CRN' | cut -f1 | cut -f1 -d '.' | sort | uniq > $CRN_list
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $CRN_list > $OutDir/10300_CRN_intergenic_regions.txt
+cat $OutDir/10300_CRN_intergenic_regions.txt | wc -l
+# 37
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
-# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_CRN_intergenic_regions.txt --prefix $OutDir/10300_CRN
+$ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_CRN_intergenic_regions.txt --prefix $OutDir/10300_CRN
 
 #[1] 5635
 #[1] 25
@@ -2529,10 +2534,12 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # Elicitin IG distance plots and test
 Effector="elicitin"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep 'IPR002200' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep 'IPR002200' | cut -f1,18 | grep 'secreted' | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+cat $OutDir/10300_${Effector}_intergenic_regions.txt | wc -l
+# 37
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
-# $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
+$ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
 
 # [1] 9774
 # [1] 9699
@@ -2543,8 +2550,10 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 Effector="EPI"
 Headers=$OutDir/${Effector}_headers.txt
 # cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
-cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e'EPIC._' -e 'IPR001314' -e 'IPR032048' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep -e 'IPR002350' -e 'IPR013201' -e 'IPR000010' -e 'IPR027214' -e 'IPR018073' -e 'IPR020381' -e 'PF00031' -e '#EPIC' -e'EPIC._' -e 'PITG_13636' -e 'PITG_21456' | cut -f1,18 | grep 'secreted' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+cat $OutDir/10300_${Effector}_intergenic_regions.txt | wc -l
+# 14
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
 
@@ -2555,8 +2564,10 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # NLP IG distance plots and test
 Effector="NLP"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep -e 'NPP1' -e 'AF356840' -e 'AF352031' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep -e 'NPP1' -e 'AF356840' -e 'AF352031' | cut -f1,18 | grep 'secreted' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+cat $OutDir/10300_${Effector}_intergenic_regions.txt | wc -l
+# 17
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
 
@@ -2567,8 +2578,10 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # CAZY IG distance plots and test
 Effector="CAZY"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep -w -e 'CAZY' | cut -f1,12,13,14 | grep 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep -w -e 'CAZY' | cut -f1,18 | grep 'secreted' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+cat $OutDir/10300_${Effector}_intergenic_regions.txt | wc -l
+# 225
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
 
@@ -2578,8 +2591,10 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 
 Effector="CAZY_non_sec"
 Headers=$OutDir/${Effector}_headers.txt
-cat $AnnotTab | grep -w -e 'CAZY' | cut -f1,12,13,14 | grep -v 'Yes' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
+cat $AnnotTab | grep -w -e 'CAZY' | cut -f1,18 | grep -v 'secreted' | cut -f1 | cut -f1 -d '.' | sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+cat $OutDir/10300_${Effector}_intergenic_regions.txt | wc -l
+# 349
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
 
@@ -2592,6 +2607,8 @@ Effector="Busco"
 Headers=$OutDir/${Effector}_headers.txt
 cat gene_pred/busco/final_incl_ORF/P.cactorum/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene/single_copy_busco_sequences/*.fna | grep '>' | cut -f3 -d ':'| sort | uniq > $Headers
 cat $OutDir/10300_intergenic_regions.txt | grep -w -f $Headers > $OutDir/10300_${Effector}_intergenic_regions.txt
+cat $OutDir/10300_${Effector}_intergenic_regions.txt | wc -l
+# 256
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/10300_analysis
 # $ProgDir/plot_intergenic_regions_with_effectors.r --inp_all $OutDir/10300_intergenic_regions.txt --inp_subset $OutDir/10300_${Effector}_intergenic_regions.txt --prefix $OutDir/10300_${Effector}
 
