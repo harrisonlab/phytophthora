@@ -100,7 +100,7 @@ done
 cd $CurDir
 ```
 
-Visually inspect the alignments of select genes (genes_selected_for_phylogeny.txt) to be used in
+Visually inspect the alignments of selected genes (genes_selected_for_phylogeny.txt) to be used in
 constructing the phylogenies and trim them as necessary in MEGA7.
 Copy the relevant trimmed alignment FASTA files into
 
