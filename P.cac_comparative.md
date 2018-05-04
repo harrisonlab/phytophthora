@@ -1387,10 +1387,17 @@ therefore features can not be restricted by strand when they are intersected.
 Secondly, genes were predicted using CodingQuary:
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep 'idaei'); do
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
+Jobs=$(qstat | grep 'sub_Cod' | grep 'qw'| wc -l)
+while [ $Jobs -gt 1 ]; do
+sleep 1m
+printf "."
+Jobs=$(qstat | grep 'sub_Cod' | grep 'qw'| wc -l)
+done
+printf "\n"
 OutDir=gene_pred/codingquary/$Organism/$Strain
 CufflinksGTF=$(ls gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf)
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
@@ -1403,11 +1410,11 @@ genes were predicted in regions of the genome, not containing Braker gene
 models:
 
 ```bash
-  for BrakerGff in $(ls gene_pred/braker/P.*/*_braker/*/augustus.gff3 | grep -v -e '414' -e 'fragariae' | grep 'P.idaei'); do
+  for BrakerGff in $(ls gene_pred/braker/P.*/*_braker/*/augustus.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $BrakerGff| rev | cut -d '/' -f3 | rev | sed 's/_braker_new//g' | sed 's/_braker_pacbio//g' | sed 's/_braker//g')
     Organism=$(echo $BrakerGff | rev | cut -d '/' -f4 | rev)
     echo "$Organism - $Strain"
-    Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/"$Strain"_contigs_softmasked.fa)
+    Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/"$Strain"_contigs_softmasked_repeatmasker_TPSI_appended.fa)
     CodingQuaryGff=gene_pred/codingquary/$Organism/$Strain/out/PredictedPass.gff3
     PGNGff=gene_pred/codingquary/$Organism/$Strain/out/PGN_predictedPass.gff3
     AddDir=gene_pred/codingquary/$Organism/$Strain/additional
@@ -1446,7 +1453,7 @@ models:
 
 The final number of genes per isolate was observed using:
 ```bash
-  for DirPath in $(ls -d gene_pred/codingquary/P.*/*/final | grep -v -w -e '414'); do
+  for DirPath in $(ls -d gene_pred/codingquary/P.*/*/final | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $DirPath| rev | cut -d '/' -f2 | rev)
     Organism=$(echo $DirPath | rev | cut -d '/' -f3 | rev)
     echo "$Organism - $Strain"
@@ -1461,35 +1468,100 @@ The number of genes predicted by Braker, supplimented by CodingQuary and in the
 final combined dataset was shown:
 
 ```
-  P.cactorum - 404
-  24296
-  3479
-  27775
+P.cactorum - 11-40
+18162
+10665
+28827
 
-  P.cactorum - 415
-  28984
-  2960
-  31944
+P.cactorum - 12420
+18079
+8152
+26231
 
-  P.cactorum - 416
-  29746
-  3034
-  32780
+P.cactorum - 15_13
+18008
+8736
+26744
 
-  P.cactorum - 62471
-  24682
-  2509
-  27191
+P.cactorum - 15_7
+17719
+8885
+26604
 
-  P.idaei - 371
-  24667
-  2586
-  27253
+P.cactorum - 17-21
+17859
+10718
+28577
 
-  P.idaei - SCRP370
-  24421
-  2562
-  26983
+P.cactorum - 2003_3
+18241
+11545
+29786
+
+P.cactorum - 4032
+17790
+9029
+26819
+
+P.cactorum - 4040
+18098
+11432
+29530
+
+P.cactorum - 404
+23148
+12618
+35766
+
+P.cactorum - 415
+17932
+8864
+26796
+
+P.cactorum - 416
+17883
+11508
+29391
+
+P.cactorum - 62471
+18214
+11382
+29596
+
+P.cactorum - P295
+17776
+8551
+26327
+
+P.cactorum - P421_v2
+17819
+8305
+26124
+
+P.cactorum - PC13_15
+18147
+8460
+26607
+
+P.cactorum - R36_14
+18432
+11497
+29929
+
+P.idaei - 371
+17190
+8197
+25387
+
+P.idaei - SCRP370
+17291
+10591
+27882
+
+P.idaei - SCRP376
+17429
+8061
+25490
 ```
 
 
@@ -1501,7 +1573,7 @@ Signal peptide sequences and RxLRs. This pipeline was run with the following com
 
 ```bash
 	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-	for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'cactorum' -e 'idaei'); do
+	for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     echo "$Genome"
   	qsub $ProgDir/run_ORF_finder.sh $Genome
   done
@@ -1512,7 +1584,7 @@ corrected using the following commands:
 
 ```bash
 	ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
-  for OrfGff in $(ls gene_pred/ORF_finder/P.*/*/*_ORF.gff | grep -v 'atg' | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300'); do
+  for OrfGff in $(ls gene_pred/ORF_finder/P.*/*/*_ORF.gff | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     echo "$OrfGff"
   	OrfGffMod=$(echo $OrfGff | sed 's/.gff/.gff3/g')
   	$ProgDir/gff_corrector.pl $OrfGff > $OrfGffMod
@@ -1551,7 +1623,7 @@ of approaches:
  the following commands:
 
  ```bash
-  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -v -w -e '414' | grep 'P.idaei'); do
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v 'PC13_15'); do
     SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
@@ -1569,17 +1641,49 @@ of approaches:
       done
       printf "\n"
       echo $File
+      # qsub $ProgDir/pred_sigP.sh $File
+      qsub $ProgDir/pred_sigP.sh $File signalp-3.0
+      # qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+    done
+  done
+ ```
+
+Problems with SignalP3 prediction of isolate PC13_15 were found to be associate
+with the length of the isoalte name. The name was shortened for prediction and
+will be renamed again when results are concatenated.
+
+ ```bash
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep 'PC13'); do
+    SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev | sed 's/_15//g')
+    Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
+    SplitDir=gene_pred/final_split/$Organism/$Strain
+    mkdir -p $SplitDir
+    BaseName="$Organism""_$Strain"_final
+    $SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+    for File in $(ls $SplitDir/*_final_*); do
+      Jobs=$(qstat | grep 'pred_sigP' | grep -w 'qw'| wc -l)
+      while [ $Jobs -gt 4 ]; do
+        sleep 1
+        printf "."
+        Jobs=$(qstat | grep 'pred_sigP' | grep -w 'qw'| wc -l)
+      done
+      printf "\n"
+      echo $File
       qsub $ProgDir/pred_sigP.sh $File
+      qsub $ProgDir/pred_sigP.sh $File signalp-3.0
       qsub $ProgDir/pred_sigP.sh $File signalp-4.1
     done
   done
  ```
 
+
  The batch files of predicted secreted proteins needed to be combined into a
  single file for each strain. This was done with the following commands:
 
  ```bash
-  for SplitDir in $(ls -d gene_pred/final_split/P.*/* | grep -v '414'); do
+  for SplitDir in $(ls -d gene_pred/final_split/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v PC13); do
     Strain=$(echo $SplitDir | cut -d '/' -f4)
     Organism=$(echo $SplitDir | cut -d '/' -f3)
     echo "$Organism - $Strain"
@@ -1602,12 +1706,37 @@ of approaches:
   done
 ```
 
+
+ ```bash
+for SplitDir in $(ls -d gene_pred/final_split/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -w 'PC13'); do
+Strain=$(echo $SplitDir | cut -d '/' -f4)
+Organism=$(echo $SplitDir | cut -d '/' -f3)
+echo "$Organism - $Strain"
+InStringAA=''
+InStringNeg=''
+InStringTab=''
+InStringTxt=''
+for SigpDir in $(ls -d gene_pred/final_sig* | cut -f2 -d'/'); do
+for GRP in $(ls -l $SplitDir/*_final_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
+InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.aa";
+InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp_neg.aa";  
+InStringTab="$InStringTab gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.tab";
+InStringTxt="$InStringTxt gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_final_$GRP""_sp.txt";
+done
+cat $InStringAA > gene_pred/$SigpDir/$Organism/${Strain}_15/${Strain}_15_aug_sp.aa
+cat $InStringNeg > gene_pred/$SigpDir/$Organism/${Strain}_15/${Strain}_15_aug_neg_sp.aa
+tail -n +2 -q $InStringTab > gene_pred/$SigpDir/$Organism/${Strain}_15/${Strain}_15_aug_sp.tab
+cat $InStringTxt > gene_pred/$SigpDir/$Organism/${Strain}_15/${Strain}_15aug_sp.txt
+done
+done
+```
+
 #### B.2) Prediction using Phobius
 
  Secreted proteins were also predicted using Phobius
 
  ```bash
-  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -v -w -e '414' | grep 'P.idaei'); do
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -1623,7 +1752,7 @@ of approaches:
 Secreted proteins from different sources were combined into a single file:
 
 ```bash
-  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta); do
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -1641,43 +1770,103 @@ Secreted proteins from different sources were combined into a single file:
 ```
 
 ```
-  P.cactorum - 404
-  The following number of sequences were predicted as secreted:
-  9463
-  This represented the following number of unique genes:
-  3177
-  P.cactorum - 414
-  The following number of sequences were predicted as secreted:
-  6891
-  This represented the following number of unique genes:
-  4069
-  P.cactorum - 415
-  The following number of sequences were predicted as secreted:
-  10500
-  This represented the following number of unique genes:
-  3557
-  P.cactorum - 416
-  The following number of sequences were predicted as secreted:
-  10342
-  This represented the following number of unique genes:
-  3543
-  P.cactorum - 62471
-  The following number of sequences were predicted as secreted:
-  9456
-  This represented the following number of unique genes:
-  3150
-  P.idaei - 371
-  The following number of sequences were predicted as secreted:
-  8813
-  This represented the following number of unique genes:
-  3002
-  P.idaei - SCRP370
-  The following number of sequences were predicted as secreted:
-  8792
-  This represented the following number of unique genes:
-  3006
+P.cactorum - 11-40
+The following number of sequences were predicted as secreted:
+16631
+This represented the following number of unique genes:
+3273
+P.cactorum - 12420
+The following number of sequences were predicted as secreted:
+16145
+This represented the following number of unique genes:
+3139
+P.cactorum - 15_13
+The following number of sequences were predicted as secreted:
+16187
+This represented the following number of unique genes:
+3142
+P.cactorum - 15_7
+The following number of sequences were predicted as secreted:
+16028
+This represented the following number of unique genes:
+3110
+P.cactorum - 17-21
+The following number of sequences were predicted as secreted:
+17022
+This represented the following number of unique genes:
+3320
+P.cactorum - 2003_3
+The following number of sequences were predicted as secreted:
+16784
+This represented the following number of unique genes:
+3289
+P.cactorum - 4032
+The following number of sequences were predicted as secreted:
+16284
+This represented the following number of unique genes:
+3172
+P.cactorum - 4040
+The following number of sequences were predicted as secreted:
+16816
+This represented the following number of unique genes:
+3310
+P.cactorum - 404
+The following number of sequences were predicted as secreted:
+19599
+This represented the following number of unique genes:
+3924
+P.cactorum - 415
+The following number of sequences were predicted as secreted:
+17325
+This represented the following number of unique genes:
+3166
+P.cactorum - 416
+The following number of sequences were predicted as secreted:
+17468
+This represented the following number of unique genes:
+3283
+P.cactorum - 62471
+The following number of sequences were predicted as secreted:
+17048
+This represented the following number of unique genes:
+3354
+P.cactorum - P295
+The following number of sequences were predicted as secreted:
+16146
+This represented the following number of unique genes:
+3117
+P.cactorum - P421_v2
+The following number of sequences were predicted as secreted:
+7065
+This represented the following number of unique genes:
+2972
+P.cactorum - PC13_15
+The following number of sequences were predicted as secreted:
+16328
+This represented the following number of unique genes:
+3168
+P.cactorum - R36_14
+The following number of sequences were predicted as secreted:
+17028
+This represented the following number of unique genes:
+3379
+P.idaei - 371
+The following number of sequences were predicted as secreted:
+15536
+This represented the following number of unique genes:
+2918
+P.idaei - SCRP370
+The following number of sequences were predicted as secreted:
+15635
+This represented the following number of unique genes:
+3104
+P.idaei - SCRP376
+The following number of sequences were predicted as secreted:
+14942
+This represented the following number of unique genes:
+2936
 ```
-
+<!--
 
 ### C) From Augustus gene models - Effector-like structure identification using EffectorP
 
@@ -1839,7 +2028,7 @@ Cols in yourfile.out.dm.ps:
 * For fungi, use E-value < 1e-17 and coverage > 0.45
 
 * The best threshold varies for different CAZyme classes (please see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4132414/ for details). Basically to annotate GH proteins, one should use a very relax coverage cutoff or the sensitivity will be low (Supplementary Tables S4 and S9); (ii) to annotate CE families a very stringent E-value cutoff and coverage cutoff should be used; otherwise the precision will be very low due to a very high false positive rate (Supplementary Tables S5 and S10)
-
+ -->
 
 # D) Prediction of RxLRs from - Augustus/CodingQuary gene models
 
@@ -1849,7 +2038,7 @@ Cols in yourfile.out.dm.ps:
 
 ```bash
 
-for Secretome in $(ls gene_pred/combined_sigP/*/*/*_all_secreted.fa | grep -w -e '414' -e 'P.cactorum' -e 'P.idaei' | grep -v '10300'); do
+for Secretome in $(ls gene_pred/combined_sigP/*/*/*_all_secreted.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 Strain=$(echo $Secretome | rev | cut -d '/' -f2 | rev);
 Organism=$(echo $Secretome | rev |  cut -d '/' -f3 | rev) ;
 Proteome=$(ls gene_pred/codingquary/$Organism/$Strain/*/final_genes_combined.pep.fasta)
@@ -1889,61 +2078,144 @@ done
 ```
 
 ```
+strain: 11-40	species: P.cactorum
+the total number of SigP gene is:	16631
+the number of unique SigP gene is:	3273
+the number of SigP-RxLR genes are:	279
+the number of SigP-RxLR-EER genes are:	114
+
+
+strain: 12420	species: P.cactorum
+the total number of SigP gene is:	16145
+the number of unique SigP gene is:	3139
+the number of SigP-RxLR genes are:	273
+the number of SigP-RxLR-EER genes are:	114
+
+
+strain: 15_13	species: P.cactorum
+the total number of SigP gene is:	16187
+the number of unique SigP gene is:	3142
+the number of SigP-RxLR genes are:	269
+the number of SigP-RxLR-EER genes are:	112
+
+
+strain: 15_7	species: P.cactorum
+the total number of SigP gene is:	16028
+the number of unique SigP gene is:	3110
+the number of SigP-RxLR genes are:	266
+the number of SigP-RxLR-EER genes are:	105
+
+
+strain: 17-21	species: P.cactorum
+the total number of SigP gene is:	17022
+the number of unique SigP gene is:	3320
+the number of SigP-RxLR genes are:	295
+the number of SigP-RxLR-EER genes are:	131
+
+
+strain: 2003_3	species: P.cactorum
+the total number of SigP gene is:	16784
+the number of unique SigP gene is:	3289
+the number of SigP-RxLR genes are:	289
+the number of SigP-RxLR-EER genes are:	119
+
+
+strain: 4032	species: P.cactorum
+the total number of SigP gene is:	16284
+the number of unique SigP gene is:	3172
+the number of SigP-RxLR genes are:	276
+the number of SigP-RxLR-EER genes are:	112
+
+
+strain: 4040	species: P.cactorum
+the total number of SigP gene is:	16816
+the number of unique SigP gene is:	3310
+the number of SigP-RxLR genes are:	284
+the number of SigP-RxLR-EER genes are:	119
+
 
 strain: 404	species: P.cactorum
-the total number of SigP gene is:	9463
-the number of unique SigP gene is:	3177
-the number of SigP-RxLR genes are:	272
+the total number of SigP gene is:	19599
+the number of unique SigP gene is:	3924
+the number of SigP-RxLR genes are:	296
 the number of SigP-RxLR-EER genes are:	118
 
 
-strain: 414	species: P.cactorum
-the total number of SigP gene is:	6891
-the number of unique SigP gene is:	4069
-the number of SigP-RxLR genes are:	325
-the number of SigP-RxLR-EER genes are:	147
-
-
 strain: 415	species: P.cactorum
-the total number of SigP gene is:	10500
-the number of unique SigP gene is:	3557
-the number of SigP-RxLR genes are:	281
-the number of SigP-RxLR-EER genes are:	125
+the total number of SigP gene is:	17325
+the number of unique SigP gene is:	3397
+the number of SigP-RxLR genes are:	299
+the number of SigP-RxLR-EER genes are:	120
 
 
 strain: 416	species: P.cactorum
-the total number of SigP gene is:	10342
-the number of unique SigP gene is:	3543
-the number of SigP-RxLR genes are:	278
+the total number of SigP gene is:	17468
+the number of unique SigP gene is:	3469
+the number of SigP-RxLR genes are:	306
 the number of SigP-RxLR-EER genes are:	122
 
 
 strain: 62471	species: P.cactorum
-the total number of SigP gene is:	9456
-the number of unique SigP gene is:	3150
-the number of SigP-RxLR genes are:	287
-the number of SigP-RxLR-EER genes are:	134
+the total number of SigP gene is:	17048
+the number of unique SigP gene is:	3354
+the number of SigP-RxLR genes are:	292
+the number of SigP-RxLR-EER genes are:	133
+
+
+strain: P295	species: P.cactorum
+the total number of SigP gene is:	16146
+the number of unique SigP gene is:	3117
+the number of SigP-RxLR genes are:	270
+the number of SigP-RxLR-EER genes are:	122
+
+
+strain: P421_v2	species: P.cactorum
+the total number of SigP gene is:	7065
+the number of unique SigP gene is:	2972
+the number of SigP-RxLR genes are:	267
+the number of SigP-RxLR-EER genes are:	115
+
+
+strain: PC13_15	species: P.cactorum
+the total number of SigP gene is:	16328
+the number of unique SigP gene is:	3168
+the number of SigP-RxLR genes are:	281
+the number of SigP-RxLR-EER genes are:	121
+
+
+strain: R36_14	species: P.cactorum
+the total number of SigP gene is:	17028
+the number of unique SigP gene is:	3379
+the number of SigP-RxLR genes are:	288
+the number of SigP-RxLR-EER genes are:	130
 
 
 strain: 371	species: P.idaei
-the total number of SigP gene is:	8813
-the number of unique SigP gene is:	3002
-the number of SigP-RxLR genes are:	247
-the number of SigP-RxLR-EER genes are:	112
+the total number of SigP gene is:	15536
+the number of unique SigP gene is:	3049
+the number of SigP-RxLR genes are:	255
+the number of SigP-RxLR-EER genes are:	121
 
 
 strain: SCRP370	species: P.idaei
-the total number of SigP gene is:	8792
-the number of unique SigP gene is:	3006
-the number of SigP-RxLR genes are:	238
-the number of SigP-RxLR-EER genes are:	111
+the total number of SigP gene is:	15635
+the number of unique SigP gene is:	3104
+the number of SigP-RxLR genes are:	258
+the number of SigP-RxLR-EER genes are:	116
+
+
+strain: SCRP376	species: P.idaei
+the total number of SigP gene is:	14942
+the number of unique SigP gene is:	2936
+the number of SigP-RxLR genes are:	248
+the number of SigP-RxLR-EER genes are:	112
 ```
 
 
 ### G) From Secreted gene models - Hmm evidence of RxLR effectors
 
 ```bash
-  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -w -e '414' -e 'idaei'); do
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
     HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
@@ -1995,7 +2267,7 @@ the number of SigP-RxLR-EER genes are:	111
 The total RxLRs are
 
 ```bash
-for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep -v -e 'Aug' -e '10300' | grep -e 'P.idaei' -e 'P.cactorum' | grep -v '414'); do
+for RegexRxLR in $(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/*/*/*_RxLR_EER_regex.txt | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 Organism=$(echo $RegexRxLR | rev |  cut -d '/' -f3 | rev)
 Strain=$(echo $RegexRxLR | rev | cut -d '/' -f2 | rev)
 Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended.gff3)
@@ -2023,61 +2295,200 @@ done
 ```
 
 ```
-  P.cactorum - 404
-  Number of RxLRs identified by Regex:
-  118
-  Number of RxLRs identified by Hmm:
-  127
-  Number of RxLRs in combined dataset:
-  149
-  P.cactorum - 414
-  Number of RxLRs identified by Regex:
-  146
-  Number of RxLRs identified by Hmm:
-  145
-  Number of RxLRs in combined dataset:
-  173
-  P.cactorum - 415
-  Number of RxLRs identified by Regex:
-  125
-  Number of RxLRs identified by Hmm:
-  132
-  Number of RxLRs in combined dataset:
-  159
-  P.cactorum - 416
-  Number of RxLRs identified by Regex:
-  122
-  Number of RxLRs identified by Hmm:
-  129
-  Number of RxLRs in combined dataset:
-  155
-  P.cactorum - 62471
-  Number of RxLRs identified by Regex:
-  134
-  Number of RxLRs identified by Hmm:
-  142
-  Number of RxLRs in combined dataset:
-  169
-  P.idaei - 371
-  Number of RxLRs identified by Regex:
-  112
-  Number of RxLRs identified by Hmm:
-  107
-  Number of RxLRs in combined dataset:
-  136
-  P.idaei - SCRP370
-  Number of RxLRs identified by Regex:
-  111
-  Number of RxLRs identified by Hmm:
-  105
-  Number of RxLRs in combined dataset:
-  137
+P.cactorum - 11-40
+Number of RxLRs identified by Regex:
+114
+Number of RxLRs identified by Hmm:
+130
+Number of RxLRs in combined dataset:
+154
+Number of genes in the extracted gff file:
+154
 
+P.cactorum - 12420
+Number of RxLRs identified by Regex:
+113
+Number of RxLRs identified by Hmm:
+124
+Number of RxLRs in combined dataset:
+145
+Number of genes in the extracted gff file:
+145
+
+P.cactorum - 15_13
+Number of RxLRs identified by Regex:
+111
+Number of RxLRs identified by Hmm:
+119
+Number of RxLRs in combined dataset:
+144
+Number of genes in the extracted gff file:
+144
+
+P.cactorum - 15_7
+Number of RxLRs identified by Regex:
+105
+Number of RxLRs identified by Hmm:
+115
+Number of RxLRs in combined dataset:
+136
+Number of genes in the extracted gff file:
+136
+
+P.cactorum - 17-21
+Number of RxLRs identified by Regex:
+131
+Number of RxLRs identified by Hmm:
+134
+Number of RxLRs in combined dataset:
+165
+Number of genes in the extracted gff file:
+165
+
+P.cactorum - 2003_3
+Number of RxLRs identified by Regex:
+119
+Number of RxLRs identified by Hmm:
+128
+Number of RxLRs in combined dataset:
+152
+Number of genes in the extracted gff file:
+152
+
+P.cactorum - 4032
+Number of RxLRs identified by Regex:
+111
+Number of RxLRs identified by Hmm:
+120
+Number of RxLRs in combined dataset:
+143
+Number of genes in the extracted gff file:
+143
+
+P.cactorum - 4040
+Number of RxLRs identified by Regex:
+118
+Number of RxLRs identified by Hmm:
+126
+Number of RxLRs in combined dataset:
+150
+Number of genes in the extracted gff file:
+150
+
+P.cactorum - 404
+Number of RxLRs identified by Regex:
+117
+Number of RxLRs identified by Hmm:
+130
+Number of RxLRs in combined dataset:
+154
+Number of genes in the extracted gff file:
+154
+
+P.cactorum - 415
+Number of RxLRs identified by Regex:
+120
+Number of RxLRs identified by Hmm:
+127
+Number of RxLRs in combined dataset:
+155
+Number of genes in the extracted gff file:
+152
+
+P.cactorum - 416
+Number of RxLRs identified by Regex:
+121
+Number of RxLRs identified by Hmm:
+128
+Number of RxLRs in combined dataset:
+156
+Number of genes in the extracted gff file:
+152
+
+P.cactorum - 62471
+Number of RxLRs identified by Regex:
+133
+Number of RxLRs identified by Hmm:
+139
+Number of RxLRs in combined dataset:
+167
+Number of genes in the extracted gff file:
+167
+
+P.cactorum - P295
+Number of RxLRs identified by Regex:
+122
+Number of RxLRs identified by Hmm:
+130
+Number of RxLRs in combined dataset:
+155
+Number of genes in the extracted gff file:
+155
+
+P.cactorum - P421_v2
+Number of RxLRs identified by Regex:
+114
+Number of RxLRs identified by Hmm:
+128
+Number of RxLRs in combined dataset:
+151
+Number of genes in the extracted gff file:
+151
+
+P.cactorum - PC13_15
+Number of RxLRs identified by Regex:
+120
+Number of RxLRs identified by Hmm:
+131
+Number of RxLRs in combined dataset:
+154
+Number of genes in the extracted gff file:
+154
+
+P.cactorum - R36_14
+Number of RxLRs identified by Regex:
+130
+Number of RxLRs identified by Hmm:
+141
+Number of RxLRs in combined dataset:
+168
+Number of genes in the extracted gff file:
+168
+
+P.idaei - 371
+Number of RxLRs identified by Regex:
+120
+Number of RxLRs identified by Hmm:
+100
+Number of RxLRs in combined dataset:
+143
+Number of genes in the extracted gff file:
+133
+
+P.idaei - SCRP370
+Number of RxLRs identified by Regex:
+115
+Number of RxLRs identified by Hmm:
+108
+Number of RxLRs in combined dataset:
+144
+Number of genes in the extracted gff file:
+144
+
+P.idaei - SCRP376
+Number of RxLRs identified by Regex:
+112
+Number of RxLRs identified by Hmm:
+106
+Number of RxLRs in combined dataset:
+137
+Number of genes in the extracted gff file:
+137
 ```
-72 of 137 RxLRs were in the predicted 797 effectorP genes.
+<!-- 72 of 137 RxLRs were in the predicted 797 effectorP genes.
 ```bash
   cat analysis/RxLR_effectors/combined_evidence/P.idaei/SCRP370/SCRP370_total_RxLR_headers.txt $OutFileHeaders | sort | cut -f1 -d '.' | uniq -d | wc -l
-```
+``` -->
 
 ### D) From Augustus gene models - Hmm evidence of CRN effectors
 
@@ -2089,7 +2500,7 @@ in Augustus gene models. This was done with the following commands:
   HmmDir=/home/groups/harrisonlab/project_files/idris/analysis/CRN_effectors/hmmer_models
   LFLAK_hmm=$(ls $HmmDir/Pinf_Pram_Psoj_Pcap_LFLAK.hmm)
   DWL_hmm=$(ls $HmmDir/Pinf_Pram_Psoj_Pcap_DWL.hmm)
-  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -w -e '414' -e 'P.idaei'); do
+  for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
@@ -2116,59 +2527,131 @@ in Augustus gene models. This was done with the following commands:
 ```
 
 ```
-  P.cactorum - 404
-  Initial search space (Z):              27775  [actual number of targets]
-  Domain search space  (domZ):             156  [number of targets reported over threshold]
-  Initial search space (Z):              27775  [actual number of targets]
-  Domain search space  (domZ):             129  [number of targets reported over threshold]
-  113
-  P.cactorum - 414
-  Initial search space (Z):              32832  [actual number of targets]
-  Domain search space  (domZ):             218  [number of targets reported over threshold]
-  Initial search space (Z):              32832  [actual number of targets]
-  Domain search space  (domZ):             189  [number of targets reported over threshold]
-  170
-  P.cactorum - 415
-  Initial search space (Z):              31944  [actual number of targets]
-  Domain search space  (domZ):             201  [number of targets reported over threshold]
-  Initial search space (Z):              31944  [actual number of targets]
-  Domain search space  (domZ):             169  [number of targets reported over threshold]
-  147
-  P.cactorum - 416
-  Initial search space (Z):              32780  [actual number of targets]
-  Domain search space  (domZ):             206  [number of targets reported over threshold]
-  Initial search space (Z):              32780  [actual number of targets]
-  Domain search space  (domZ):             182  [number of targets reported over threshold]
-  155
-  P.cactorum - 62471
-  Initial search space (Z):              27191  [actual number of targets]
-  Domain search space  (domZ):             154  [number of targets reported over threshold]
-  Initial search space (Z):              27191  [actual number of targets]
-  Domain search space  (domZ):             132  [number of targets reported over threshold]
-  112
-  P.idaei - 371
-  Initial search space (Z):              27253  [actual number of targets]
-  Domain search space  (domZ):             127  [number of targets reported over threshold]
-  Initial search space (Z):              27253  [actual number of targets]
-  Domain search space  (domZ):              98  [number of targets reported over threshold]
-  87
-  P.idaei - SCRP370
-  Initial search space (Z):              26983  [actual number of targets]
-  Domain search space  (domZ):             129  [number of targets reported over threshold]
-  Initial search space (Z):              26983  [actual number of targets]
-  Domain search space  (domZ):             103  [number of targets reported over threshold]
-  92
+P.cactorum - 11-40
+Initial search space (Z):              28827  [actual number of targets]
+Domain search space  (domZ):             109  [number of targets reported over threshold]
+Initial search space (Z):              28827  [actual number of targets]
+Domain search space  (domZ):              88  [number of targets reported over threshold]
+59
+P.cactorum - 12420
+Initial search space (Z):              26231  [actual number of targets]
+Domain search space  (domZ):             108  [number of targets reported over threshold]
+Initial search space (Z):              26231  [actual number of targets]
+Domain search space  (domZ):              86  [number of targets reported over threshold]
+66
+P.cactorum - 15_13
+Initial search space (Z):              26744  [actual number of targets]
+Domain search space  (domZ):             114  [number of targets reported over threshold]
+Initial search space (Z):              26744  [actual number of targets]
+Domain search space  (domZ):              99  [number of targets reported over threshold]
+72
+P.cactorum - 15_7
+Initial search space (Z):              26604  [actual number of targets]
+Domain search space  (domZ):             110  [number of targets reported over threshold]
+Initial search space (Z):              26604  [actual number of targets]
+Domain search space  (domZ):              88  [number of targets reported over threshold]
+71
+P.cactorum - 17-21
+Initial search space (Z):              28577  [actual number of targets]
+Domain search space  (domZ):             103  [number of targets reported over threshold]
+Initial search space (Z):              28577  [actual number of targets]
+Domain search space  (domZ):              90  [number of targets reported over threshold]
+59
+P.cactorum - 2003_3
+Initial search space (Z):              29786  [actual number of targets]
+Domain search space  (domZ):             111  [number of targets reported over threshold]
+Initial search space (Z):              29786  [actual number of targets]
+Domain search space  (domZ):              97  [number of targets reported over threshold]
+61
+P.cactorum - 4032
+Initial search space (Z):              26819  [actual number of targets]
+Domain search space  (domZ):             121  [number of targets reported over threshold]
+Initial search space (Z):              26819  [actual number of targets]
+Domain search space  (domZ):              96  [number of targets reported over threshold]
+77
+P.cactorum - 4040
+Initial search space (Z):              29530  [actual number of targets]
+Domain search space  (domZ):             122  [number of targets reported over threshold]
+Initial search space (Z):              29530  [actual number of targets]
+Domain search space  (domZ):              93  [number of targets reported over threshold]
+73
+P.cactorum - 404
+Initial search space (Z):              35766  [actual number of targets]
+Domain search space  (domZ):              96  [number of targets reported over threshold]
+Initial search space (Z):              35766  [actual number of targets]
+Domain search space  (domZ):              84  [number of targets reported over threshold]
+51
+P.cactorum - 415
+Initial search space (Z):              26796  [actual number of targets]
+Domain search space  (domZ):             123  [number of targets reported over threshold]
+Initial search space (Z):              26796  [actual number of targets]
+Domain search space  (domZ):              94  [number of targets reported over threshold]
+75
+P.cactorum - 416
+Initial search space (Z):              29391  [actual number of targets]
+Domain search space  (domZ):             130  [number of targets reported over threshold]
+Initial search space (Z):              29391  [actual number of targets]
+Domain search space  (domZ):             107  [number of targets reported over threshold]
+78
+P.cactorum - 62471
+Initial search space (Z):              29596  [actual number of targets]
+Domain search space  (domZ):             109  [number of targets reported over threshold]
+Initial search space (Z):              29596  [actual number of targets]
+Domain search space  (domZ):              90  [number of targets reported over threshold]
+61
+P.cactorum - P295
+Initial search space (Z):              26327  [actual number of targets]
+Domain search space  (domZ):             111  [number of targets reported over threshold]
+Initial search space (Z):              26327  [actual number of targets]
+Domain search space  (domZ):              99  [number of targets reported over threshold]
+73
+P.cactorum - P421_v2
+Initial search space (Z):              26124  [actual number of targets]
+Domain search space  (domZ):              97  [number of targets reported over threshold]
+Initial search space (Z):              26124  [actual number of targets]
+Domain search space  (domZ):              79  [number of targets reported over threshold]
+58
+P.cactorum - PC13_15
+Initial search space (Z):              26607  [actual number of targets]
+Domain search space  (domZ):             111  [number of targets reported over threshold]
+Initial search space (Z):              26607  [actual number of targets]
+Domain search space  (domZ):              99  [number of targets reported over threshold]
+74
+P.cactorum - R36_14
+Initial search space (Z):              29929  [actual number of targets]
+Domain search space  (domZ):             126  [number of targets reported over threshold]
+Initial search space (Z):              29929  [actual number of targets]
+Domain search space  (domZ):             108  [number of targets reported over threshold]
+81
+P.idaei - 371
+Initial search space (Z):              25387  [actual number of targets]
+Domain search space  (domZ):              75  [number of targets reported over threshold]
+Initial search space (Z):              25387  [actual number of targets]
+Domain search space  (domZ):              66  [number of targets reported over threshold]
+41
+P.idaei - SCRP370
+Initial search space (Z):              27882  [actual number of targets]
+Domain search space  (domZ):              61  [number of targets reported over threshold]
+Initial search space (Z):              27882  [actual number of targets]
+Domain search space  (domZ):              47  [number of targets reported over threshold]
+29
+P.idaei - SCRP376
+Initial search space (Z):              25490  [actual number of targets]
+Domain search space  (domZ):              57  [number of targets reported over threshold]
+Initial search space (Z):              25490  [actual number of targets]
+Domain search space  (domZ):              48  [number of targets reported over threshold]
+26
 ```
-
+<!--
 23 of 92 P.idaei CRNs were in the effectorP dataset.
 ```bash
 cat analysis/CRN_effectors/hmmer_CRN/P.idaei/SCRP370/SCRP370_pub_CRN_LFLAK_DWL.txt $OutFileHeaders | sort | cut -f1 -d '.' | uniq -d | wc -l
-```
+``` -->
 
 Extract gff annotations for Crinklers:
 
 ```bash
-  for CRNlist in $(ls analysis/CRN_effectors/hmmer_CRN/*/*/*_pub_CRN_LFLAK_DWL.txt | grep -e 'P.idaei' -e 'P.cactorum' | grep -v -e '10300'); do
+  for CRNlist in $(ls analysis/CRN_effectors/hmmer_CRN/*/*/*_pub_CRN_LFLAK_DWL.txt | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $CRNlist | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $CRNlist | rev | cut -f3 -d '/' | rev)
     OutName=$(echo $CRNlist | sed 's/.txt/.gff/g')
@@ -2195,28 +2678,29 @@ Proteins that were predicted to contain signal peptides were identified using
 the following commands:
 
 ```bash
-	for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300'); do
-  	SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-  	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-  	Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
-  	Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
-  	SplitDir=gene_pred/ORF_split/$Organism/$Strain
-  	mkdir -p $SplitDir
-  	BaseName="$Organism""_$Strain"_ORF_preds
-  	$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
-  	for File in $(ls $SplitDir/*_ORF_preds_*); do
-  		Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
-  		while [ $Jobs -gt 6 ]; do
-  			sleep 1
-  			printf "."
-  			Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
-  		done		
-  		printf "\n"
-  		echo $File
-  		qsub $ProgDir/pred_sigP.sh $File
-  		qsub $ProgDir/pred_sigP.sh $File signalp-4.1
-  	done
-  done
+for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
+SplitDir=gene_pred/ORF_split/$Organism/$Strain
+mkdir -p $SplitDir
+BaseName="$Organism""_$Strain"_ORF_preds
+$SplitfileDir/splitfile_500.py --inp_fasta $Proteome --out_dir $SplitDir --out_base $BaseName
+for File in $(ls $SplitDir/*_ORF_preds_*); do
+Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
+while [ $Jobs -gt 6 ]; do
+sleep 1
+printf "."
+Jobs=$(qstat | grep 'pred_sigP' | grep 'qw' | wc -l)
+done		
+printf "\n"
+echo $File
+qsub $ProgDir/pred_sigP.sh $File
+# qsub $ProgDir/pred_sigP.sh $File signalp-3.0
+qsub $ProgDir/pred_sigP.sh $File signalp-4.1
+done
+done
 ```
 
 
@@ -2224,7 +2708,7 @@ the following commands:
  single file for each strain. This was done with the following commands:
 
 ```bash
-for SplitDir in $(ls -d gene_pred/ORF_split/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e '10300' -e '414_v2'); do
+for SplitDir in $(ls -d gene_pred/ORF_split/*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 Strain=$(echo $SplitDir | cut -d '/' -f4)
 Organism=$(echo $SplitDir | cut -d '/' -f3)
 echo "$Organism - $Strain"
@@ -2232,7 +2716,7 @@ InStringAA=''
 InStringNeg=''
 InStringTab=''
 InStringTxt=''
-for SigpDir in $(ls -d gene_pred/ORF_sig* | cut -f2 -d'/'); do
+for SigpDir in $(ls -d gene_pred/ORF_sig* | cut -f2 -d'/' | grep -v '_signalp-3.0'); do
 for GRP in $(ls -l $SplitDir/*_ORF_*.fa | rev | cut -d '_' -f1 | rev | sort -n); do  
 InStringAA="$InStringAA gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp.aa";
 InStringNeg="$InStringNeg gene_pred/$SigpDir/$Organism/$Strain/split/"$Organism"_"$Strain"_ORF_preds_$GRP""_sp_neg.aa";
@@ -2253,7 +2737,7 @@ done
 Secreted proteins were also predicted using Phobius
 
 ```bash
-	for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v '10300' | grep -w -e '404' -e '414' -e '415' -e '416'); do
+	for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -2369,7 +2853,6 @@ overlaps and identify the ORF with the best signalP score.
   done
 ```
 
-#<--- Progress up to here
 The regular expression R.LR.{,40}[ED][ED][KR] has previously been used to identify RxLR effectors. The addition of an EER motif is significant as it has been shown as required for host uptake of the protein.
 
 The RxLR_EER_regex_finder.py script was used to search for this regular expression and annotate the EER domain where present.
@@ -2686,13 +3169,14 @@ done
 
 
 
+
 ### H) From ORF gene models - Hmm evidence of CRN effectors
 
 A hmm model relating to crinkler domains was used to identify putative crinklers
 in ORF gene models. This was done with the following commands:
 
 ```bash
-for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e 'atg' -e '10300' -e '414_v2' | grep -v -w -e '404' -e '414' -e '415' -e '416'); do
+for Proteome in $(ls gene_pred/ORF_finder/*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 # Setting variables
 Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
@@ -2729,11 +3213,13 @@ cat $CommonHeaders | wc -l
 Headers=$OutDir/"$Strain"_CRN_hmmer_unmerged_headers.txt
 cat $OutDir/$HmmFastaDWL | grep '>' | grep -w -f $CommonHeaders | tr -d '>' | sed -r 's/\s+/\t/g'| sed 's/=\t/=/g' | tr -d '-' | sed 's/hmm_score/HMM_score/g' > $Headers
 # As we are dealing with JGI and Broad sequences, some features need formatting:
-ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF.gff3)
+ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF.gff3 | grep -v '_atg_')
 # Gff features were extracted for each header
 CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
+# cat $Headers | cut -f1 > tmp.txt
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $Headers $ORF_Gff CRN_HMM Name > $CRN_unmerged_Gff
+# $ProgDir/extract_gff_for_sigP_hits.pl tmp.txt $ORF_Gff CRN_HMM Name > $CRN_unmerged_Gff
 # Gff features were merged based upon the DWL hmm score
 DbDir=analysis/databases/$Organism/$Strain
 mkdir -p $DbDir
@@ -2749,126 +3235,243 @@ done
 ```
 
 ```
-Searching for LFLAK domains in: P.cactorum 404
-Initial search space (Z):             487049  [actual number of targets]
-Domain search space  (domZ):             238  [number of targets reported over threshold]
-Searching for DWL domains in: P.cactorum 404
-Initial search space (Z):             487049  [actual number of targets]
-Domain search space  (domZ):             293  [number of targets reported over threshold]
+Searching for LFLAK domains in: P.cactorum 11-40
+Initial search space (Z):             480478  [actual number of targets]
+Domain search space  (domZ):             237  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 11-40
+Initial search space (Z):             480478  [actual number of targets]
+Domain search space  (domZ):             288  [number of targets reported over threshold]
 The number of CRNs common to both models are:
 139
 Number of CRN ORFs after merging:
-97
-Searching for LFLAK domains in: P.cactorum 414
-Initial search space (Z):             631759  [actual number of targets]
-Domain search space  (domZ):             342  [number of targets reported over threshold]
-Searching for DWL domains in: P.cactorum 414
-Initial search space (Z):             631759  [actual number of targets]
-Domain search space  (domZ):             455  [number of targets reported over threshold]
+94
+Searching for LFLAK domains in: P.cactorum 12420
+Initial search space (Z):             481792  [actual number of targets]
+Domain search space  (domZ):             252  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 12420
+Initial search space (Z):             481792  [actual number of targets]
+Domain search space  (domZ):             308  [number of targets reported over threshold]
 The number of CRNs common to both models are:
-223
+148
 Number of CRN ORFs after merging:
-155
+104
+Searching for LFLAK domains in: P.cactorum 15_13
+Initial search space (Z):             492365  [actual number of targets]
+Domain search space  (domZ):             256  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 15_13
+Initial search space (Z):             492365  [actual number of targets]
+Domain search space  (domZ):             322  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+159
+Number of CRN ORFs after merging:
+106
+Searching for LFLAK domains in: P.cactorum 15_7
+Initial search space (Z):             493630  [actual number of targets]
+Domain search space  (domZ):             252  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 15_7
+Initial search space (Z):             493630  [actual number of targets]
+Domain search space  (domZ):             314  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+150
+Number of CRN ORFs after merging:
+105
+Searching for LFLAK domains in: P.cactorum 17-21
+Initial search space (Z):             480195  [actual number of targets]
+Domain search space  (domZ):             226  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 17-21
+Initial search space (Z):             480195  [actual number of targets]
+Domain search space  (domZ):             283  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+135
+Number of CRN ORFs after merging:
+91
+Searching for LFLAK domains in: P.cactorum 2003_3
+Initial search space (Z):             492609  [actual number of targets]
+Domain search space  (domZ):             252  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 2003_3
+Initial search space (Z):             492609  [actual number of targets]
+Domain search space  (domZ):             309  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+150
+Number of CRN ORFs after merging:
+103
+Searching for LFLAK domains in: P.cactorum 4032
+Initial search space (Z):             497333  [actual number of targets]
+Domain search space  (domZ):             253  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 4032
+Initial search space (Z):             497333  [actual number of targets]
+Domain search space  (domZ):             330  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+157
+Number of CRN ORFs after merging:
+110
+Searching for LFLAK domains in: P.cactorum 4040
+Initial search space (Z):             490721  [actual number of targets]
+Domain search space  (domZ):             257  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 4040
+Initial search space (Z):             490721  [actual number of targets]
+Domain search space  (domZ):             320  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+156
+Number of CRN ORFs after merging:
+107
+Searching for LFLAK domains in: P.cactorum 404
+Initial search space (Z):             560045  [actual number of targets]
+Domain search space  (domZ):             248  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum 404
+Initial search space (Z):             560045  [actual number of targets]
+Domain search space  (domZ):             303  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+147
+Number of CRN ORFs after merging:
+103
 Searching for LFLAK domains in: P.cactorum 415
-Initial search space (Z):             542852  [actual number of targets]
-Domain search space  (domZ):             310  [number of targets reported over threshold]
+Initial search space (Z):             491086  [actual number of targets]
+Domain search space  (domZ):             254  [number of targets reported over threshold]
 Searching for DWL domains in: P.cactorum 415
-Initial search space (Z):             542852  [actual number of targets]
-Domain search space  (domZ):             375  [number of targets reported over threshold]
+Initial search space (Z):             491086  [actual number of targets]
+Domain search space  (domZ):             317  [number of targets reported over threshold]
 The number of CRNs common to both models are:
-178
+154
 Number of CRN ORFs after merging:
-130
+109
 Searching for LFLAK domains in: P.cactorum 416
-Initial search space (Z):             557317  [actual number of targets]
-Domain search space  (domZ):             319  [number of targets reported over threshold]
+Initial search space (Z):             488742  [actual number of targets]
+Domain search space  (domZ):             260  [number of targets reported over threshold]
 Searching for DWL domains in: P.cactorum 416
-Initial search space (Z):             557317  [actual number of targets]
-Domain search space  (domZ):             404  [number of targets reported over threshold]
+Initial search space (Z):             488742  [actual number of targets]
+Domain search space  (domZ):             319  [number of targets reported over threshold]
 The number of CRNs common to both models are:
-200
+157
 Number of CRN ORFs after merging:
-141
+107
 Searching for LFLAK domains in: P.cactorum 62471
-Initial search space (Z):             488325  [actual number of targets]
-Domain search space  (domZ):             245  [number of targets reported over threshold]
+Initial search space (Z):             493951  [actual number of targets]
+Domain search space  (domZ):             249  [number of targets reported over threshold]
 Searching for DWL domains in: P.cactorum 62471
-Initial search space (Z):             488325  [actual number of targets]
+Initial search space (Z):             493951  [actual number of targets]
 Domain search space  (domZ):             308  [number of targets reported over threshold]
 The number of CRNs common to both models are:
 153
 Number of CRN ORFs after merging:
 100
+Searching for LFLAK domains in: P.cactorum P295
+Initial search space (Z):             488637  [actual number of targets]
+Domain search space  (domZ):             254  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum P295
+Initial search space (Z):             488637  [actual number of targets]
+Domain search space  (domZ):             327  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+163
+Number of CRN ORFs after merging:
+109
+Searching for LFLAK domains in: P.cactorum P421_v2
+Initial search space (Z):             477118  [actual number of targets]
+Domain search space  (domZ):             238  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum P421_v2
+Initial search space (Z):             477118  [actual number of targets]
+Domain search space  (domZ):             284  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+142
+Number of CRN ORFs after merging:
+96
+Searching for LFLAK domains in: P.cactorum PC13_15
+Initial search space (Z):             496343  [actual number of targets]
+Domain search space  (domZ):             251  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum PC13_15
+Initial search space (Z):             496343  [actual number of targets]
+Domain search space  (domZ):             321  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+156
+Number of CRN ORFs after merging:
+109
+Searching for LFLAK domains in: P.cactorum R36_14
+Initial search space (Z):             499436  [actual number of targets]
+Domain search space  (domZ):             260  [number of targets reported over threshold]
+Searching for DWL domains in: P.cactorum R36_14
+Initial search space (Z):             499436  [actual number of targets]
+Domain search space  (domZ):             316  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+159
+Number of CRN ORFs after merging:
+107
 Searching for LFLAK domains in: P.idaei 371
-Initial search space (Z):             487686  [actual number of targets]
+Initial search space (Z):             487572  [actual number of targets]
 Domain search space  (domZ):             217  [number of targets reported over threshold]
 Searching for DWL domains in: P.idaei 371
-Initial search space (Z):             487686  [actual number of targets]
+Initial search space (Z):             487572  [actual number of targets]
 Domain search space  (domZ):             254  [number of targets reported over threshold]
 The number of CRNs common to both models are:
 122
 Number of CRN ORFs after merging:
 86
 Searching for LFLAK domains in: P.idaei SCRP370
-Initial search space (Z):             486809  [actual number of targets]
+Initial search space (Z):             487017  [actual number of targets]
 Domain search space  (domZ):             220  [number of targets reported over threshold]
 Searching for DWL domains in: P.idaei SCRP370
-Initial search space (Z):             486809  [actual number of targets]
+Initial search space (Z):             487017  [actual number of targets]
 Domain search space  (domZ):             256  [number of targets reported over threshold]
 The number of CRNs common to both models are:
 125
 Number of CRN ORFs after merging:
 89
+Searching for LFLAK domains in: P.idaei SCRP376
+Initial search space (Z):             487331  [actual number of targets]
+Domain search space  (domZ):             217  [number of targets reported over threshold]
+Searching for DWL domains in: P.idaei SCRP376
+Initial search space (Z):             487331  [actual number of targets]
+Domain search space  (domZ):             260  [number of targets reported over threshold]
+The number of CRNs common to both models are:
+124
+Number of CRN ORFs after merging:
+89
 ```
 
-
-
-Extract crinklers from published gene models
+Extract crinklers from ORFs and Braker/codingquary gene models
 
 
 ```bash
-  for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -w -e 'P.cactorum' -e 'P.idaei' | grep -v -e 'atg' -e '10300' -e '414_v2' | grep -w -e '404' -e '414' -e '415' -e '416'); do
-    Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
-    Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
-    AugGff=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
-    AugFa=$(ls gene_pred/codingquary/"$Species"/"$Strain"/final/final_genes_combined.pep.fasta)
-    ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
-    ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
-    ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
-    AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
-    ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
-    AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
-    TotalCRNsTxt=$MergeDir/"$Strain"_final_CRN.txt
-    TotalCRNsGff=$MergeDir/"$Strain"_final_CRN.gff
-    TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
-    bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
-    bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
-    bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
-    bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
-    echo "$Species - $Strain"
+for MergeDir in $(ls -d analysis/CRN_effectors/hmmer_CRN/*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+Strain=$(echo "$MergeDir" | rev | cut -f1 -d '/' | rev)
+Species=$(echo "$MergeDir" | rev | cut -f2 -d '/' | rev)
+AugGff=$(ls $MergeDir/"$Strain"_pub_CRN_LFLAK_DWL.gff)
+AugFa=$(ls gene_pred/final/"$Species"/"$Strain"/final/final_genes_appended_renamed.pep.fasta)
+ORFsFa=$(ls gene_pred/ORF_finder/"$Species"/"$Strain"/"$Strain".aa_cat.fa)
+ORFGff=$MergeDir/"$Strain"_CRN_merged_hmmer.gff3
+ORFsInAug=$MergeDir/"$Strain"_ORFsInAug_CRN_hmmer.bed
+AugInORFs=$MergeDir/"$Strain"_AugInORFs_CRN_hmmer.bed
+ORFsUniq=$MergeDir/"$Strain"_ORFsUniq_CRN_hmmer.bed
+AugUniq=$MergeDir/"$Strain"_Aug_Uniq_CRN_hmmer.bed
+TotalCRNsTxt=$MergeDir/"$Strain"_final_CRN.txt
+TotalCRNsGff=$MergeDir/"$Strain"_final_CRN.gff
+TotalCRNsHeaders=$MergeDir/"$Strain"_Total_CRN_headers.txt
+bedtools intersect -wa -u -a $ORFGff -b $AugGff > $ORFsInAug
+bedtools intersect -wa -u -a $AugGff -b $ORFGff > $AugInORFs
+bedtools intersect -v -wa -a $ORFGff -b $AugGff > $ORFsUniq
+bedtools intersect -v -wa -a $AugGff -b $ORFGff > $AugUniq
+echo "$Species - $Strain"
 
-    echo "The number of ORF CRNs overlapping Augustus CRNs:"
-    cat $ORFsInAug | grep -w -e 'transcript' -e 'mRNA' | wc -l
-    echo "The number of Augustus CRNs overlapping ORF CRNs:"
-    cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | wc -l
-    cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $TotalCRNsTxt
-    echo "The number of CRNs unique to ORF models:"
-    cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | wc -l
-    cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
-    echo "The number of CRNs unique to Augustus models:"
-    cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | wc -l
-    cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
+echo "The number of ORF CRNs overlapping Augustus CRNs:"
+cat $ORFsInAug | grep -w -e 'transcript' -e 'mRNA' | wc -l
+echo "The number of Augustus CRNs overlapping ORF CRNs:"
+cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA' | wc -l
+cat $AugInORFs | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' > $TotalCRNsTxt
+echo "The number of CRNs unique to ORF models:"
+cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' | wc -l
+cat $ORFsUniq | grep -w 'transcript'| grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f4 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
+echo "The number of CRNs unique to Augustus models:"
+cat $AugUniq | grep -w -e 'transcript' -e 'mRNA' | wc -l
+cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | cut -f2 -d '=' >> $TotalCRNsTxt
 
-    cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
+cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
 
-    CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
-    $ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalCRNsTxt > $CRNsFa
-    $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsTxt >> $CRNsFa
-    echo "The number of sequences extracted is"
-    cat $CRNsFa | grep '>' | wc -l
-
-  done
+CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+$ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalCRNsTxt > $CRNsFa
+$ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsTxt >> $CRNsFa
+echo "The number of sequences extracted is"
+cat $CRNsFa | grep '>' | wc -l
+done
 ```
 
 ```
