@@ -34,7 +34,7 @@ for Busco in $(cat analysis/popgen/busco_phylogeny/all_buscos_*.txt); do
 echo $Busco
 OutDir=analysis/popgen/busco_phylogeny/$Busco
 mkdir -p $OutDir
-for Fasta in $(ls gene_pred/busco/*/*/assembly/*/single_copy_busco_sequences/$Busco*.fna | grep -e 'contigs_unmasked' -e 'filtered_contigs_renamed' -e 'LV007' | grep -v -e '414_old' -e '414_v2'); do
+for Fasta in $(ls gene_pred/busco/*/*/assembly/*/single_copy_busco_sequences/$Busco*.fna | grep -e 'P.cactorum' -e 'P.idaei' | grep -e 'contigs_unmasked' -e 'filtered_contigs_renamed' -e 'LV007' | grep -v -e '414_old' -e '414_v2'); do
 Strain=$(echo $Fasta | rev | cut -f5 -d '/' | rev)
 Organism=$(echo $Fasta | rev | cut -f6 -d '/' | rev)
 FileName=$(basename $Fasta)
