@@ -1266,17 +1266,17 @@ Number of masked bases:
 
 ```bash
 for RepDir in $(ls -d repeat_masked/P.*/*/filtered_contigs_repmask | grep -w '414'); do
-Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
-Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
-RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
-TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
-# printf "The number of bases masked by RepeatMasker:\t"
-RepMaskerBp=$(sortBed -i $RepMaskGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
-# printf "The number of bases masked by TransposonPSI:\t"
-TpsiBp=$(sortBed -i $TransPSIGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
-# printf "The total number of masked bases are:\t"
-Total=$(cat $RepMaskGff $TransPSIGff | sortBed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
-printf "$Organism\t$Strain\t$RepMaskerBp\t$TpsiBp\t$Total\n"
+  Strain=$(echo $RepDir | rev | cut -f2 -d '/' | rev)
+  Organism=$(echo $RepDir | rev | cut -f3 -d '/' | rev)  
+  RepMaskGff=$(ls $RepDir/*_contigs_hardmasked.gff)
+  TransPSIGff=$(ls $RepDir/*_contigs_unmasked.fa.TPSI.allHits.chains.gff3)
+  # printf "The number of bases masked by RepeatMasker:\t"
+  Repmasker=$(sortBed -i $RepMaskGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
+  # printf "The number of bases masked by TransposonPSI:\t"
+  TPSI=$(sortBed -i $TransPSIGff | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
+  # printf "The total number of masked bases are:\t"
+  Total=$(cat $RepMaskGff $TransPSIGff | sortBed | bedtools merge | awk -F'\t' 'BEGIN{SUM=0}{ SUM+=$3-$2 }END{print SUM}')
+  printf "$Organism\t$Strain\t$Repmasker\t$TPSI\t$Total\n"
 done
 ```
 
@@ -1296,27 +1296,55 @@ Gene prediction followed three steps:
 		- Gene models were used to predict genes in genomes as part of the the Braker1 pipeline. This used RNAseq data as hints for gene models.
 
 ## Pre-gene prediction
-<!--
+
+
+# Pre-gene prediction
+
 Quality of genome assemblies was assessed by looking for the gene space in the assemblies.
+
+Busco has replaced CEGMA and was run to check gene space in assemblies
+
 ```bash
-  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/cegma
-  for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -w -e '414_v2'); do
-    echo $Genome;
-    qsub $ProgDir/sub_cegma.sh $Genome dna;
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+OutDir=$(dirname $Assembly)
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+qsub $ProgDir/sub_quast.sh $Assembly $OutDir
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# BuscoDB="Fungal"
+BuscoDB="Eukaryotic"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+  for File in $(ls gene_pred/busco/*/*/assembly/run_*_contigs_unmasked/short_summary_*.txt | grep -e 'P.cactorum' -e 'P.idaei'); do
+  Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f5 | rev)
+  Complete=$(cat $File | grep "(C)" | cut -f2)
+  Fragmented=$(cat $File | grep "(F)" | cut -f2)
+  Missing=$(cat $File | grep "(M)" | cut -f2)
+  Total=$(cat $File | grep "Total" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Complete\t$Fragmented\t$Missing\t$Total"
   done
 ```
 
-Outputs were summarised using the commands:
-```bash
-	for File in $(ls gene_pred/cegma/*/*/*_dna_cegma.completeness_report | grep -w -e '414_v2'); do
-		Strain=$(echo $File | rev | cut -f2 -d '/' | rev);
-		Species=$(echo $File | rev | cut -f3 -d '/' | rev);
-		printf "$Species\t$Strain\n";
-		cat $File | head -n18 | tail -n+4;printf "\n";
-	done > gene_pred/cegma/cegma_results_dna_summary.txt
 
-	less gene_pred/cegma/cegma_results_dna_summary.txt
-``` -->
+```bash
+  for File in $(ls repeat_masked/*/*/filtered_contigs_repmask/report.tsv | grep -e 'P.cactorum' -e 'P.idaei'); do
+  Strain=$(echo $File| rev | cut -d '/' -f3 | rev)
+  Organism=$(echo $File | rev | cut -d '/' -f4 | rev)
+  Contigs=$(cat $File | grep "contigs (>= 0 bp)" | cut -f2)
+  Length=$(cat $File | grep "Total length (>= 0 bp)" | cut -f2)
+  Largest=$(cat $File | grep "Largest contig" | cut -f2)
+  N50=$(cat $File | grep "N50" | cut -f2)
+  echo -e "$Organism\t$Strain\t$Contigs\t$Length\t$Largest\t$N50"
+  done
+```
+
 
 #Gene prediction
 
