@@ -64,6 +64,7 @@ for line in inp_lines:
         else:
             filtered_out.append(line)
     elif ploidy == 'haploid':
+        print "\t".join([str(ref_index), str(GT), str(split_line[11])])
         if GT == '1':
             errors_out.append("\t".join([contig, location]))
         else:
