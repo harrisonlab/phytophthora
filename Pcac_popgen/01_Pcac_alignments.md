@@ -277,10 +277,24 @@ between isolates
 
 based on all the SNPs. Outputs a basic display of the tree, plus a Newick file to be used for displaying the tree in FigTree and beautifying it.
 
+cut down the vcf to remove P. idaei information.
+
+
+```bash
+for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf); do
+echo $Vcf
+Out=$(echo $Vcf | sed 's/.vcf/_Pcac_only.vcf/g')
+ExludeList="371 SCRP370 SCRP376"
+VcfLib=/home/sobczm/bin/vcflib/bin
+$VcfLib/vcfremovesamples $Vcf $ExludeList > $Out
+done
+```
+
+
 Remove all missing data for nj tree construction
 
 ```bash
-  for Vcf in $(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf); do
+  for Vcf in $(ls analysis/popgen/SNP_calling/*_Pcac_only.vcf); do
     echo $Vcf
     Out=$(basename $Vcf .vcf)
     echo $Out
@@ -290,15 +304,82 @@ Remove all missing data for nj tree construction
 ```
 
 ```bash
-for Vcf in $(ls analysis/popgen/SNP_calling/*_no_missing.recode.vcf); do
+for Vcf in $(ls analysis/popgen/SNP_calling/*_Pcac_only_no_missing.recode.vcf); do
     echo $Vcf
     Ploidy=2
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
+    scripts=/home/adamst/git_repos/scripts/popgen/snp
     $ProgDir/nj_tree.sh $Vcf $Ploidy
     mv Rplots.pdf analysis/popgen/SNP_calling/NJ_tree.pdf
 done
+ls $PWD/analysis/popgen/SNP_calling/*.nwk
 ```
 
+The Newick file was downloaded to my local machine imported
+into geneious to be re-rooted, before exporting for reading
+into ggtree
+
+```R
+
+```r
+setwd("/Users/armita/Downloads/Pc/alignments/SNP")
+#===============================================================================
+#       Load libraries
+#===============================================================================
+
+library(ape)
+library(ggplot2)
+
+library(ggtree)
+library(phangorn)
+
+tree <- read.tree("414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_Pcac_only_no_missing.recode_haploidised_nj_geneious.nwk")
+
+
+
+mydata <- read.csv("/Users/armita/Downloads/Pc/alignments/SNP/traits.csv", stringsAsFactors=FALSE)
+rownames(mydata) <- mydata$label
+mydata <- mydata[match(tree$tip.label,rownames(mydata)),]
+
+
+t <- ggtree(tree) # Core tree
+t <- t + geom_treescale(offset=-0.5, fontsize = 3) # Add scalebar
+
+# labels by values in another df
+t <- t %<+% mydata
+tips <- data.frame(t$data)
+tips$label <- tips$Isolate
+t <- t + geom_tiplab(data=tips, size=3, hjust=0, offset = +0.09)
+tips2 <- data.frame(t$data)
+tips2$label <- tips2$Host
+t <- t + geom_tiplab(data=tips2, size=3, hjust=0, offset = +0, fontface = "italic")
+
+# Format nodes by values
+nodes <- data.frame(t$data)
+#nodes <- nodes[!nodes$isTip,]
+nodes$label <- as.numeric(nodes[nodes$label,])
+as.numeric(nodes$label)
+#nodes$label[nodes$label < 0.80] <- ''
+nodes$support[nodes$isTip] <- 'supported'
+nodes$support[(!nodes$isTip) & (nodes$label > 80)] <- 'supported'
+nodes$support[(!nodes$isTip) & (nodes$label < 80)] <- 'unsupported'
+nodes$support[(!nodes$isTip) & (nodes$label == '')] <- 'supported'
+t <- t + aes(linetype=nodes$support)
+nodes$label[nodes$label > 80] <- ''
+t <- t + geom_nodelab(data=nodes, size=2, hjust=+0.05) # colours as defined by col2rgb
+
+# Add in a further set of labels
+# tree_mod <- tree
+# tree_mod$tip.label <- mydata$Source
+# t <- t + geom_tiplab(data=tree_mod, aes(label=label), size=2, offset = +1)
+
+# Annotate a clade with a bar line
+#t <- t + geom_cladelabel(node=24, label='P. i', align=T, colour='black', offset=+1, fontface = "italic")
+#t <- t + geom_cladelabel(node=26, label='P. c', align=T, colour='black', offset=+1, fontface = "italic", fontface = "italic")
+
+# Save as PDF and force a 'huge' size plot
+ggsave("Pcac_SNP_phylogeny.pdf", width =20, height = 25, units = "cm", limitsize = FALSE)
+```
 
 
 # Identify SNPs in gene models:
