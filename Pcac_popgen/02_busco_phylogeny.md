@@ -212,47 +212,6 @@ t <- t + geom_cladelabel(node=26, label='P. c', align=T, colour='black', offset=
 
 # Save as PDF and force a 'huge' size plot
 ggsave("Pcac_phylogeny.pdf", width =20, height = 20, units = "cm", limitsize = FALSE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-# mydata <- read.csv("/Users/hulinm/Documents/new_trees/pruned/partitioned/traits.csv", stringsAsFactors=FALSE)
-# rownames(mydata) <- mydata$species
-# mydata <- mydata[match(tree$tip.label,rownames(mydata)),]
-
-
-# Root by midpoint
-#rooted_tree<-midpoint(tree, node.labels = "support")
-# rooting on branch label (identified by bootstrap value)
-#rooted_tree <- root(tree, node = 37, edgelabel = TRUE)
-
-#q <- ggtree(rooted_tree)
-
-q <- ggtree(tree)
-d <- q$data
-d <- d[d$isTip,]
-b <- q$data
-b <- b[!b$isTip,]
-b$label <- as.numeric(b$label)
-#d <- d[d$label < 100,]
-
-# Plot the tree and save to pdf
-q2<- q  + geom_treescale(offset=-0.5) + geom_text2(data=d, aes(label=label), size=5, position_nudge(x = +0.4)) + geom_text2(subset= (label > 80), label=label)
-#q3 <- q2 %<+% mydata + geom_tiplab(aes(color=Host), size=1.6, hjust=-0.05) + scale_color_manual(values=c("palevioletred1","black","blue")) + geom_tippoint(aes(shape=Pathogenicity, na.rm=TRUE), alpha=1, color="red") +  scale_shape_manual(values=c(19))
-
-pdf(file = "tree.pdf",width=7.2,height=10)
-q2+theme(legend.position="bottom", legend.title=element_blank()) + guides(colour=FALSE)
-dev.off()
-
 ````
 
 
@@ -261,7 +220,7 @@ dev.off()
 
 
 
-
+<!--
 
 
 ```bash
@@ -468,3 +427,4 @@ FigTree=/home/sobczm/bin/FigTree_v1.4.2/bin/figtree
 $FigTree
 
 ```
+-->
