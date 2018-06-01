@@ -3361,6 +3361,16 @@ final number of genes
 
 No duplicate genes were found.
 
+```bash
+for Transcriptome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -e '414' ); do
+Strain=$(echo $Transcriptome| rev | cut -d '/' -f2 | rev)
+Organism=$(echo $Transcriptome | rev | cut -d '/' -f3 | rev)
+GffFile=$(echo $Transcriptome | sed 's/.pep.fasta/.gff3/g')
+Genes=$(cat $GffFile | grep -w 'gene' | wc -l)
+Proteins=$(cat $Transcriptome | grep '>' | wc -l)
+printf "$Organism\t$Strain\t$Genes\t$Proteins\n"
+done
+```
 
 
 # Assessing gene space in predicted transcriptomes
@@ -3832,10 +3842,10 @@ for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffec
   # ToxinHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_CDC_genes_hits_headers.txt)
   InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
   SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vMar2018_tophit_parsed.tbl)
-  # Orthology=$(ls analysis/orthology/orthomcl/At_Aa_Ag_all_isolates/formatted/Results_Apr10/Orthogroups.txt)
-  # OrthoStrainID='At_1'
-  # echo $OrthoStrainID
-  # OrthoStrainAll='At_1 At_2 At_3 At_4 At_5 At_6 At_6 At_7 At_8 Aa_1 Aa_2 Aa_3 Ag_1'
+  Orthology=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
+  OrthoStrainID='Pc_CR1'
+  echo $OrthoStrainID
+  OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
   DEGs=$(ls alignment/salmon/DeSeq2/*_DEGs.txt | sed "s/.txt/.txt /g" | tr -d "\n")
   fpkm=$(ls alignment/salmon/DeSeq2/fpkm_norm_counts.txt)
   SNPs=$(ls analysis/popgen/SNP_calling/*annotated.vcf)
@@ -3868,6 +3878,9 @@ for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffec
   --SNPs $SNPs \
   --InDels $Indels \
   --SVs $SVs \
+  --orthogroups $Orthology \
+  --strain_id $OrthoStrainID  \
+  --OrthoMCL_all $OrthoStrainAll \
   > $OutDir/"$Strain"_annotation_ncbi.tsv
 done
 ```
