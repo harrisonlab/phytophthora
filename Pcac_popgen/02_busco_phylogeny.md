@@ -57,7 +57,17 @@ a new folder
   echo $Busco
   HitNum=$(cat analysis/popgen/busco_phylogeny/single_hits.txt | grep "$Busco" | cut -f2)
   if [ $HitNum == $OrganismNum ]; then
-    cp analysis/popgen/busco_phylogeny/$Busco/"$Busco"_appended.fasta $OutDir/.
+    # cp analysis/popgen/busco_phylogeny/$Busco/"$Busco"_appended.fasta $OutDir/.
+    cat analysis/popgen/busco_phylogeny/$Busco/"$Busco"_appended.fasta \
+    | sed "s/$Busco://g" \
+    | sed "s/genome.ctg.fa://g" \
+    | sed "s/_contigs_unmasked.fa//g" \
+    | sed -E "s/:.*//g" \
+    | sed "s/P.cactorum_//g" \
+    | sed 's/Phytophthora_cactorum-//g' \
+    | sed 's/.fa//g' \
+    | tr '.,:' '_' \
+    > $OutDir/"$Busco"_appended.fasta
   fi
   done
 ```
@@ -73,6 +83,184 @@ Submit alignment for single copy busco genes with a hit in each organism
   qsub $ProgDir/sub_mafft_alignment.sh
   cd $CurDir
 ```
+
+
+```bash
+  OutDir=analysis/popgen/busco_phylogeny/trimmed_alignments
+  mkdir -p $OutDir
+  for Alignment in $(ls analysis/popgen/busco_phylogeny/alignments/*_appended_aligned.fasta); do
+    TrimmedName=$(basename $Alignment .fasta)"_trimmed.fasta"
+    trimal -in $Alignment -out $OutDir/$TrimmedName -automated1
+  done
+```
+
+
+
+```bash
+for Alignment in $(ls analysis/popgen/busco_phylogeny/trimmed_alignments/*aligned_trimmed.fasta); do
+Jobs=$(qstat | grep 'sub_RAxML' | grep 'qw' | wc -l)
+while [ $Jobs -gt 2 ]; do
+sleep 2s
+# printf "."
+Jobs=$(qstat | grep 'sub_RAxML' | grep 'qw' | wc -l)
+done		
+printf "\n"
+echo $Prefix
+Prefix=$(basename $Alignment | cut -f1 -d '_')
+OutDir=analysis/popgen/busco_phylogeny/RAxML/$Prefix
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/phylogenetics
+qsub $ProgDir/sub_RAxML.sh $Alignment $Prefix $OutDir
+done
+```
+
+Run Astral to build a consensus phylogeny from a collective set of
+"best phylogenies" from each BUSCO locus
+
+* Note - "Recent versions of ASTRAL output a branch support value even without bootstrapping. Our analyses have revealed that this form of support is more reliable than bootstrapping (under the conditions we explored). Nevertheless, you may want to run bootstrapping as well."
+
+Tutorial tips:
+https://github.com/smirarab/ASTRAL/blob/master/astral-tutorial.md#running-with-unresolved-gene-trees
+
+
+```bash
+OutDir=analysis/popgen/busco_phylogeny/ASTRAL
+mkdir -p $OutDir
+cat analysis/popgen/busco_phylogeny/RAxML/*/RAxML_bestTree.* > $OutDir/Pcac_phylogeny.appended.tre
+# InTree=$(ls /home/armita/prog/Astral/Astral/test_data/song_primates.424.gene.tre)
+# -
+# Trimm back branches that have less than 10% bootstrap support for each tree
+# in the given file
+# -
+/home/armita/prog/newick_utilities/newick_utils/src/nw_ed $OutDir/Pcac_phylogeny.appended.tre 'i & b<=10' o > $OutDir/Pcac_phylogeny.appended.trimmed.tre
+# -
+# Calculate combined tree
+# -
+ProgDir=/home/armita/prog/Astral/Astral
+java -Xmx1000M -jar $ProgDir/astral.5.6.1.jar -i $OutDir/Pcac_phylogeny.appended.tre -o $OutDir/Pcac_phylogeny.consensus.tre | tee 2> $OutDir/Pcac_phylogeny.consensus.log
+java -Xmx1000M -jar $ProgDir/astral.5.6.1.jar -q $OutDir/Pcac_phylogeny.consensus.tre -i $OutDir/Pcac_phylogeny.appended.tre -o $OutDir/Pcac_phylogeny.consensus.scored.tre 2> $OutDir/Pcac_phylogeny.consensus.scored.log
+```
+
+GGtree was used to make a plot.
+
+* Note- Tips can be found here: https://bioconnector.org/r-ggtree.html
+
+The consensus tree was downloaded to my local machine
+
+* Note - I had to import into geneious and export again in newick format to get around polytomy branches having no branch length.
+* Terminal branch lengths are meanlingless from ASTRAL and should all be set to an arbitrary value. This will be done by geneious (set to 1), but it also introduces a branch length of 2 for one isolate that needs to be corrected with sed
+
+```bash
+cat Pcac_phylogeny.consensus.scored_geneious.tre | sed 's/:2/:1/g' > Pcac_phylogeny.consensus.scored_geneious2.tre
+```
+
+
+```r
+setwd("/Users/armita/Downloads/Pc/alignments/ASTRAL")
+#===============================================================================
+#       Load libraries
+#===============================================================================
+
+library(ape)
+library(ggplot2)
+
+library(ggtree)
+library(phangorn)
+
+tree <- read.tree("Pcac_phylogeny.consensus.scored_geneious2.tre")
+
+
+
+mydata <- read.csv("/Users/armita/Downloads/Pc/alignments/ASTRAL/traits.csv", stringsAsFactors=FALSE)
+rownames(mydata) <- mydata$label
+mydata <- mydata[match(tree$tip.label,rownames(mydata)),]
+
+
+t <- ggtree(tree) # Core tree
+t <- t + geom_treescale(offset=-0.5, fontsize = 3) # Add scalebar
+
+# labels by values in another df
+t <- t %<+% mydata
+tips <- data.frame(t$data)
+tips$label <- tips$Isolate
+t <- t + geom_tiplab(data=tips, size=3, hjust=0, offset = +0.5)
+tips2 <- data.frame(t$data)
+tips2$label <- tips2$Host
+t <- t + geom_tiplab(data=tips2, size=3, hjust=0, offset = +0, fontface = "italic")
+
+# Format nodes by values
+nodes <- data.frame(t$data)
+#nodes <- nodes[!nodes$isTip,]
+nodes$label <- as.numeric(nodes[nodes$label,])
+as.numeric(nodes$label)
+#nodes$label[nodes$label < 0.80] <- ''
+nodes$support[nodes$isTip] <- 'supported'
+nodes$support[(!nodes$isTip) & (nodes$label > 0.80)] <- 'supported'
+nodes$support[(!nodes$isTip) & (nodes$label < 0.80)] <- 'unsupported'
+nodes$support[(!nodes$isTip) & (nodes$label == '')] <- 'supported'
+t <- t + aes(linetype=nodes$support)
+nodes$label[nodes$label > 0.80] <- ''
+t <- t + geom_nodelab(data=nodes, size=2, hjust=-0.05) # colours as defined by col2rgb
+
+# Add in a further set of labels
+# tree_mod <- tree
+# tree_mod$tip.label <- mydata$Source
+# t <- t + geom_tiplab(data=tree_mod, aes(label=label), size=2, offset = +1)
+
+# Annotate a clade with a bar line
+t <- t + geom_cladelabel(node=24, label='P. i', align=T, colour='black', offset=+1, fontface = "italic")
+t <- t + geom_cladelabel(node=26, label='P. c', align=T, colour='black', offset=+1, fontface = "italic", fontface = "italic")
+
+# Save as PDF and force a 'huge' size plot
+ggsave("Pcac_phylogeny.pdf", width =20, height = 20, units = "cm", limitsize = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+# mydata <- read.csv("/Users/hulinm/Documents/new_trees/pruned/partitioned/traits.csv", stringsAsFactors=FALSE)
+# rownames(mydata) <- mydata$species
+# mydata <- mydata[match(tree$tip.label,rownames(mydata)),]
+
+
+# Root by midpoint
+#rooted_tree<-midpoint(tree, node.labels = "support")
+# rooting on branch label (identified by bootstrap value)
+#rooted_tree <- root(tree, node = 37, edgelabel = TRUE)
+
+#q <- ggtree(rooted_tree)
+
+q <- ggtree(tree)
+d <- q$data
+d <- d[d$isTip,]
+b <- q$data
+b <- b[!b$isTip,]
+b$label <- as.numeric(b$label)
+#d <- d[d$label < 100,]
+
+# Plot the tree and save to pdf
+q2<- q  + geom_treescale(offset=-0.5) + geom_text2(data=d, aes(label=label), size=5, position_nudge(x = +0.4)) + geom_text2(subset= (label > 80), label=label)
+#q3 <- q2 %<+% mydata + geom_tiplab(aes(color=Host), size=1.6, hjust=-0.05) + scale_color_manual(values=c("palevioletred1","black","blue")) + geom_tippoint(aes(shape=Pathogenicity, na.rm=TRUE), alpha=1, color="red") +  scale_shape_manual(values=c(19))
+
+pdf(file = "tree.pdf",width=7.2,height=10)
+q2+theme(legend.position="bottom", legend.title=element_blank()) + guides(colour=FALSE)
+dev.off()
+
+````
+
+
+
+
+
+
+
 
 
 
