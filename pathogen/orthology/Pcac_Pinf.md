@@ -314,11 +314,11 @@ Also try using orthofinder
 qlogin -pe smp 24 -l virtual_free=1G -l h=blacklace07.blacklace
 
 #16 threads used
-ProjDir=/data/scratch/armita/alternaria
+ProjDir=/home/groups/harrisonlab/project_files/idris
 cd $ProjDir
-IsolateAbrv=At_Aa_Ag_all_isolates
+IsolateAbrv=Pcac_Pinf_publication
 WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
-orthofinder -f $WorkDir/formatted -t 16 -a 16
+orthofinder -f $WorkDir/formatted -t 24 -a 24
 ```
 
 orthofinder results:
@@ -334,6 +334,138 @@ output files are in:
 ls $WorkDir/formatted/Results_Apr10
 ```
 
+```bash
+OutDir=$(ls -d analysis/orthology/orthomcl/Pcac_Pinf_publication)
+Orthogroups=$(ls $OutDir/Pcac_Pinf_publication_orthogroups.txt)
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+$ProgDir/summarise_orthogroups.py --orthogroups $Orthogroups > $OutDir/summarised_orthogroups.tsv
+```
+
+```bash
+OutDir=$(ls -d analysis/orthology/orthomcl/Pcac_Pinf_publication)
+Orthogroups=$(ls $OutDir/Pcac_Pinf_publication_orthogroups.txt)
+OrthoMclIds='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
+TrueNames='414 12420 15_13 15_7 2003_3 4032 4040 404 415 416 P421 PC13_15 10300 11-40 17-21 62471 P295 R36_14 371 SCRP370 SCRP376'
+MissingIsolates='LV007'
+mkdir -p $OutDir/gloome
+ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+$ProgDir/orthoMCL2Gloome.py --orthogroups $Orthogroups --isolate_list $OrthoMclIds --true_names $TrueNames --missing_isolates $MissingIsolates > $OutDir/gloome/gloome.fasta
+```
+
+Gloome was used to predict gain/loss of orthogroups within the tree
+http://gloome.tau.ac.il/source/GLOOME.CoPAP.gainLoss.Manual.pdf
+
+
+A tree file from my local computer was used as a reference
+(Pcac_phylogeny.consensus.scored_geneious2.tre). The tree file contents needed to be edited to remove node labels.
+
+The original tree was:
+
+```
+((SCRP370:1.0,(371:1.0,SCRP376:1.0)0.9:0.08245622453296164)1:1.6434064099824397,(LV007:1.0000000000000004,((17-21:1.0,(R36_14:1.0,(P295:1.0,62471:1.0)1:0.29696569109508353)1:0.32373562653903853)1:0.15949253028150512,(10300:1.0,(((2003_3:1.0,4032:1.0)0.54:0.03507127382577924,(P421:1.0,(414:1.0,PC13_15:1.0)0.48:0.027700345429534146)0.48:0.019840795963525615)0.61:0.03554532977083369,((4040:1.0,416:1.0)0.77:0.05715039539753075,(11-40:1.0,((12420:1.0,15_13:1.0)0.69:0.04700123987863236,(404:1.0,(15_7:1.0,415:1.0)0.45:0.015690963218303544)0.47:0.021387852567743337)0.52:0.02567263702771161)0.37:0.0046454517207186186)0.39:0.007662872745568983)0.88:0.07713662906987118)1:0.5668858014697449)1:1.0567984198056735):1.6434064099824397);
+```
+and it was edited to:
+```
+((SCRP370:1.0,(371:1.0,SCRP376:1.0):1.0):1.0,(LV007:1.0,((17-21:1.0,(R36_14:1.0,(P295:1.0,62471:1.0):1.0):1.0):1.0,(10300:1.0,(((2003_3:1.0,4032:1.0):1.0,(P421:1.0,(414:1.0,PC13_15:1.0):1.0):1.0):1.0,((4040:1.0,416:1.0):1.0,(11-40:1.0,((12420:1.0,15_13:1.0):1.0,(404:1.0,(15_7:1.0,415:1.0):1.0):1.0):1.0):1.0):1.0):1.0):1.0):1.0):1.0);
+```
+
+```bash
+OutDir=analysis/orthology/orthomcl/Pcac_Pinf_publication/gloome
+mkdir -p $OutDir
+ParamFile=$OutDir/param.txt
+Tree=tmp.nwk
+printf "((SCRP370:1.0,(371:1.0,SCRP376:1.0):1.0):1.0,(LV007:1.0,((17-21:1.0,(R36_14:1.0,(P295:1.0,62471:1.0):1.0):1.0):1.0,(10300:1.0,(((2003_3:1.0,4032:1.0):1.0,(P421:1.0,(414:1.0,PC13_15:1.0):1.0):1.0):1.0,((4040:1.0,416:1.0):1.0,(11-40:1.0,((12420:1.0,15_13:1.0):1.0,(404:1.0,(15_7:1.0,415:1.0):1.0):1.0):1.0):1.0):1.0):1.0):1.0):1.0):1.0);" > $Tree
+Fasta=$(ls $OutDir/gloome.fasta)
+# printf \
+# "_seqFile $Fasta
+# _treeFile $Tree
+# _gainLossDist 1
+# _optimizationLevel low
+# _gainDistributionType GENERAL_GAMMA_PLUS_INV
+# _lossDistributionType GENERAL_GAMMA_PLUS_INV
+# " \
+# > $ParamFile
+printf \
+"_seqFile $Fasta
+_treeFile $Tree
+_gainLossDist 1
+_optimizationLevel high
+_minNumOfOnes 2
+_minNumOfZeros 1
+_gainDistributionType GENERAL_GAMMA_PLUS_INV
+_lossDistributionType GENERAL_GAMMA_PLUS_INV
+" \
+> $ParamFile
+gainLoss.VR01.266 $ParamFile
+mv RESULTS $OutDir/RESULTS3
+ls $OutDir/RESULTS2/TheTree.INodes.ph
+# Analysis of the output tree identified the following nodes:
+# N2 P. idaei clade
+# N4 LV007 clade (no results)
+# N5 P. cactorum clade
+# N6 Leather rot + apple clade
+# N7 apple clade
+# N9 crown rot clade
+# maximum parsimony
+OutFile=$(ls $OutDir/RESULTS2/gainLossMP.2.00099.PerPosPerBranch.txt)
+# Stochastic modeling
+# OutFile=$(ls $OutDir/RESULTS2/ProbabilityPerPosPerBranch.txt)
+cat $OutFile | grep -w 'N2' > $OutDir/N2_P.idaei_clade.txt
+cat $OutFile | grep -w 'N4' > $OutDir/N4_LV007_clade.txt
+cat $OutFile | grep -w 'N5' > $OutDir/N5_P.cactorum_clade.txt
+cat $OutFile | grep -w 'N6' > $OutDir/N6_leather-rot_apple_clade.txt
+cat $OutFile | grep -w 'N7' > $OutDir/N7_apple_clade.txt
+cat $OutFile | grep -w 'N9' > $OutDir/N9_crown_clade.txt
+for File in $(ls $OutDir/*_clade.txt); do
+  Name=$(basename $File)
+  Gains=$(cat $File | grep 'gain' | wc -l)
+  Losses=$(cat $File | grep 'loss' | wc -l)
+  Total=$(cat $File | grep -e 'gain' -e 'loss' | wc -l)
+  printf "$Name\t$Gains\t$Losses\t$Total\n"
+done
+```
+
+Maximum parsimony results:
+```
+N2_P.idaei_clade.txt	0	6409	6409
+N4_LV007_clade.txt	0	0	0
+N5_P.cactorum_clade.txt	0	3098	3098
+N6_leather-rot_apple_clade.txt	0	696	696
+N7_apple_clade.txt	0	507	507
+N9_crown_clade.txt	0	1065	1065
+```
+
+stochastic modeling results:
+
+```
+N2_P.idaei_clade.txt	4652	8068	12720
+N4_LV007_clade.txt	8394	4481	12875
+N5_P.cactorum_clade.txt	5014	8387	13401
+N6_leather-rot_apple_clade.txt	5243	7639	12882
+N7_apple_clade.txt	4752	5236	9988
+N9_crown_clade.txt	4357	8473	12830
+```
+
+
+```bash
+Orthogroups=$(ls analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
+OrthoMclIds='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
+TrueNames='414 12420 15_13 15_7 2003_3 4032 4040 404 415 416 P421 PC13_15 10300 11-40 17-21 62471 P295 R36_14 371 SCRP370 SCRP376'
+OutDir=analysis/orthology/orthomcl/Pcac_Pinf_publication/gloome
+for CladeFile in $(ls $OutDir/*_clade.txt | grep 'N2'); do
+  Prefix=$(basename $CladeFile .txt)
+  ProgDir=/home/armita/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  $ProgDir/gloome2orthogroups.py --orthogroups $Orthogroups --gloome $OutDir/N2_P.idaei_clade.txt --OrthoMCL_all $OrthoMclIds  > $OutDir/${Prefix}_orthogroup_summary.txt
+  cat $OutDir/${Prefix}_orthogroup_summary.txt \
+  | grep -e "Pc_CR(13)" -e "Pc_CR(0)" \
+  | grep -e "Pc_MD(3)" -e "Pc_MD(0)" \
+  | grep -e "Pci_RI(3)" -e "Pi_RI(0)" \
+  > $OutDir/${Prefix}_orthogroup_summary_filtered.txt
+done
+```
+
+
+<!--
 ## 5) Plot venn diagrams:
 
 Orthofinder output:
@@ -363,7 +495,7 @@ number of unique singleton genes
 number of unique groups of inparalogs
 
 ```
-```
+``` -->
 
 # 6) Downstream analysis
 
@@ -372,11 +504,24 @@ Particular orthogroups were analysed for expansion in isolates.
 This section details the commands used and the results observed.
 
 
+```bash
+IsolateAbrv=Pcac_Pinf_publication
+WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
+OrthogroupsTxt=$(ls $WorkDir/${IsolateAbrv}_orthogroups.txt)
+echo "Number of orthogroups"
+cat $OrthogroupsTxt | wc -l
+echo "Number of clustered proteins:"
+cat $OrthogroupsTxt | grep -o '|' | wc -l
+echo "Total proteins:"
+GoodProts=$(ls $WorkDir/goodProteins/goodProteins.fasta)
+cat $GoodProts | grep '>' | wc -l
+```
+
 ## Extracting fasta files for orthogroups:
 
 ```bash
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
-  OrthogroupsTxt=$(ls $WorkDir/formatted/Results_Apr10/Orthogroups.txt)
+  OrthogroupsTxt=$(ls $WorkDir/Orthogroups.txt)
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
   OutDir=$WorkDir/orthogroups_fasta
   mkdir -p $OutDir
