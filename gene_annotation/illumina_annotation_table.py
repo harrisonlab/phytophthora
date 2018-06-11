@@ -1,0 +1,896 @@
+#!/usr/bin/python
+
+'''
+This program is used to build information on all the genes predicted in
+an annotated genome. These commands take information on location of genes
+& suppliment this information with information on interproscan domains
+and swissprot annotations.
+'''
+
+#-----------------------------------------------------
+# Step 1
+# Import variables & load input files
+#-----------------------------------------------------
+
+import sys
+import os
+import argparse
+import re
+import numpy as np
+from sets import Set
+from collections import defaultdict
+from operator import itemgetter
+
+ap = argparse.ArgumentParser()
+
+# ap.add_argument('--genome',required=True,type=str,help='A fasta file of the assembled contigs')
+ap.add_argument('--protein_fasta',required=True,type=str,help='A fasta file of predicted protein sequences')
+ap.add_argument('--genes_gff',required=True,type=str,help='A gff file of the genes')
+ap.add_argument('--conversion_log',required=True,type=str,help='A file detailing gene names prior to renaming')
+ap.add_argument('--ORF_gff',required=True,type=str,help='A gff file for ORFs from which the two versions of ORF gene names can be extracted')
+ap.add_argument('--SigP2',required=True,type=str,help='A file containing a list of signal-peptide containing genes')
+ap.add_argument('--SigP3',required=True,type=str,help='A file containing a list of signal-peptide containing genes')
+ap.add_argument('--SigP4',required=True,type=str,help='A file containing a list of signal-peptide containing genes')
+ap.add_argument('--phobius',required=True,type=str,help='A fasta file containing signal-peptide containing genes')
+ap.add_argument('--TM_list',required=True,type=str,help='txt file of headers from gene testing positive for tranmembrane proteins by TMHMM')
+# # ap.add_argument('--GPI_list',required=True,type=str,help='txt file of headers from gene testing positive for GPI anchors as identified by GPI-SOM')
+ap.add_argument('--RxLR_regex',required=True,type=str,help='A file containing results of RxLR regex searches')
+ap.add_argument('--RxLR_hmm',required=True,type=str,help='A file containing results of RxLR hmm searches')
+ap.add_argument('--CRN_dwl',required=True,type=str,help='A file containing results of DWL hmm searches')
+ap.add_argument('--CRN_lflak',required=True,type=str,help='A file containing results of LFLAK hmm searches')
+ap.add_argument('--EffP_list',required=True,type=str,help='A file containing results of effectorP')
+ap.add_argument('--CAZY',required=True,type=str,help='A file containing results of CAZY')
+ap.add_argument('--PhiHits',required=True,type=str,help='BLAST results of Phibase proteins vs predicted gene models')
+ap.add_argument('--InterPro',required=True,type=str,help='The Interproscan functional annotation .tsv file')
+ap.add_argument('--Swissprot',required=True,type=str,help='A parsed table of BLAST results against the Swissprot database. Note - must have been parsed with swissprot_parser.py')
+ap.add_argument('--TFs',required=True,type=str,help='Tab seperated of putative transcription factors and their domains as identified by interpro2TFs.py')
+# ap.add_argument('--DEGs',required=True,type=str,nargs='+',help='A list of files containing lists of DEGs')
+# ap.add_argument('--fpkm',required=True,type=str,help='File containing FPKM values of genes under all conditions')
+# ap.add_argument('--SNPs',required=True,type=str,help='Annotated vcf file, detailing SNPs and effects on genes')
+# ap.add_argument('--InDels',required=True,type=str,help='Annotated vcf file, detailing InDels and effects on genes')
+# ap.add_argument('--SVs',required=True,type=str,help='Annotated vcf file, detailing SVs and effects on genes')
+ap.add_argument('--orthogroups', required=True,type=str,help='A file containing results of orthology analysis')
+ap.add_argument('--strain_id',required=True,type=str,help='The identifier of this strain as used in the orthology analysis')
+ap.add_argument('--OrthoMCL_all',required=True,type=str,nargs='+',help='The identifiers of all strains used in the orthology analysis')
+
+conf = ap.parse_args()
+
+
+
+#-----------------------------------------------------
+# Step 2
+# Define classes
+#-----------------------------------------------------
+
+def add_protseq(obj_dict, protein_lines):
+    """Add protein sequence data to each gene"""
+    for line in protein_lines:
+        line = line.rstrip()
+        if line.startswith('>'):
+            transcript_id = line.replace('>', '')
+        else:
+            obj_dict[transcript_id].protein_seq += line
+
+def summarise_orthogroup(content_str):
+    """"""
+    content_list = content_str.split(",")
+    content_list = [x.split('|')[0] for x in content_list]
+    content_set = set(content_list)
+    crown_rot_isolates = ['Pc_CR1', 'Pc_CR2', 'Pc_CR3', 'Pc_CR4', 'Pc_CR5', 'Pc_CR6', 'Pc_CR7', 'Pc_CR8', 'Pc_CR9', 'Pc_CR10', 'Pc_CR11', 'Pc_CR12', 'Pc_CR13', 'Pc_LR1']
+    leather_rot_isolates = ['Pc_LR2']
+    apple_isolates = ['Pc_MD1', 'Pc_MD2', 'Pc_MD3']
+    raspberry_isolates = ['Pi_RI1', 'Pi_RI2', 'Pi_RI3']
+    cr = 0
+    lr = 0
+    md = 0
+    ri = 0
+    # print content_set
+    for i in content_set:
+        if i in crown_rot_isolates:
+            cr += 1
+        elif i in leather_rot_isolates:
+            lr += 1
+        elif i in apple_isolates:
+            md  += 1
+        elif i in raspberry_isolates:
+            ri  += 1
+    summarised_orthogroup = "".join(["CR(", str(cr), ")LR(", str(lr), ")Md(", str(md), ")Ri(", str(ri), ")"])
+    return(summarised_orthogroup)
+
+class ConvObj(object):
+    """A dictionary of old and current gene names, with methods to aid conversion
+    Attributes:
+        conversion_dict: A string representing the gene name.
+    """
+    def __init__(self):
+        """set the object, defining the dictionary."""
+        dict = defaultdict(list)
+        self.conversion_dict = dict
+    def set_dict(self, lines):
+        """ Create the conversion dictionary from input lines """
+        for line in lines:
+            line = line.rstrip()
+            split_line = line.split("\t")
+            old_gene_id = split_line[0]
+            new_gene_id = split_line[2]
+            conv_dict = self.conversion_dict
+            conv_dict[old_gene_id] = new_gene_id
+            self.conversion_dict = conv_dict
+    def set_ORF_dict(self, lines):
+        """ Create a conversion dictionary from ORF gff input lines """
+        for line in lines:
+            if line.startswith("#"):
+                continue
+            line = line.rstrip()
+            split_line = line.split("\t")
+            if split_line[2] == 'gene':
+                continue
+            col9 = split_line[8]
+            split_col9 = col9.split(";")
+            old_gene_id = split_col9[2].replace("Name=", "")
+            new_gene_id = split_col9[0].replace("ID=", "")
+            # conv_dict = self.conversion_dict
+            # conv_dict[old_gene_id] = new_gene_id
+            # self.conversion_dict = conv_dict
+            # print str(old_gene_id) + "\t" + str(new_gene_id)
+            self.conversion_dict[old_gene_id] = new_gene_id
+        # print self.conversion_dict
+    def convert_transcript(self, old_transcript_id):
+        """  """
+        old_gene_id = re.sub(r".t.*", "" , old_transcript_id)
+        if self.conversion_dict[old_gene_id]:
+            gene_id = self.conversion_dict[old_gene_id]
+            transcript_id = old_transcript_id.replace(old_gene_id, gene_id)
+        else:
+            transcript_id = "not present"
+        # print str(old_gene_id) + "\t" + str(gene_id)
+        # print "\t".join([old_transcript_id, old_gene_id, gene_id, transcript_id])
+        return transcript_id
+    def convert_ORF_transcript(self, old_transcript_id):
+        """  """
+        transcript_id = self.conversion_dict[old_transcript_id]
+        return transcript_id
+
+
+
+class Expression_obj(object):
+    """Information on a genes fpkm under various conditions and whether a gene
+        is differentially expressed under different conditions:
+    """
+    def __init__(self, gene_id):
+        """Return a Expression_obj whose name is *gene_id*"""
+        self.gene_id = gene_id
+        self.DEG_conditions = set()
+        # self.fpkm_dict = defaultdict(list)
+        self.condition_list = []
+        self.fpkm_list = []
+
+    def add_DEG(self, DEG_condition):
+        """Return a Expression_obj whose name is *gene_id*"""
+        self.DEG_conditions.add(DEG_condition)
+
+    def add_fpkm(self, conditions_list, fpkm_list):
+        """Return a Expression_obj whose name is *gene_id*"""
+        for condition, fpkm in zip(conditions_list, fpkm_list):
+            self.condition_list.append(condition)
+            fpkm = int(np.round_(float(fpkm),  decimals=0))
+            self.fpkm_list.append(str(fpkm))
+
+            # self.fpkm_dict[condition].append(fpkm)
+
+class Annot_obj(object):
+    # """A gene identified as differentially expressed in one isolate.
+    # Attributes:
+    #     transcript_id: A string representing the gene name.
+    #     conditions_tested: List of conditions that the gene was tested for DE.
+    #     conditions_positive: A binary list of integers representing whether the
+    #         gene tested positive for each condition listed in conditions tested.
+    # """
+
+    def __init__(self):
+        """Return a Annot_obj whose name is *transcript_id*"""
+        self.transcript_id = ''
+        self.old_transcript = ''
+        self.contig = ''
+        self.start = ''
+        self.stop = ''
+        self.strand = ''
+        self.protein_seq = ''
+        self.sigp2 = ''
+        self.sigp3 = ''
+        self.sigp4 = ''
+        self.phobius = ''
+        self.transmem = ''
+        self.secreted = ''
+        self.rxlr_regex = ''
+        self.rxlr_deer = ''
+        self.rxlr_hmm = ''
+        self.putative_rxlr = ''
+        self.dwl_hmm = ''
+        self.lflak_hmm = ''
+        self.putative_crn = ''
+        self.effp = ''
+        self.cazy = ''
+        self.interpro = set()
+        self.swissprot = ''
+        self.phi = ''
+        self.toxin = ''
+        self.orthogroup_id = ''
+        self.content_counts = ''
+        self.content_str = ''
+        self.transcriptionfactor = set()
+        self.DEG_conditions = ''
+        self.fpkm_conditions = ''
+        self.fpkm = ''
+        self.SNP_info = []
+        self.InDel_info = []
+        self.SV_info = []
+        self.variation_level = set()
+        self.ipr_effectors = set()
+
+    def set_conditions(self, gff_elements):
+        """Reset conditions_tested to a list of conditions"""
+        self.contig = gff_elements[0]
+        self.start = gff_elements[3]
+        self.stop = gff_elements[4]
+        self.strand = gff_elements[6]
+        gene_features = gff_elements[8].split(';')
+        transcript_id = gene_features[0]
+        transcript_id = transcript_id.replace('ID=', '')
+        self.transcript_id = transcript_id
+
+    def set_prev_id(self, old_transcript):
+        """Reset conditions_tested to a list of conditions"""
+        self.old_transcript = old_transcript
+    def add_sigp2(self):
+        """Add SignalP information"""
+        self.sigp2 = 'Yes'
+        self.secreted = 'Yes'
+    def add_sigp3(self):
+        """Add SignalP information"""
+        self.sigp3 = 'Yes'
+        self.secreted = 'Yes'
+    def add_sigp4(self):
+        """Add SignalP information"""
+        self.sigp4 = 'Yes'
+        self.secreted = 'Yes'
+    def add_phobius(self):
+        """Add signal peptide information"""
+        self.phobius = 'Yes'
+        # self.secreted = 'Yes'
+    def add_transmem(self):
+        """Add transmembrane protein information"""
+        # print self.transcript_id
+        if self.secreted == 'Yes':
+            self.transmem = 'Yes'
+            self.secreted = ''
+    def add_rxlr_regex(self, line):
+        """Add RxLR information"""
+        self.rxlr_regex = 'Yes'
+        if 'EER_motif_start' in line:
+            self.rxlr_deer = 'Yes'
+            if any('Yes' in x for x in ([self.sigp2, self.sigp3, self.sigp4])):
+                self.putative_rxlr = 'RxLR'
+    def add_rxlr_hmm(self):
+        """Add RxLR information"""
+        self.rxlr_hmm = 'Yes'
+        if any('Yes' in x for x in ([self.sigp2, self.sigp3, self.sigp4])):
+            self.putative_rxlr = 'RxLR'
+    def add_dwl_hmm(self):
+        """Add DWL information"""
+        self.dwl_hmm = 'Yes'
+    def add_lflak_hmm(self):
+        """Add LFLAK information"""
+        self.lflak_hmm = 'Yes'
+        if self.dwl_hmm == 'Yes':
+            self.putative_crn = 'CRN'
+    def add_effp(self):
+        """Add EffectorP information"""
+        if any('Yes' in x for x in ([self.sigp2, self.sigp3, self.sigp4])):
+            self.effp = 'Yes'
+    def add_cazy(self, line):
+        """Add CAZY information"""
+        split_line = line.split()
+        self.cazy = 'CAZY:' + split_line[0].replace('.hmm', '')
+    def add_interpro(self, line):
+        """Add InterPro information"""
+        split_line = line.split("\t")
+        interpro_columns = []
+        index_list = [4, 5, 11, 12]
+        for x in index_list:
+            if len(split_line) > x:
+                interpro_columns.append(split_line[x])
+        ipr_line = ";".join(interpro_columns)
+        self.interpro.add(ipr_line)
+    def add_swissprot(self, line):
+        """Add swissprot information"""
+        split_line = line.split("\t")
+        self.swissprot = "|".join(itemgetter(14, 12, 13)(split_line))
+    def add_phi(self, line):
+        line = line.rstrip()
+        split_line = line.split()
+        self.phi = split_line[1]
+    def add_toxin(self, line):
+        line = line.rstrip()
+        split_line = line.split()
+        self.toxin = split_line[1]
+    def add_orthogroup(self, orthogroup_id, content_counts, content_str):
+        """Add swissprot information"""
+        self.orthogroup_id = orthogroup_id
+        self.content_counts = content_counts
+        self.content_str = content_str
+    def add_TF(self, line):
+        """Add swissprot information"""
+        split_line = line.split("\t")
+        TF_function = split_line[2]
+        self.transcriptionfactor.add(TF_function)
+
+    def add_SNP(self, line, isolate_list):
+        """Add information on non-synonymous SNPs"""
+        species_isolates = ['371','SCRP370','SCRP376']
+        pathotype_isolates = ['62471','P295','R36_14']
+        leather_rot = ['17-21', '11-40']
+        population_isolates = ['415','15_7','15_13', '404', '12420', '12420', '2003_3', '4032', 'PC13_15', '414', '4040', '416', '415']
+        split_line = line.split("\t")
+        effect_col = split_line[7]
+        SNP_effect = effect_col.split('|')[1]
+        presence_list = []
+
+        for isolate, isolate_col in zip(isolate_list, split_line[9:]):
+            if any(x in isolate_col for x in (['1/1', '0/1', '1/0'])):
+                presence_list.append(isolate)
+        self.SNP_info.append(":".join([SNP_effect, ",".join(presence_list)]))
+        if any(x in presence_list for x in (species_isolates)):
+            self.variation_level.add('species')
+        if any(x in presence_list for x in (pathotype_isolates)):
+            self.variation_level.add('pathotype')
+        if any(x in presence_list for x in (population_isolates)):
+            self.variation_level.add('population')
+
+
+    def add_InDel(self, line, isolate_list):
+        """Add information on non-synonymous InDels"""
+        species_isolates = ['371','SCRP370','SCRP376']
+        pathotype_isolates = ['62471','P295','R36_14']
+        population_isolates = ['415','15_7','15_13', '404', '12420', '12420', '2003_3', '4032', 'PC13_15', '414', '4040', '416']
+        split_line = line.split("\t")
+        effect_col = split_line[7]
+        InDel_effect = effect_col.split('|')[1]
+        presence_list = []
+        for isolate, isolate_col in zip(isolate_list, split_line[9:]):
+            if any(x in isolate_col for x in (['1/1', '0/1', '1/0'])):
+                isolate = isolate.replace('_vs_414_aligned_sorted.bam', '')
+                presence_list.append(isolate)
+        if len(presence_list) > 0:
+            self.InDel_info.append(":".join([InDel_effect, ",".join(presence_list)]))
+        if any(x in presence_list for x in (species_isolates)):
+            self.variation_level.add('species')
+        if any(x in presence_list for x in (pathotype_isolates)):
+            self.variation_level.add('pathotype')
+        if any(x in presence_list for x in (population_isolates)):
+            self.variation_level.add('population')
+
+    def add_SV(self, line, isolate_list):
+        """Add information on non-synonymous SVs"""
+        species_isolates = ['371','SCRP370','SCRP376']
+        pathotype_isolates = ['62471','P295','R36_14']
+        population_isolates = ['415','15_7','15_13', '404', '12420', '12420', '2003_3', '4032', 'PC13_15', '414', '4040', '416']
+        split_line = line.split("\t")
+        effect_col = split_line[7]
+        SV_effect = effect_col.split('|')[1]
+        presence_list = []
+        for isolate, isolate_col in zip(isolate_list, split_line[9:]):
+            if any(x in isolate_col for x in (['1/1', '0/1', '1/0'])):
+                isolate = isolate.replace('_vs_414_aligned_sorted.bam', '')
+                presence_list.append(isolate)
+        # print self.transcript_id + "\t" + ",".join(presence_list)
+        self.SV_info.append(":".join([SV_effect, ",".join(presence_list)]))
+        if any(x in presence_list for x in (species_isolates)):
+            self.variation_level.add('species')
+        if any(x in presence_list for x in (pathotype_isolates)):
+            self.variation_level.add('pathotype')
+        if any(x in presence_list for x in (population_isolates)):
+            self.variation_level.add('population')
+
+    def add_expr(self, exp_obj):
+        """"""
+        self.DEG_conditions = ";".join(exp_obj.DEG_conditions)
+        self.fpkm_conditions = "\t".join(exp_obj.condition_list)
+        self.fpkm = "\t".join(exp_obj.fpkm_list)
+
+    def ipr2effectors(self):
+        """"""
+        ipr_dict = {
+        'IPR002200' : 'MAMP:Elicitin',
+        'IPR032048' : 'MAMP:Transglutaminase',
+        'IPR001314' : 'Apoplastic:Glucanase inhibitor',
+        'PF09461' : 'Apoplastic:Phytotoxin',
+        'PF05630' : 'Apoplastic:NLP',
+        'IPR008701' : 'Apoplastic:NLP',
+        'PF01083' : 'Apoplastic:Cutinase',
+        'IPR002350' : 'Apoplastic:Protease inhibitor (Kazal-type)',
+        'IPR013201' : 'Apoplastic:Protease inhibitor (cathepsin)',
+        'IPR000010' : 'Apoplastic:Protease inhibitor (cystatin-like)',
+        'IPR027214' : 'Apoplastic:Protease inhibitor (cystatin-like)',
+        'IPR018073' : 'Apoplastic:Protease inhibitor (cystatin-like)',
+        'IPR020381' : 'Apoplastic:Protease inhibitor (cystatin-like)'
+        }
+        for ipr_line in self.interpro:
+            for x in ipr_line.split(';'):
+                if x in ipr_dict:
+                    self.ipr_effectors.add(ipr_dict[x])
+
+
+#-----------------------------------------------------
+# Step X
+# Read input files
+#-----------------------------------------------------
+
+# with open(conf.genome) as f:
+#     contig_lines = f.readlines()
+with open(conf.genes_gff) as f:
+    gff_lines = f.readlines()
+with open(conf.protein_fasta) as f:
+    protein_lines = f.readlines()
+with open(conf.conversion_log) as f:
+    conversion_lines = f.readlines()
+with open(conf.ORF_gff) as f:
+    ORF_gff_lines = f.readlines()
+with open(conf.SigP2) as f:
+    sigP2_lines = f.readlines()
+with open(conf.SigP3) as f:
+    sigP3_lines = f.readlines()
+with open(conf.SigP4) as f:
+    sigP4_lines = f.readlines()
+with open(conf.phobius) as f:
+    phobius_lines = f.readlines()
+with open(conf.TM_list) as f:
+    TM_lines = f.readlines()
+with open(conf.RxLR_regex) as f:
+    rxlr_regex_lines = f.readlines()
+with open(conf.RxLR_hmm) as f:
+    rxlr_hmm_lines = f.readlines()
+with open(conf.CRN_dwl) as f:
+    crn_dwl_lines = f.readlines()
+with open(conf.CRN_lflak) as f:
+    crn_lflak_lines = f.readlines()
+with open(conf.EffP_list) as f:
+    effP_lines = f.readlines()
+with open(conf.TFs) as f:
+    TF_lines = f.readlines()
+with open(conf.CAZY) as f:
+    cazy_lines = f.readlines()
+with open(conf.PhiHits) as f:
+    phibase_lines = f.readlines()
+# with open(conf.ToxinHits) as f:
+#     toxin_lines = f.readlines()
+with open(conf.InterPro) as f:
+    InterPro_lines = f.readlines()
+with open(conf.Swissprot) as f:
+    swissprot_lines = f.readlines()
+with open(conf.orthogroups) as f:
+    orthogroup_lines = f.readlines()
+# with open(conf.SNPs) as f:
+#     SNP_lines = f.readlines()
+# with open(conf.InDels) as f:
+#     InDel_lines = f.readlines()
+# with open(conf.SVs) as f:
+#     SV_lines = f.readlines()
+
+#-----------------------------------------------------
+# Step X
+# Create an object to hold expression information
+#-----------------------------------------------------
+#
+#
+# expression_dict = defaultdict(list)
+# for file in conf.DEGs:
+#     with open(file) as f:
+#         DEG_lines = f.readlines()
+#     condition = os.path.basename(file)
+#     condition = condition.replace('_DEGs.txt', '')
+#     for line in DEG_lines:
+#         gene_id = line.rstrip()
+#         if expression_dict[gene_id]:
+#             exp_obj = expression_dict[gene_id][0]
+#         else:
+#             exp_obj = Expression_obj(gene_id)
+#         # exp_obj.gene_id = gene_id
+#         exp_obj.add_DEG(condition)
+#         expression_dict[gene_id].append(exp_obj)
+#
+# with open(conf.fpkm) as f:
+#     fpkm_lines = f.readlines()
+#
+# conditions_list = fpkm_lines[0].rstrip().split("\t")
+# for line in fpkm_lines[1:]:
+#     line = line.rstrip()
+#     split_line = line.split("\t")
+#     gene_id = split_line[0]
+#     fpkm_list = split_line[1:]
+#     if expression_dict[gene_id]:
+#         expression_dict[gene_id][0].add_fpkm(conditions_list, fpkm_list)
+#     else:
+#         exp_obj = Expression_obj(gene_id)
+#         exp_obj.add_fpkm(conditions_list, fpkm_list)
+#         expression_dict[gene_id].append(exp_obj)
+#
+
+
+gene_dict = defaultdict(list)
+
+
+#-----------------------------------------------------
+# Step X
+# Create gene conversion object
+#-----------------------------------------------------
+
+conversion_obj = ConvObj()
+conversion_obj.set_dict(conversion_lines)
+
+ORF_conversion_obj = ConvObj()
+ORF_conversion_obj.set_ORF_dict(ORF_gff_lines)
+
+#-----------------------------------------------------
+# Step X
+# Create an annotation object for each gene
+#-----------------------------------------------------
+
+
+for line in gff_lines:
+    if "gff-version" in line:
+        continue
+    if line.startswith('#'):
+        continue
+    line = line.rstrip()
+    split_line = line.split("\t")
+    if 'mRNA' in split_line[2]:
+        gene_features = split_line[8].split(';')
+        transcript_id = gene_features[0]
+        transcript_id = transcript_id.replace('ID=', '')
+        gene_obj = Annot_obj()
+        gene_obj.set_conditions(split_line)
+        gene_dict[transcript_id] = gene_obj
+
+
+#-----------------------------------------------------
+# Step X
+# Add annotation information to gene objects
+#-----------------------------------------------------
+
+add_protseq(gene_dict, protein_lines)
+
+for line in sigP2_lines:
+    line = line.rstrip()
+    split_line = line.split()
+    old_transcript_id = split_line[0]
+    # print old_transcript_id
+    if '.t' not in old_transcript_id:
+        old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+        if not old_transcript_id:
+            continue
+    # print old_transcript_id
+    transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+    if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+        continue
+    elif transcript_id not in gene_dict:
+        # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+        continue
+    gene_dict[transcript_id].add_sigp2()
+
+for line in sigP3_lines:
+    line = line.rstrip()
+    split_line = line.split()
+    old_transcript_id = split_line[0]
+    if '.t' not in old_transcript_id:
+        old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+    transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+    if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+        continue
+    elif transcript_id not in gene_dict:
+        # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+        continue
+    gene_dict[transcript_id].add_sigp3()
+
+for line in sigP4_lines:
+    line = line.rstrip()
+    split_line = line.split()
+    old_transcript_id = split_line[0]
+    # print old_transcript_id
+    if '.t' not in old_transcript_id:
+        old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+        if not old_transcript_id:
+            continue
+    transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+    if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+        continue
+    elif transcript_id not in gene_dict:
+        # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+        continue
+    gene_dict[transcript_id].add_sigp4()
+
+for line in phobius_lines:
+    line = line.rstrip()
+    split_line = line.split()
+    old_transcript_id = split_line[0]
+    if '.t' not in old_transcript_id:
+        old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+    transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+    if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+        continue
+    elif transcript_id not in gene_dict:
+        continue
+    # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+    gene_dict[transcript_id].add_phobius()
+
+for line in TM_lines:
+    line = line.rstrip()
+    old_transcript_id = line.split("\t")[0]
+    # print(old_transcript_id)
+    transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+    # gene_dict[old_transcript_id].add_transmem()
+    # print transcript_id
+    if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+        continue
+    elif transcript_id not in gene_dict:
+        # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+        continue
+    gene_dict[transcript_id].add_transmem()
+
+for line in rxlr_regex_lines:
+    line = line.rstrip()
+    if line.startswith('>'):
+        split_line = line.split()
+        old_transcript_id = split_line[0].replace('>', '')
+        if '.t' not in old_transcript_id:
+            old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+        transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+        if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+            continue
+        elif transcript_id not in gene_dict:
+            # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+            continue
+        gene_dict[transcript_id].add_rxlr_regex(line)
+
+for line in rxlr_hmm_lines:
+    line = line.rstrip()
+    if line.startswith('>'):
+        split_line = line.split()
+        old_transcript_id = split_line[0].replace('>', '')
+        if '.t' not in old_transcript_id:
+            old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+            if not old_transcript_id:
+                continue
+        transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+        if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+            continue
+        elif transcript_id not in gene_dict:
+            # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+            continue
+        gene_dict[transcript_id].add_rxlr_hmm()
+
+for line in crn_dwl_lines:
+    line = line.rstrip()
+    if line.startswith('>'):
+        split_line = line.split()
+        old_transcript_id = split_line[0].replace('>', '')
+        if '.t' not in old_transcript_id:
+            old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+        transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+        if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+            continue
+        elif transcript_id not in gene_dict:
+            # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+            continue
+        gene_dict[transcript_id].add_dwl_hmm()
+
+for line in crn_lflak_lines:
+    line = line.rstrip()
+    if line.startswith('>'):
+        split_line = line.split()
+        old_transcript_id = split_line[0].replace('>', '')
+        if '.t' not in old_transcript_id:
+            old_transcript_id = ORF_conversion_obj.convert_ORF_transcript(old_transcript_id)
+        transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+        if transcript_id == 'not present' and 'ORF' in old_transcript_id:
+            continue
+        elif transcript_id not in gene_dict:
+            # print "\t".join([old_transcript_id, transcript_id, "not found - presumed excluded"])
+            continue
+        gene_dict[transcript_id].add_lflak_hmm()
+
+for line in effP_lines:
+    line = line.rstrip()
+    if 'probability' in line:
+        continue
+    # old_transcript_id = line
+    # transcript_id = conversion_obj.convert_transcript(old_transcript_id)
+    transcript_id = line
+    # if transcript_id not in gene_dict:
+        # print "\t".join([transcript_id, "not found - presumed excluded"])
+        # continue
+    gene_dict[transcript_id].add_effp()
+
+for line in TF_lines:
+    line = line.rstrip("\n")
+    split_line = line.split("\t")
+    transcript_id = split_line[0]
+    # print transcript_id
+    gene_dict[transcript_id].add_TF(line)
+
+for line in phibase_lines:
+    line = line.rstrip()
+    transcript_id = line.split("\t")[0]
+    gene_dict[transcript_id].add_phi(line)
+
+# for line in toxin_lines:
+#     line = line.rstrip()
+#     transcript_id = line.split("\t")[0]
+#     gene_dict[transcript_id].add_toxin(line)
+
+cazy_dict = defaultdict(list)
+for line in cazy_lines:
+    if line.startswith('#'):
+        continue
+    line = line.rstrip()
+    split_line = line.split()
+    transcript_id = split_line[2]
+    gene_dict[transcript_id].add_cazy(line)
+
+for line in swissprot_lines:
+    line = line.rstrip("\n")
+    split_line = line.split("\t")
+    transcript_id = split_line[0]
+    gene_dict[transcript_id].add_swissprot(line)
+
+interpro_set =  Set([])
+interpro_dict = defaultdict(list)
+
+for line in InterPro_lines:
+    line = line.rstrip()
+    split_line = line.split()
+    transcript_id = split_line[0]
+    # print transcript_id
+    gene_dict[transcript_id].add_interpro(line)
+#
+# isolate_list = []
+# for line in SNP_lines:
+#     line = line.rstrip("\n")
+#     split_line = line.split("\t")
+#     if line.startswith('##'):
+#         continue
+#     elif line.startswith('#'):
+#         header = line
+#         isolate_list = split_line[9:]
+#         # print isolate_list
+#         continue
+#     if 'transcript' in split_line[7] and any(x in split_line[7] for x in ['missense_variant', 'stop_gained', 'stop_lost', 'start_lost']):
+#         transcript_id = split_line[7].split("|")[6]
+#         # print transcript_id
+#         # print gene_dict[transcript_id]
+#         gene_dict[transcript_id].add_SNP(line, isolate_list)
+
+# isolate_list = []
+# for line in InDel_lines:
+#     line = line.rstrip("\n")
+#     split_line = line.split("\t")
+#     if line.startswith('##'):
+#         continue
+#     elif line.startswith('#'):
+#         header = line
+#         isolate_list = split_line[9:]
+#         # print isolate_list
+#         continue
+#     if 'transcript' in split_line[7] and any(x in split_line[7] for x in ['frameshift_variant', 'disruptive_inframe_deletion', 'disruptive_inframe_insertion', 'inframe_deletion', 'inframe_insertion',  'stop_lost', 'start_lost', 'stop_gained', 'transcript_ablation', 'exon_loss_variant']):
+#         transcript_id = split_line[7].split("|")[6]
+#         gene_dict[transcript_id].add_InDel(line, isolate_list)
+#
+# isolate_list = []
+# for line in SV_lines:
+#     line = line.rstrip("\n")
+#     split_line = line.split("\t")
+#     if line.startswith('##'):
+#         continue
+#     elif line.startswith('#'):
+#         header = line
+#         isolate_list = split_line[9:]
+#         # print isolate_list
+#         continue
+#     if 'transcript' in split_line[7] and any(x in split_line[7] for x in ['frameshift_variant', 'disruptive_inframe_deletion', 'disruptive_inframe_insertion', 'inframe_deletion', 'inframe_insertion',  'stop_lost', 'start_lost', 'stop_gained', 'transcript_ablation', 'exon_loss_variant']):
+#         transcript_id = split_line[7].split("|")[6]
+#         gene_dict[transcript_id].add_SV(line, isolate_list)
+
+strain_id = conf.strain_id + "|"
+all_isolates = conf.OrthoMCL_all
+orthogroup_dict = defaultdict(str)
+orthogroup_content_dict = defaultdict(list)
+for line in orthogroup_lines:
+    line = line.rstrip("\n")
+    split_line = line.split(" ")
+    orthogroup_id = split_line[0].replace(":", "")
+    orthogroup_contents = []
+    orthogroup_content_dict.clear()
+    for isolate in all_isolates:
+        num_genes = line.count((isolate + "|"))
+        orthogroup_contents.append(str(isolate) + "(" + str(num_genes) + ")")
+        content_counts = ":".join(orthogroup_contents)
+        orthogroup_content_dict[isolate] = num_genes
+    for transcript_id in split_line[1:]:
+        content_str = ",".join(split_line[1:])
+        if strain_id in transcript_id:
+            transcript_id = transcript_id.replace(strain_id, '')
+            gene_dict[transcript_id].add_orthogroup(orthogroup_id, content_counts, content_str)
+    content_str = ",".join(split_line[1:])
+    orthogroup_dict[orthogroup_id] = summarise_orthogroup(content_str)
+
+gene_list = sorted(gene_dict.keys(), key=lambda x:int(x[1:].split('.')[0]))
+
+for transcript_id in gene_list:
+    gene_dict[transcript_id].ipr2effectors()
+    # gene_id = re.sub(r".t.*", "" , transcript_id)
+    # if expression_dict[gene_id]:
+    #     gene_dict[transcript_id].add_expr(expression_dict[gene_id][0])
+
+print "\t".join([
+    'transcript_id',
+    'contig',
+    'start',
+    'stop',
+    'strand',
+    'sigp2',
+    'sigp3',
+    'sigp4',
+    'phobius',
+    'transmem',
+    'secreted',
+    'rxlr_regex',
+    'rxlr_hmm',
+    'putative_rxlr',
+    'dwl_hmm',
+    'lflak_hmm',
+    'putative_crn',
+    'effp',
+    'cazy',
+    'transcriptionfactor',
+    'orthogroup_id',
+    'content_counts',
+    'content_str',
+    'phi',
+    'ipr_effectors',
+    'swissprot',
+    'interpro',
+    'protein sequence'
+    ])
+
+for transcript_id in gene_list:
+    gene_obj = gene_dict[transcript_id]
+    print "\t".join([
+        gene_obj.transcript_id,
+        gene_obj.contig,
+        gene_obj.start,
+        gene_obj.stop,
+        gene_obj.strand,
+        gene_obj.sigp2,
+        gene_obj.sigp3,
+        gene_obj.sigp4,
+        gene_obj.phobius,
+        gene_obj.transmem,
+        gene_obj.secreted,
+        gene_obj.rxlr_regex,
+        gene_obj.rxlr_hmm,
+        gene_obj.putative_rxlr,
+        gene_obj.dwl_hmm,
+        gene_obj.lflak_hmm,
+        gene_obj.putative_crn,
+        gene_obj.effp,
+        gene_obj.cazy,
+        ";".join(gene_obj.transcriptionfactor),
+        gene_obj.orthogroup_id,
+        gene_obj.content_counts,
+        orthogroup_dict[gene_obj.orthogroup_id],
+        gene_obj.phi,
+        '|'.join(gene_obj.ipr_effectors),
+        gene_obj.swissprot,
+        "|".join(gene_obj.interpro),
+        gene_obj.protein_seq
+        ])
