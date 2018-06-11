@@ -799,7 +799,7 @@ Pc_strawberry_vs_P414	25570	14078	12659	6021	6638	58	61	8	18	3	10
 Pi_vs_P414	345574	194029	174496	84845	89651	917	870	226	426	61	117
 ```
 
-
+<!--
 # Venn plots for non-synonymous SNPs
 
 ```bash
@@ -1045,4 +1045,4 @@ $ProgDir/vcf_extract_genes.py --vcf $Vcf --gene_list $OutDir/interesting_genes_f
 GenesBySector=$(ls /home/groups/harrisonlab/project_files/idris/analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors_nonsyn_genes_by_venn_sector.txt)
 cat $GenesBySector | grep -f $OutDir/interesting_genes_from_annot_tab.txt | sort | uniq
 done
-```
+``` -->
