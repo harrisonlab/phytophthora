@@ -3884,3 +3884,29 @@ for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffec
   > $OutDir/"$Strain"_annotation_ncbi.tsv
 done
 ```
+
+```bash
+for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi.tsv | grep '414'); do
+  Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
+  Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
+  GeneNum=$(cat $File | cut -f1 | tail -n+2 | cut -f1 -d '.' | uniq | wc -l)
+  ProtNum=$(cat $File | cut -f1 | tail -n+2 | uniq | wc -l)
+  Secreted=$(cat $File | cut -f11 | tail -n+2 | grep 'Yes' | wc -l)
+  EffP=$(cat $File | cut -f11,18 | tail -n+2 | grep "Yes.Yes" | wc -l)
+  Cazy=$(cat $File | cut -f11,19 | tail -n+2 | grep "Yes.CAZY"| wc -l)
+  RxLR=$(cat $File | cut -f14 | tail -n+2 | grep "RxLR" |wc -l)
+  CRN=$(cat $File | cut -f17 | tail -n+2 | grep "CRN" | wc -l)
+  TFs=$(cat $File | cut -f20 | tail -n+2 | grep -v "^$" | wc -l)
+  Elicitin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "MAMP:Elicitin" | wc -l)
+  Transglutaminase=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "MAMP:Transglutaminase" | wc -l)
+  NLP=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:NLP" | wc -l)
+  Kazal=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (Kazal-type)" | wc -l)
+  Cathepsin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (cathepsin)" | wc -l)
+  Cystatin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (cystatin-like)" | wc -l)
+  GlucanaseInhibitor=$(cat $File | cut -f11,25 | grep 'Yes' | tail -n+2 | grep "Apoplastic:Glucanase inhibitor" | wc -l)
+  Phytotoxin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Phytotoxin" | wc -l)
+  Cutinase=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Cutinase" | wc -l)
+  printf "$Organism\t$Strain\t$GeneNum\t$ProtNum\t$Secreted\t$EffP\t$Cazy\t$RxLR\t$CRN"
+  printf "\t$TFs\t$Elicitin\t$Transglutaminase\t$NLP\t$Kazal\t$Cathepsin\t$Cystatin\t$GlucanaseInhibitor\t$Phytotoxin\t$Cutinase\n"
+done
+```
