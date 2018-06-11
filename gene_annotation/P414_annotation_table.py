@@ -50,10 +50,9 @@ ap.add_argument('--fpkm',required=True,type=str,help='File containing FPKM value
 ap.add_argument('--SNPs',required=True,type=str,help='Annotated vcf file, detailing SNPs and effects on genes')
 ap.add_argument('--InDels',required=True,type=str,help='Annotated vcf file, detailing InDels and effects on genes')
 ap.add_argument('--SVs',required=True,type=str,help='Annotated vcf file, detailing SVs and effects on genes')
-
-## ap.add_argument('--orthogroups', required=True,type=str,help='A file containing results of orthology analysis')
-# ap.add_argument('--strain_id',required=True,type=str,help='The identifier of this strain as used in the orthology analysis')
-# ap.add_argument('--OrthoMCL_all',required=True,type=str,nargs='+',help='The identifiers of all strains used in the orthology analysis')
+ap.add_argument('--orthogroups', required=True,type=str,help='A file containing results of orthology analysis')
+ap.add_argument('--strain_id',required=True,type=str,help='The identifier of this strain as used in the orthology analysis')
+ap.add_argument('--OrthoMCL_all',required=True,type=str,nargs='+',help='The identifiers of all strains used in the orthology analysis')
 
 conf = ap.parse_args()
 
@@ -72,6 +71,31 @@ def add_protseq(obj_dict, protein_lines):
             transcript_id = line.replace('>', '')
         else:
             obj_dict[transcript_id].protein_seq += line
+def summarise_orthogroup(content_str):
+    """"""
+    content_list = content_str.split(",")
+    content_list = [x.split('|')[0] for x in content_list]
+    content_set = set(content_list)
+    crown_rot_isolates = ['Pc_CR1', 'Pc_CR2', 'Pc_CR3', 'Pc_CR4', 'Pc_CR5', 'Pc_CR6', 'Pc_CR7', 'Pc_CR8', 'Pc_CR9', 'Pc_CR10', 'Pc_CR11', 'Pc_CR12', 'Pc_CR13', 'Pc_LR1']
+    leather_rot_isolates = ['Pc_LR2']
+    apple_isolates = ['Pc_MD1', 'Pc_MD2', 'Pc_MD3']
+    raspberry_isolates = ['Pi_RI1', 'Pi_RI2', 'Pi_RI3']
+    cr = 0
+    lr = 0
+    md = 0
+    ri = 0
+    # print content_set
+    for i in content_set:
+        if i in crown_rot_isolates:
+            cr += 1
+        elif i in leather_rot_isolates:
+            lr += 1
+        elif i in apple_isolates:
+            md  += 1
+        elif i in raspberry_isolates:
+            ri  += 1
+    summarised_orthogroup = "".join(["CR(", str(cr), ")LR(", str(lr), ")Md(", str(md), ")Ri(", str(ri), ")"])
+    return(summarised_orthogroup)
 
 class ConvObj(object):
     """A dictionary of old and current gene names, with methods to aid conversion
@@ -444,8 +468,8 @@ with open(conf.InterPro) as f:
     InterPro_lines = f.readlines()
 with open(conf.Swissprot) as f:
     swissprot_lines = f.readlines()
-# with open(conf.orthogroups) as f:
-#     orthogroup_lines = f.readlines()
+with open(conf.orthogroups) as f:
+    orthogroup_lines = f.readlines()
 with open(conf.SNPs) as f:
     SNP_lines = f.readlines()
 with open(conf.InDels) as f:
@@ -700,6 +724,8 @@ for line in SNP_lines:
         continue
     if 'transcript' in split_line[7] and any(x in split_line[7] for x in ['missense_variant', 'stop_gained', 'stop_lost', 'start_lost']):
         transcript_id = split_line[7].split("|")[6]
+        # print transcript_id
+        # print gene_dict[transcript_id]
         gene_dict[transcript_id].add_SNP(line, isolate_list)
 
 isolate_list = []
@@ -732,26 +758,29 @@ for line in SV_lines:
         transcript_id = split_line[7].split("|")[6]
         gene_dict[transcript_id].add_SV(line, isolate_list)
 
-# strain_id = conf.strain_id + "|"
-# all_isolates = conf.OrthoMCL_all
-# orthogroup_dict = defaultdict(list)
-# orthogroup_content_dict = defaultdict(list)
-# for line in orthogroup_lines:
-#     line = line.rstrip("\n")
-#     split_line = line.split(" ")
-#     orthogroup_id = split_line[0].replace(":", "")
-#     orthogroup_contents = []
-#     orthogroup_content_dict.clear()
-#     for isolate in all_isolates:
-#         num_genes = line.count((isolate + "|"))
-#         orthogroup_contents.append(str(isolate) + "(" + str(num_genes) + ")")
-#         content_counts = ":".join(orthogroup_contents)
-#         orthogroup_content_dict[isolate] = num_genes
-#     for transcript_id in split_line[1:]:
-#         content_str = ",".join(split_line[1:])
-#         if strain_id in transcript_id:
-#             transcript_id = transcript_id.replace(strain_id, '')
-#             gene_dict[transcript_id].add_orthogroup(orthogroup_id, content_counts, content_str)
+strain_id = conf.strain_id + "|"
+all_isolates = conf.OrthoMCL_all
+orthogroup_dict = defaultdict(str)
+orthogroup_content_dict = defaultdict(list)
+for line in orthogroup_lines:
+    line = line.rstrip("\n")
+    split_line = line.split(" ")
+    orthogroup_id = split_line[0].replace(":", "")
+    orthogroup_contents = []
+    orthogroup_content_dict.clear()
+    for isolate in all_isolates:
+        num_genes = line.count((isolate + "|"))
+        orthogroup_contents.append(str(isolate) + "(" + str(num_genes) + ")")
+        content_counts = ":".join(orthogroup_contents)
+        orthogroup_content_dict[isolate] = num_genes
+    for transcript_id in split_line[1:]:
+        content_str = ",".join(split_line[1:])
+        if strain_id in transcript_id:
+            transcript_id = transcript_id.replace(strain_id, '')
+            gene_dict[transcript_id].add_orthogroup(orthogroup_id, content_counts, content_str)
+    content_str = ",".join(split_line[1:])
+    orthogroup_dict[orthogroup_id] = summarise_orthogroup(content_str)
+
 
 gene_list = sorted(gene_dict.keys(), key=lambda x:int(x[1:].split('.')[0]))
 
@@ -796,7 +825,7 @@ print "\t".join([
     'swissprot',
     'interpro',
     "\t".join(conditions_list),
-    'DEG_conditions'
+    'DEG_conditions',
     'protein sequence'
     ])
 
@@ -825,7 +854,7 @@ for transcript_id in gene_list:
         ";".join(gene_obj.transcriptionfactor),
         gene_obj.orthogroup_id,
         gene_obj.content_counts,
-        gene_obj.content_str,
+        orthogroup_dict[gene_obj.orthogroup_id],
         gene_obj.phi,
         '|'.join(gene_obj.ipr_effectors),
         ",".join(gene_obj.variation_level),
@@ -838,23 +867,3 @@ for transcript_id in gene_list:
         gene_obj.DEG_conditions,
         gene_obj.protein_seq
         ])
-
-#-----------------------------------------------------
-# Step 3
-# Build DEG gene table for each condition
-#-----------------------------------------------------
-#
-# gene_dict = defaultdict(list)
-# for file, condition in zip(input_list, conditions_list):
-#     with open(file) as f:
-#         lines = f.readlines()
-#         for x in lines:
-#             transcript_id = x.rstrip()
-#             if gene_dict[transcript_id]:
-#                 gene_dict[transcript_id].add_positive(condition)
-#             else:
-#                 gene_obj = DEG_obj(transcript_id)
-#                 gene_obj.set_conditions(conditions_list)
-#                 gene_obj.set_positive(conditions_list)
-#                 gene_obj.add_positive(condition)
-#                 gene_dict[transcript_id] = gene_obj
