@@ -3415,8 +3415,8 @@ INFO    303 Total BUSCO groups searched
 Make a list of BUSCO genes:
 
 ```bash
-BuscoHits=$(ls gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene/single_copy_busco_sequences/EOG0937*.fna)
-OutDir=$(ls -d gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene)
+BuscoHits=$(ls gene_pred/busco/P.cactorum/414/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene/single_copy_busco_sequences/EOG0937*.fna)
+OutDir=$(ls -d gene_pred/busco/P.cactorum/414/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene)
 cat $BuscoHits | grep '>' | cut -f3 -d ':' > $OutDir/busco_single_copy_gene_headers.txt
 ```
 
@@ -3881,7 +3881,7 @@ for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffec
   --orthogroups $Orthology \
   --strain_id $OrthoStrainID  \
   --OrthoMCL_all $OrthoStrainAll \
-  > $OutDir/"$Strain"_annotation_ncbi.tsv
+  > $OutDir/"$Strain"_annotation_ncbi2.tsv
 done
 ```
 
@@ -3909,4 +3909,24 @@ for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi.tsv | grep '414'); d
   printf "$Organism\t$Strain\t$GeneNum\t$ProtNum\t$Secreted\t$EffP\t$Cazy\t$RxLR\t$CRN"
   printf "\t$TFs\t$Elicitin\t$Transglutaminase\t$NLP\t$Kazal\t$Cathepsin\t$Cystatin\t$GlucanaseInhibitor\t$Phytotoxin\t$Cutinase\n"
 done
+```
+
+
+Investigating orthogroup expansion:
+
+```bash
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'crown rot expanded' -e 'apple loss'  | cut -f21 | sort | uniq | wc -l
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'crown rot expanded' -e 'apple loss' | wc -l
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'crown rot expanded' | cut -f21 | sort | uniq | wc -l
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'crown rot expanded' | wc -l
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'apple loss' | cut -f21 | sort | uniq | wc -l
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'apple loss' | wc -l
+
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'crown rot expanded' > $OutDir/"$Strain"_annotation_ncbi_cr_expanded.tsv
+cat $OutDir/"$Strain"_annotation_ncbi_cr_expanded.tsv | grep 'RxLR' | less -S
+
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'apple loss' > $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv
+cat $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv | grep 'RxLR' | wc -l
+
+
 ```
