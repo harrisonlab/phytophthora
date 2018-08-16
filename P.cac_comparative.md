@@ -4498,7 +4498,7 @@ Pi_RI3 SCRP376
 
 
 ```bash
-for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v -e '415' -e '416'); do
+for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v -e '415' -e '416' | grep '62471'); do
 Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
 OutDir=gene_pred/annotation/$Organism/$Strain
@@ -4588,7 +4588,7 @@ $ProgDir/illumina_annotation_table.py \
 --orthogroups $Orthology \
 --strain_id $OrthoStrainID  \
 --OrthoMCL_all $OrthoStrainAll \
-> $OutDir/"$Strain"_annotation_ncbi.tsv
+> $OutDir/"$Strain"_annotation_ncbi2.tsv
 done
 ```
 
@@ -4623,4 +4623,26 @@ for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi.tsv | grep -e 'P.cac
   printf "$Organism\t$Strain\t$GeneNum\t$ProtNum\t$Secreted\t$EffP\t$Cazy\t$RxLR\t$CRN"
   printf "\t$TFs\t$Elicitin\t$Transglutaminase\t$NLP\t$Kazal\t$Cathepsin\t$Cystatin\t$GlucanaseInhibitor\t$Phytotoxin\t$Cutinase\n"
 done
+```
+
+
+Apple expansion
+
+```bash
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
+OutDir=gene_pred/annotation/P.cactorum/62471
+Strain=62471
+cat $AnnotTab | grep -w -e 'apple expanded' -e 'crown rot loss'  | cut -f21 | sort | uniq | wc -l
+cat $AnnotTab | grep -w -e 'apple expanded' -e 'crown rot loss' | wc -l
+cat $AnnotTab | grep -w -e 'apple expanded'| cut -f21 | sort | uniq | wc -l
+cat $AnnotTab | grep -w -e 'apple expanded' | wc -l
+cat $AnnotTab | grep -w -e 'crown rot loss' | cut -f21 | sort | uniq | wc -l
+cat $AnnotTab | grep -w -e 'crown rot loss' | wc -l
+
+cat $AnnotTab | grep -w -e 'apple expanded' > $OutDir/"$Strain"_annotation_ncbi_md_expanded.tsv
+cat $OutDir/"$Strain"_annotation_ncbi_md_expanded.tsv | grep 'RxLR' | wc -l
+cat $OutDir/"$Strain"_annotation_ncbi_md_expanded.tsv | cut -f28 | wc -l
+
+cat $AnnotTab | grep -w -e 'crown rot loss' > $OutDir/"$Strain"_annotation_ncbi_cr_loss.tsv
+cat $OutDir/"$Strain"_annotation_ncbi_cr_loss.tsv | grep 'RxLR' | wc -l
 ```
