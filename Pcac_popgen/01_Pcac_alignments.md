@@ -510,10 +510,6 @@ for a in $(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf); do
 done
 ```
 
-```
-414_v2_contigs_unmasked_filtered_no_errors	295631	161743	145202	70547	74655	908	886	205	406	36	75
-```
-
 # 3.0 Comparisons of groups to reference P414 genome
 
 # 3.1 P. idaei vs P414
@@ -754,12 +750,14 @@ done
 ## Summarise SNP effects
 
 ```bash
-AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv)
-Busco=$(ls gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene/busco_single_copy_gene_headers.txt)
-RxLR=$(ls gene_pred/annotation/P.cactorum/414_v2/renamed_RxLR.txt)
-CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
-cat $AnnotaTable | cut -f1,12 | tail -n+2 | grep 'Yes' | cut -f1 > $RxLR
-cat $AnnotaTable | cut -f1,13 | tail -n+2 | grep 'Yes' | cut -f1 > $CRN
+AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv)
+Busco=$(ls gene_pred/busco/P.cactorum/414/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene/busco_single_copy_gene_headers.txt)
+
+OutDir=analysis/popgen/SNP_calling
+# RxLR=$(ls gene_pred/annotation/P.cactorum/414/renamed_RxLR.txt)
+# CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
+cat $AnnotaTable | grep -w 'RxLR' | cut -f1 > $OutDir/RxLR_genes.txt
+cat $AnnotaTable | grep -w 'CRN' | cut -f1 > $OutDir/CRN_genes.txt
 
 for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414*); do
   Comparison=$(echo $Folder | rev | cut -f1 -d '/' | rev)
@@ -773,30 +771,108 @@ for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414*); do
   cat $Folder/*_no_indels.recode_syn.vcf | grep -w -f $Busco > $BuscoOut
   BuscoSynSnps=$(cat $BuscoOut | wc -l)
   RxlrOut=$Folder/"$Comparison"_no_indels.recode_syn_RxLR.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $RxLR > $RxlrOut
+  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $OutDir/RxLR_genes.txt > $RxlrOut
   RxlrSynSnps=$(cat $RxlrOut | wc -l)
   CrnOut=$Folder/"$Comparison"_no_indels.recode_syn_CRN.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $CRN > $CrnOut
+  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $OutDir/CRN_genes.txt > $CrnOut
   CrnSynSnps=$(cat $CrnOut | wc -l)  
   # non-syn SNPs in effectors:
   BuscoOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_Busco.vcf
   cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -w -f $Busco > $BuscoOut
   BuscoNonSynSnps=$(cat $BuscoOut | wc -l)
   RxlrOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_RxLR.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $RxLR > $RxlrOut
+  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $OutDir/RxLR_genes.txt > $RxlrOut
   RxlrNonSynSnps=$(cat $RxlrOut | wc -l)
   CrnOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_CRN.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $CRN > $CrnOut
+  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $OutDir/CRN_genes.txt > $CrnOut
   CrnNonSynSnps=$(cat $CrnOut | wc -l)
   printf "$Comparison\t$AllSnps\t$GeneSnps\t$CdsSnps\t$SynSnps\t$NonsynSnps\t$BuscoSynSnps\t$BuscoNonSynSnps\t$RxlrSynSnps\t$RxlrNonSynSnps\t$CrnSynSnps\t$CrnNonSynSnps\n"
 done
 ```
 
 ```
-P414_vs_P414	77	60	53	23	30	0	0	0	0	0	0
-Pc_apple_vs_P414	29192	15939	14318	6895	7423	65	72	9	20	3	11
-Pc_strawberry_vs_P414	25570	14078	12659	6021	6638	58	61	8	18	3	10
-Pi_vs_P414	345574	194029	174496	84845	89651	917	870	226	426	61	117
+P414_vs_P414	66	46	30	13	17	0	0	0	0	0	0
+Pc_apple_vs_P414	25992	13642	12193	5871	6322	118	77	9	14	2	6
+Pc_leather_rot_vs_P414	20288	10793	9627	4453	5174	87	68	3	13	3	7
+Pc_strawberry_vs_P414	22894	12099	10821	5139	5682	105	70	7	13	2	5
+Pi_vs_P414	5131	2425	2230	886	1344	12	10	2	6	4	9
+```
+
+Phase SNPs
+
+For  all SNPs
+```bash
+Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
+OutName=$(echo $Vcf | sed 's/.vcf/_phased.tsv/g')
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
+$ProgDir/phase_Pc_vcf.py --inp_vcf $Vcf > $OutName
+echo $(basename $OutName)
+cat $OutName | cut -f1 | sort | uniq -c | sort -nr
+```
+
+```
+289778 species private fixed
+  9850 crown rot private fixed
+  7787 apple private unfixed
+  7508 leather rot variant
+  7185 apple private fixed
+  5105 P. idaei private unfixed
+  1407 crown rot private unfixed
+   593 P. cactorum private crown rot fixed
+   325 triallelic SNP
+    85 P. cactorum private unfixed
+    25 P. cactorum private apple fixed
+    11 ancestral variation differentially fixed
+     6 ancestral variation crown rot fixed
+     6 ancestral variation apple fixed
+     1 ancestral variation unfixed
+```
+<!--
+```bash
+Phased=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_phased.tsv)
+cat $Phased | grep -w -f analysis/popgen/SNP_calling/RxLR_genes.txt | cut -f1 | sort | uniq -c | sort -nr
+``` -->
+
+For Non-Syn SNPs
+
+```bash
+Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn.vcf)
+OutName=$(echo $Vcf | sed 's/.vcf/_phased.tsv/g')
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
+$ProgDir/phase_Pc_vcf.py --inp_vcf $Vcf > $OutName
+echo $(basename $OutName)
+cat $OutName | cut -f1 | sort | uniq -c | sort -nr
+```
+
+```
+71014 species private fixed
+ 2613 crown rot private fixed
+ 1902 leather rot variant
+ 1848 apple private unfixed
+ 1568 apple private fixed
+ 1343 P. idaei private unfixed
+  444 crown rot private unfixed
+  123 P. cactorum private crown rot fixed
+   68 triallelic SNP
+   17 P. cactorum private unfixed
+    3 P. cactorum private apple fixed
+    1 ancestral variation crown rot fixed
+```
+
+```bash
+Phased=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.tsv )
+cat $Phased | grep -w -f analysis/popgen/SNP_calling/RxLR_genes.txt | cut -f1 | sort | uniq -c | sort -nr
+```
+
+```
+284 species private fixed
+   7 crown rot private fixed
+   6 P. idaei private unfixed
+   5 apple private fixed
+   4 leather rot variant
+   1 triallelic SNP
+   1 P. cactorum private crown rot fixed
+   1 apple private unfixed
 ```
 
 <!--
