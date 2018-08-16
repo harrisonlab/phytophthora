@@ -97,6 +97,53 @@ def summarise_orthogroup(content_str):
     summarised_orthogroup = "".join(["CR(", str(cr), ")LR(", str(lr), ")Md(", str(md), ")Ri(", str(ri), ")"])
     return(summarised_orthogroup)
 
+
+def get_orthogroup_expansion_status(orthogroup_content_dict):
+    """"""
+    # content_list = content_str.split(",")
+    # content_list = [x.split('|')[0] for x in content_list]
+    # content_set = set(content_list)
+    # crown_rot_isolates = ['Pc_CR1', 'Pc_CR2', 'Pc_CR3', 'Pc_CR4', 'Pc_CR5', 'Pc_CR6', 'Pc_CR7', 'Pc_CR8', 'Pc_CR9', 'Pc_CR10', 'Pc_CR11', 'Pc_CR12', 'Pc_CR13', 'Pc_LR1']
+    crown_rot_isolates = ['Pc_CR1', 'Pc_CR2', 'Pc_CR3', 'Pc_CR4', 'Pc_CR5', 'Pc_CR6', 'Pc_CR7', 'Pc_CR8', 'Pc_CR9', 'Pc_CR10', 'Pc_CR11', 'Pc_CR12', 'Pc_CR13']
+    # leather_rot_isolates = ['Pc_LR2']
+    apple_isolates = ['Pc_MD1', 'Pc_MD2', 'Pc_MD3']
+    raspberry_isolates = ['Pi_RI1', 'Pi_RI2', 'Pi_RI3']
+    cr = []
+    # lr = []
+    md = []
+    ri = []
+    for x in crown_rot_isolates:
+        counts = int(orthogroup_content_dict[x])
+        cr.append(counts)
+    for x in apple_isolates:
+        counts = int(orthogroup_content_dict[x])
+        md.append(counts)
+    for x in raspberry_isolates:
+        counts = int(orthogroup_content_dict[x])
+        ri.append(counts)
+    if len(cr) == 0:
+        cr = [0]
+    if len(md) == 0:
+        md = [0]
+    if len(ri) == 0:
+        ri = [0]
+    expansion_status = ""
+    if min(cr) > max(md) and min(cr) > max(ri):
+        expansion_status = "crown rot expanded"
+    elif max(cr) < min(md) and max(cr) < min(ri):
+        expansion_status = "crown rot loss"
+    elif min(md) > max(cr) and min(md) > max(ri):
+        expansion_status = "apple expanded"
+    elif max(md) < min(cr) and max(md) < min(ri):
+        expansion_status = "apple loss"
+    # print orthogroup_content_dict
+    # print cr
+    # print md
+    # print ri
+    # print expansion_status
+    # exit()
+    return(expansion_status)
+
 class ConvObj(object):
     """A dictionary of old and current gene names, with methods to aid conversion
     Attributes:
@@ -820,8 +867,11 @@ for line in orthogroup_lines:
         if strain_id in transcript_id:
             transcript_id = transcript_id.replace(strain_id, '')
             gene_dict[transcript_id].add_orthogroup(orthogroup_id, content_counts, content_str)
+    # print orthogroup_id
+    expansion_status = get_orthogroup_expansion_status(orthogroup_content_dict)
     content_str = ",".join(split_line[1:])
-    orthogroup_dict[orthogroup_id] = summarise_orthogroup(content_str)
+    summary = summarise_orthogroup(content_str)
+    orthogroup_dict[orthogroup_id] = "\t".join([summary, expansion_status])
 
 gene_list = sorted(gene_dict.keys(), key=lambda x:int(x[1:].split('.')[0]))
 
