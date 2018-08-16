@@ -307,6 +307,27 @@ done
   qsub $ProgDir/qsub_orthomcl.sh $MergeHits $GoodProts 5
 ```
 
+Orthomcl results
+
+
+```bash
+Orthogroups=$(ls analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
+echo "Number of orthgroups"
+cat $Orthogroups | wc -l
+echo "Number in all isoaltes:"
+echo "Orthogroups present in all isoaltes"
+cat $Orthogroups | grep -w -e "Pc_CR1" | grep -w -e "Pc_CR2" | grep -w -e "Pc_CR3" | grep -w -e "Pc_CR4" | grep -w -e "Pc_CR5" | grep -w -e "Pc_CR6" | grep -w -e "Pc_CR7" | grep -w -e "Pc_CR8" | grep -w -e "Pc_CR9" | grep -w -e "Pc_CR10" | grep -w -e "Pc_CR11" | grep -w -e "Pc_CR12" | grep -w -e "Pc_CR13" | grep -w -e "Pc_LR1" | grep -w -e "Pc_LR2" | grep -w -e "Pc_MD1" | grep -w -e "Pc_MD2" | grep -w -e "Pc_MD3" | grep -w -e "Pi_RI1" | grep -w -e "Pi_RI2" | grep -w -e "Pi_RI3" | wc -l
+echo "orthogroups found in all cactorum ex strawberry but not in ex apple"
+cat $Orthogroups | grep -w -e "Pc_CR1" | grep -w -e "Pc_CR2" | grep -w -e "Pc_CR3" | grep -w -e "Pc_CR4" | grep -w -e "Pc_CR5" | grep -w -e "Pc_CR6" | grep -w -e "Pc_CR7" | grep -w -e "Pc_CR8" | grep -w -e "Pc_CR9" | grep -w -e "Pc_CR10" | grep -w -e "Pc_CR11" | grep -w -e "Pc_CR12" | grep -w -e "Pc_CR13" | grep -v -w -e "Pc_MD1" -e "Pc_MD2" -e "Pc_MD3" | wc -l
+echo "orthogroups found in all cactorum ex apple but not in ex strawberry"
+cat $Orthogroups | grep -w -e "Pc_CR1" | grep -w -e "Pc_CR2" | grep -w -e "Pc_CR3" | grep -w -e "Pc_CR4" | grep -w -e "Pc_CR5" | grep -w -e "Pc_CR6" | grep -w -e "Pc_CR7" | grep -w -e "Pc_CR8" | grep -w -e "Pc_CR9" | grep -w -e "Pc_CR10" | grep -w -e "Pc_CR11" | grep -w -e "Pc_CR12" | grep -w -e "Pc_CR13" | grep -v -w -e "Pc_MD1" -e "Pc_MD2" -e "Pc_MD3" | wc -l
+
+cat $Orthogroups | grep -e "Pc_MD1" | grep  -e "Pc_MD2" | grep -e "Pc_MD3" | grep -v -w -e "Pc_CR1" -e "Pc_CR2" -e "Pc_CR3" -e "Pc_CR4" -e "Pc_CR5" -e "Pc_CR6" -e "Pc_CR7" -e "Pc_CR8" -e "Pc_CR9" -e "Pc_CR10" -e "Pc_CR11" -e "Pc_CR12" -e "Pc_CR13" | wc -l
+
+
+cat $Orthogroups | grep -w -e "Pc_CR1" -e "Pc_CR2" -e "Pc_CR3" -e "Pc_CR4" -e "Pc_CR5" -e "Pc_CR6" -e "Pc_CR7" -e "Pc_CR8" -e "Pc_CR9" -e "Pc_CR10" -e "Pc_CR11" -e "Pc_CR12" -e "Pc_CR13" -e "Pc_LR1" -e "Pc_LR2" -e "Pc_MD1" -e "Pc_MD2" -e "Pc_MD3" -e "Pi_RI1" -e "Pi_RI2" -e "Pi_RI3" | wc -l
+```
+
 
 Also try using orthofinder
 
