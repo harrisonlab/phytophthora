@@ -527,7 +527,7 @@ done
   # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --non-ref-ac-any 1 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
       echo $Vcf
@@ -565,14 +565,14 @@ done
   mkdir -p $OutDir
 
   Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="12420 15_13 15_7 2003_3 4032 4040 404 415 416 62471 371 SCRP370 SCRP376 414 4040 11-40 17-21 P421"
+  ExcludeList="12420 15_13 15_7 2003_3 4032 4040 404 415 416 371 SCRP370 SCRP376 414 4040 11-40 17-21 P421"
   VcfLib=/home/sobczm/bin/vcflib/bin
   $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
   # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
   # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
       echo $Vcf
@@ -609,14 +609,14 @@ done
   mkdir -p $OutDir
 
   Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="PC13_15 P295 R36_14 371 SCRP370 SCRP376 11-40 17-21"
+  ExcludeList="62471 P295 R36_14 371 SCRP370 SCRP376 11-40 17-21"
   VcfLib=/home/sobczm/bin/vcflib/bin
   $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
   # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
   # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
       echo $Vcf
@@ -665,7 +665,7 @@ done
   # VcfTools=/home/sobczm/bin/vcftools/bin
   # $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
       echo $Vcf
@@ -716,7 +716,7 @@ done
   # VcfTools=/home/sobczm/bin/vcftools/bin
   # $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
   VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
 
   for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
       echo $Vcf
@@ -758,7 +758,7 @@ OutDir=analysis/popgen/SNP_calling
 # CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
 cat $AnnotaTable | grep -w 'RxLR' | cut -f1 > $OutDir/RxLR_genes.txt
 cat $AnnotaTable | grep -w 'CRN' | cut -f1 > $OutDir/CRN_genes.txt
-
+  printf "Comparison\tAllSnps\tGeneSnps\tCdsSnps\tSynSnps\tNonsynSnps\tBuscoSynSnps\tBuscoNonSynSnps\tRxlrSynSnps\tRxlrNonSynSnps\tCrnSynSnps\tCrnNonSynSnps\n"
 for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414*); do
   Comparison=$(echo $Folder | rev | cut -f1 -d '/' | rev)
   AllSnps=$(cat $Folder/*_no_indels.recode_annotated.vcf | grep -v '#' | wc -l)
@@ -791,11 +791,12 @@ done
 ```
 
 ```
-P414_vs_P414	66	46	30	13	17	0	0	0	0	0	0
-Pc_apple_vs_P414	25992	13642	12193	5871	6322	118	77	9	14	2	6
-Pc_leather_rot_vs_P414	20288	10793	9627	4453	5174	87	68	3	13	3	7
-Pc_strawberry_vs_P414	22894	12099	10821	5139	5682	105	70	7	13	2	5
-Pi_vs_P414	5131	2425	2230	886	1344	12	10	2	6	4	9
+Comparison	AllSnps	GeneSnps	CdsSnps	SynSnps	NonsynSnps	BuscoSynSnps	BuscoNonSynSnps	RxlrSynSnps	RxlrNonSynSnps	CrnSynSnps	CrnNonSynSnps
+P414_vs_P414	67	46	30	13	17	0	0	0	0	0	0
+Pc_apple_vs_P414	26333	13787	12318	5918	6400	119	77	9	15	2	6
+Pc_leather_rot_vs_P414	20780	11037	9843	4537	5306	92	70	3	14	3	7
+Pc_strawberry_vs_P414	1536	844	748	281	467	11	4	0	0	0	0
+Pi_vs_P414	306259	165226	147237	71897	75340	1453	978	137	299	35	74
 ```
 
 Phase SNPs
@@ -837,11 +838,12 @@ For Non-Syn SNPs
 
 ```bash
 Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn.vcf)
-OutName=$(echo $Vcf | sed 's/.vcf/_phased.tsv/g')
+Prefix=$(echo $Vcf | sed 's/.vcf//g')
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
-$ProgDir/phase_Pc_vcf.py --inp_vcf $Vcf > $OutName
-echo $(basename $OutName)
-cat $OutName | cut -f1 | sort | uniq -c | sort -nr
+# $ProgDir/phase_Pc_vcf.py --inp_vcf $Vcf > $OutName
+echo $(basename ${Prefix}_phased.tsv)
+cat ${Prefix}_phased.tsv | cut -f1,9 | cut -f1,7 -d'|' | sed "s/ANN=.*|//g"  > ${Prefix}_phased.txt
+cat ${Prefix}_phased.tsv | cut -f1 | sort | uniq -c | sort -nr
 ```
 
 ```
@@ -860,7 +862,7 @@ cat $OutName | cut -f1 | sort | uniq -c | sort -nr
 ```
 
 ```bash
-Phased=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.tsv )
+Phased=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.tsv)
 cat $Phased | grep -w -f analysis/popgen/SNP_calling/RxLR_genes.txt | cut -f1 | sort | uniq -c | sort -nr
 ```
 
