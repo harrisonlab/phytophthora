@@ -16,9 +16,11 @@ import sys
 import os
 import argparse
 import re
+import math
 import numpy as np
 from sets import Set
 from collections import defaultdict
+from collections import Counter
 from operator import itemgetter
 
 ap = argparse.ArgumentParser()
@@ -50,6 +52,7 @@ ap.add_argument('--fpkm',required=True,type=str,help='File containing FPKM value
 ap.add_argument('--SNPs',required=True,type=str,help='Annotated vcf file, detailing SNPs and effects on genes')
 ap.add_argument('--InDels',required=True,type=str,help='Annotated vcf file, detailing InDels and effects on genes')
 ap.add_argument('--SVs',required=True,type=str,help='Annotated vcf file, detailing SVs and effects on genes')
+ap.add_argument('--phasing',required=True,type=str,help='A text file giving phasing information on SNP data')
 ap.add_argument('--orthogroups', required=True,type=str,help='A file containing results of orthology analysis')
 ap.add_argument('--strain_id',required=True,type=str,help='The identifier of this strain as used in the orthology analysis')
 ap.add_argument('--OrthoMCL_all',required=True,type=str,nargs='+',help='The identifiers of all strains used in the orthology analysis')
@@ -222,7 +225,6 @@ class Expression_obj(object):
             fpkm = int(np.round_(float(fpkm),  decimals=0))
             self.fpkm_list.append(str(fpkm))
 
-            # self.fpkm_dict[condition].append(fpkm)
 
 class Annot_obj(object):
     # """A gene identified as differentially expressed in one isolate.
@@ -268,7 +270,10 @@ class Annot_obj(object):
         self.DEG_conditions = ''
         self.fpkm_conditions = ''
         self.fpkm = ''
+        self.deg = ''
+        self.exp_time = ''
         self.SNP_info = []
+        self.SNP_phase = defaultdict(int)
         self.InDel_info = []
         self.SV_info = []
         self.variation_level = set()
@@ -438,11 +443,143 @@ class Annot_obj(object):
         if any(x in presence_list for x in (population_isolates)):
             self.variation_level.add('population')
 
+    def summarise_phase(self):
+        """"""
+        outline = []
+        for state in self.SNP_phase.keys():
+            count = self.SNP_phase[state]
+            outline.append(state + "(" + str(count) + ")")
+        return(";".join(outline))
+
+
+
     def add_expr(self, exp_obj):
         """"""
         self.DEG_conditions = ";".join(exp_obj.DEG_conditions)
         self.fpkm_conditions = "\t".join(exp_obj.condition_list)
         self.fpkm = "\t".join(exp_obj.fpkm_list)
+        self.treatments = []
+        self.mean_fpkm = []
+        # self.FC_conditions =['Mycelium vs Emily 12 hpi',
+        #     'Mycelium vs Emily 48 hpi',
+        #     'Emily 12 hpi vs Emily 48 hpi',
+        #     'Mycelium vs Fenella 12 hpi',
+        #     'Mycelium vs Fenella 48 hpi',
+        #     'Fenella 12 hpi vs Fenella 48 hpi']
+        self.FC_values = []
+        self.FC_values_adj = []
+
+
+    def add_LFC(self):
+        "Add LFC information based upon fpkm data already in the dictionary"
+        fpkm_dict = defaultdict(list)
+        for condition, fpkm in zip(self.fpkm_conditions.split("\t"), self.fpkm.split("\t")):
+            fpkm_dict[condition].append(int(fpkm))
+        fpkm_list = []
+        condition_list = []
+        for condition in fpkm_dict.keys():
+            # condition_list.append(condition)
+            fpkm_mean = np.mean(fpkm_dict[condition])
+            fpkm_dict[condition].append(fpkm_mean)
+            self.treatments.append(condition)
+            self.mean_fpkm.append(str(np.round_(fpkm_mean,  decimals=1)))
+            # int(np.round_(float(fpkm),  decimals=0)))
+        # print "\t".join(condition_list)
+        # print "\t".join(fpkm_list)
+        LFC_conditions = [
+        ('Mycelium - Mycelium', 'Emily - 12 hours'),
+        ('Mycelium - Mycelium', 'Emily - 48 hours'),
+        ('Emily - 12 hours', 'Emily - 48 hours'),
+        ('Mycelium - Mycelium', 'Fenella - 12 hours'),
+        ('Mycelium - Mycelium', 'Fenella - 48 hours'),
+        ('Fenella - 12 hours', 'Fenella - 48 hours'),
+        ]
+        for x, y in LFC_conditions:
+            x_fpkm_mean = fpkm_dict[x][-1]
+            y_fpkm_mean = fpkm_dict[y][-1]
+            if y_fpkm_mean == x_fpkm_mean:
+                FC = 1
+                # FC_adj = 1
+                FC_adj = 0
+            # elif any(num == 0.0 for num in [x, y]):
+            #     LFC = 0
+            elif y_fpkm_mean >= x_fpkm_mean:
+                FC = np.divide(y_fpkm_mean, x_fpkm_mean)
+                # if x_fpkm_mean < 2:
+                #     x_adj = 2
+                # else:
+                #     x_adj = x_fpkm_mean
+                # if y_fpkm_mean < 2:
+                #     y_adj = 2
+                # else:
+                #     y_adj = y_fpkm_mean
+                # # FC_adj = np.divide(y_adj, x_adj)
+                # FC_adj = np.log2(y_adj) - np.log2(x_adj)
+            else:
+                FC = np.negative(np.divide(x_fpkm_mean, y_fpkm_mean))
+                # if x_fpkm_mean < 2:
+                #     x_adj = 2
+                # else:
+                #     x_adj = x_fpkm_mean
+                # if y_fpkm_mean < 2:
+                #     y_adj = 2
+                # else:
+                #     y_adj = y_fpkm_mean
+                # # FC_adj = np.negative(np.divide(x_adj, y_adj))
+                # FC_adj = np.log2(y_adj) - np.log2(x_adj)
+            if x_fpkm_mean < 1:
+                x_adj = 1
+            else:
+                x_adj = x_fpkm_mean
+            if y_fpkm_mean < 1:
+                y_adj = 1
+            else:
+                y_adj = y_fpkm_mean
+            FC_adj = np.log2(y_adj) - np.log2(x_adj)
+            self.FC_values.append(str(np.round_(FC,  decimals=1)))
+            self.FC_values_adj.append(str(np.round_(FC_adj,  decimals=1)))
+            # print "\t".join([x, str(np.round_(x_fpkm_mean,  decimals=1)), y, str(np.round_(y_fpkm_mean,  decimals=1)), 'FC', str(np.round_(FC,  decimals=1)), 'FC_adj', str(np.round_(FC_adj,  decimals=1))])
+
+        # print self.DEG_conditions
+        # print self.fpkm_conditions
+        # print self.fpkm
+
+            # self.fpkm_dict[condition].append(fpkm)
+    def add_early_late(self):
+        FC_conditions = ['Mycelium vs Emily 12 hpi',
+            'Mycelium vs Emily 48 hpi',
+            'Emily 12 hpi vs Emily 48 hpi',
+            'Mycelium vs Fenella 12 hpi',
+            'Mycelium vs Fenella 48 hpi',
+            'Fenella 12 hpi vs Fenella 48 hpi']
+        conditions = self.DEG_conditions.split("\t")
+
+        FC_values_adj = self.FC_values_adj
+
+        if all(abs(float(x)) < 2 for x in FC_values_adj):
+            exp_time = "constant"
+        elif all(float(x) > 0 for x in [FC_values_adj[0], FC_values_adj[3]]) and all(float(x) < -2 for x in [FC_values_adj[2], FC_values_adj[5]]):
+            exp_time = "early expressed"
+        elif all(float(x) > 0 for x in [FC_values_adj[1], FC_values_adj[4]]) and all(float(x) > 2 for x in [FC_values_adj[2], FC_values_adj[5]]):
+            exp_time = "late expressed"
+        elif all(float(x) >=2 for x in FC_values_adj[0:2] + FC_values_adj[3:5]):
+            exp_time = "upregulated in planta (all)"
+        elif all(float(x) <= -2 for x in FC_values_adj[0:2] + FC_values_adj[3:5]):
+            exp_time = "downregulated in planta (all)"
+        elif any(float(x) >=2 for x in FC_values_adj[0:2] + FC_values_adj[3:5]) and all(float(x) >=0 for x in FC_values_adj[0:2] + FC_values_adj[3:5]):
+            exp_time = "upregulated in planta (some)"
+        elif any(float(x) <= -2 for x in FC_values_adj[0:2] + FC_values_adj[3:5]) and all(float(x) <=0 for x in FC_values_adj[0:2] + FC_values_adj[3:5]):
+            exp_time = "downregulated in planta (some)"
+        else:
+            exp_time = ""
+        # print "\t".join([self.transcript_id, exp_time])
+        # print self.treatments
+        # print self.mean_fpkm
+        # print FC_values_adj
+        self.exp_time = exp_time
+        if any(abs(float(x)) >= 2 for x in FC_values_adj) and self.DEG_conditions != '':
+            self.deg = 'DEG'
+
 
     def ipr2effectors(self):
         """"""
@@ -522,6 +659,8 @@ with open(conf.InDels) as f:
     InDel_lines = f.readlines()
 with open(conf.SVs) as f:
     SV_lines = f.readlines()
+with open(conf.phasing) as f:
+    phase_lines = f.readlines()
 
 #-----------------------------------------------------
 # Step X
@@ -560,7 +699,6 @@ for line in fpkm_lines[1:]:
         exp_obj = Expression_obj(gene_id)
         exp_obj.add_fpkm(conditions_list, fpkm_list)
         expression_dict[gene_id].append(exp_obj)
-
 
 
 gene_dict = defaultdict(list)
@@ -774,6 +912,14 @@ for line in SNP_lines:
         # print gene_dict[transcript_id]
         gene_dict[transcript_id].add_SNP(line, isolate_list)
 
+#
+for line in phase_lines:
+    line = line.rstrip("\n")
+    split_line = line.split("\t")
+    phase_info = split_line[0]
+    transcript_id = split_line[1]
+    gene_dict[transcript_id].SNP_phase[phase_info] += 1
+
 isolate_list = []
 for line in InDel_lines:
     line = line.rstrip("\n")
@@ -806,7 +952,7 @@ for line in SV_lines:
 
 strain_id = conf.strain_id + "|"
 all_isolates = conf.OrthoMCL_all
-orthogroup_dict = defaultdict(str)
+orthogroup_dict = defaultdict(lambda: "\t")
 orthogroup_content_dict = defaultdict(list)
 for line in orthogroup_lines:
     line = line.rstrip("\n")
@@ -836,10 +982,20 @@ gene_list = sorted(gene_dict.keys(), key=lambda x:int(x[1:].split('.')[0]))
 for transcript_id in gene_list:
     gene_dict[transcript_id].ipr2effectors()
     gene_id = re.sub(r".t.*", "" , transcript_id)
+    # print gene_id
     if expression_dict[gene_id]:
         # print 'badgers'
         # print "\t".join([transcript_id, gene_id])
         gene_dict[transcript_id].add_expr(expression_dict[gene_id][0])
+        gene_dict[transcript_id].add_LFC()
+        gene_dict[transcript_id].add_early_late()
+
+FC_conditions = ['Mycelium vs Emily 12 hpi',
+    'Mycelium vs Emily 48 hpi',
+    'Emily 12 hpi vs Emily 48 hpi',
+    'Mycelium vs Fenella 12 hpi',
+    'Mycelium vs Fenella 48 hpi',
+    'Fenella 12 hpi vs Fenella 48 hpi']
 
 print "\t".join([
     'transcript_id',
@@ -865,16 +1021,23 @@ print "\t".join([
     'orthogroup_id',
     'content_counts',
     'content_str',
+    'expansion_status',
     'phi',
     'ipr_effectors',
     'variation_level',
+    'SNP_phase',
     'SNP_info',
     'InDel_info',
     'SV_info',
     'swissprot',
     'interpro',
-    "\t".join(conditions_list),
-    'DEG_conditions',
+    # "\t".join(conditions_list),
+    "\t".join(gene_dict[gene_list[0]].treatments),
+    # "\t".join(FC_conditions),
+    "\t".join(FC_conditions),
+    'DEG',
+    'DEG profile',
+    # 'DEG_conditions',
     'protein sequence'
     ])
 
@@ -907,12 +1070,18 @@ for transcript_id in gene_list:
         gene_obj.phi,
         '|'.join(gene_obj.ipr_effectors),
         ",".join(gene_obj.variation_level),
+        gene_obj.summarise_phase(),
         "|".join(gene_obj.SNP_info),
         "|".join(gene_obj.InDel_info),
         "|".join(gene_obj.SV_info),
         gene_obj.swissprot,
         "|".join(gene_obj.interpro),
-        gene_obj.fpkm,
-        gene_obj.DEG_conditions,
+        "\t".join(gene_obj.mean_fpkm),
+        # "\t".join(gene_obj.FC_values),
+        "\t".join(gene_obj.FC_values_adj),
+        # gene_obj.fpkm,
+        gene_obj.deg,
+        gene_obj.exp_time,
+        # gene_obj.DEG_conditions,
         gene_obj.protein_seq
         ])
