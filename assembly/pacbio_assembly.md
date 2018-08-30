@@ -3782,106 +3782,108 @@ nano alignment/salmon/DeSeq2/P.cactorum_RNAseq_design_parsed.txt
 
 ```bash
 for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep '414'); do
-  Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
-  Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
-  OutDir=gene_pred/annotation/$Organism/$Strain
-  mkdir -p $OutDir
+Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
+Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
+OutDir=gene_pred/annotation/$Organism/$Strain
+mkdir -p $OutDir
 
-  # combine sigP2 headers
-  cat gene_pred/final_sigP/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' > $OutDir/sigP2_headers_combined.txt
-  cat gene_pred/ORF_sigP/$Organism/$Strain/${Strain}_ORF_sp_names.txt | tr -d ' ' >> $OutDir/sigP2_headers_combined.txt
+# combine sigP2 headers
+cat gene_pred/final_sigP/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' > $OutDir/sigP2_headers_combined.txt
+cat gene_pred/ORF_sigP/$Organism/$Strain/${Strain}_ORF_sp_names.txt | tr -d ' ' >> $OutDir/sigP2_headers_combined.txt
 
-  # combine sigP3 headers
-  cat gene_pred/final_signalp-3.0/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP3_headers_combined.txt
-  cat gene_pred/ORF_signalp-3.0/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP3_headers_combined.txt
+# combine sigP3 headers
+cat gene_pred/final_signalp-3.0/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP3_headers_combined.txt
+cat gene_pred/ORF_signalp-3.0/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP3_headers_combined.txt
 
-  # combine sigP4 headers
-  cat gene_pred/final_signalp-4.1/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP4_headers_combined.txt
-  cat gene_pred/ORF_signalp-4.1/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP4_headers_combined.txt
+# combine sigP4 headers
+cat gene_pred/final_signalp-4.1/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' '  > $OutDir/sigP4_headers_combined.txt
+cat gene_pred/ORF_signalp-4.1/$Organism/$Strain/${Strain}_aug_sp.aa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' >> $OutDir/sigP4_headers_combined.txt
 
-  cat analysis/phobius/$Organism/$Strain/${Strain}_phobius_headers.txt analysis/phobius/$Organism/$Strain/${Strain}_phobius_headers_ORF.txt | sed "s/^g_/contig_/g" > $OutDir/phobius_headers_combined.txt
+cat analysis/phobius/$Organism/$Strain/${Strain}_phobius_headers.txt analysis/phobius/$Organism/$Strain/${Strain}_phobius_headers_ORF.txt | sed "s/^g_/contig_/g" > $OutDir/phobius_headers_combined.txt
 
-  cat analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_RxLR_EER_regex.fa analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_ORF_RxLR_EER_regex_merged.aa > $OutDir/${Strain}_combined_RxLR_EER_regex.fa
+cat analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_RxLR_EER_regex.fa analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_ORF_RxLR_EER_regex_merged.aa > $OutDir/${Strain}_combined_RxLR_EER_regex.fa
 
-  cat analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/${Strain}_RxLR_hmmer.fa analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/${Strain}_ORF_RxLR_hmmer.fa > $OutDir/${Strain}_combined_RxLR_hmmer.fa
+cat analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/${Strain}_RxLR_hmmer.fa analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain/${Strain}_ORF_RxLR_hmmer.fa > $OutDir/${Strain}_combined_RxLR_hmmer.fa
 
-  cat analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/${Strain}_Aug_WY_hmmer.fa analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/${Strain}_ORF_WY_hmmer.fa > $OutDir/${Strain}_combined_WY_hmmer.fa
+cat analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/${Strain}_Aug_WY_hmmer.fa analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain/${Strain}_ORF_WY_hmmer.fa > $OutDir/${Strain}_combined_WY_hmmer.fa
 
-  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.bed \
-  	| grep -w 'transcript' | cut -f5 -d '=' | cut -f1 -d ';' \
-  	> analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.txt
-  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORF_CRN_LFLAK_unmerged_hmmer.fa \
-  	| grep -A1 -f analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.txt \
-  	| grep -v '\-\-' \
-  	> analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.fa
+cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.bed \
+	| grep -w 'transcript' | cut -f5 -d '=' | cut -f1 -d ';' \
+	> analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.txt
+cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORF_CRN_LFLAK_unmerged_hmmer.fa \
+	| grep -A1 -f analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.txt \
+	| grep -v '\-\-' \
+	> analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.fa
 
-  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.fa > $OutDir/${Strain}_combined_CRN_LFLAK_hmm.fa
+cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_pub_CRN_LFLAK_hmm.fa analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORFsUniq_CRN_hmmer.fa > $OutDir/${Strain}_combined_CRN_LFLAK_hmm.fa
 
-  cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_pub_CRN_DWL_hmm.fa analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORF_CRN_DWL_unmerged_hmmer.fa > $OutDir/${Strain}_combined_CRN_DWL_hmm.fa
+cat analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_pub_CRN_DWL_hmm.fa analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain/${Strain}_ORF_CRN_DWL_unmerged_hmmer.fa > $OutDir/${Strain}_combined_CRN_DWL_hmm.fa
 
-  Fasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta)
-  OrfGff=$(ls gene_pred/ORF_finder/$Organism/$Strain/${Strain}_ORF.gff3)
-  GeneConversion=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_appended_renamed.log)
-  TFs=$(ls analysis/transcription_factors/$Organism/$Strain/"$Strain"_TF_domains.tsv)
-  SigP2=$(ls $OutDir/sigP2_headers_combined.txt)
-  SigP3=$(ls $OutDir/sigP3_headers_combined.txt)
-  SigP4=$(ls $OutDir/sigP4_headers_combined.txt)
-  Phobius=$(ls $OutDir/phobius_headers_combined.txt)
-  TM_out=$(ls gene_pred/trans_mem/$Organism/$Strain/"$Strain"_TM_genes_pos.txt)
-  GPI_out=$(ls gene_pred/trans_mem/$Organism/$Strain/GPIsom/GPI_pos.fa)
-  RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_all_secreted_RxLR_regex.fa)
-  # RxLR_EER_Motif=$(ls $OutDir/${Strain}_combined_RxLR_EER_regex.fa)
-  RxLR_Hmm=$(ls $OutDir/${Strain}_combined_RxLR_hmmer.fa)
-  RxLR_WY=$(ls $OutDir/${Strain}_combined_WY_hmmer.fa)
-  CRN_LFLAK=$(ls $OutDir/${Strain}_combined_CRN_LFLAK_hmm.fa)
-  CRN_DWL=$(ls $OutDir/${Strain}_combined_CRN_DWL_hmm.fa)
-  # CAZY_Hmm=$(ls gene_pred/CAZY/*/*/*CAZY.out.dm.ps | grep "$Strain")
-  EffP_list=$(ls analysis/effectorP/$Organism/$Strain/"$Organism"_"$Strain"_EffectorP_headers.txt)
-  CAZY_list=$(ls gene_pred/CAZY/$Organism/$Strain/"$Strain"_CAZY.out.dm.ps)
-  PhiHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_phi_accessions_hits_headers.txt)
-  # ToxinHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_CDC_genes_hits_headers.txt)
-  InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
-  SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vMar2018_tophit_parsed.tbl)
-  Orthology=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
-  OrthoStrainID='Pc_CR1'
-  echo $OrthoStrainID
-  OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
-  DEGs=$(ls alignment/salmon/DeSeq2/*_DEGs.txt | sed "s/.txt/.txt /g" | tr -d "\n")
-  fpkm=$(ls alignment/salmon/DeSeq2/fpkm_norm_counts.txt)
-  SNPs=$(ls analysis/popgen/SNP_calling/*annotated.vcf)
-  Indels=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel.filtered_no_errors_annotated.vcf)
-  SVs=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv.filtered_no_errors_annotated.vcf)
+Fasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta)
+OrfGff=$(ls gene_pred/ORF_finder/$Organism/$Strain/${Strain}_ORF.gff3)
+GeneConversion=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_appended_renamed.log)
+TFs=$(ls analysis/transcription_factors/$Organism/$Strain/"$Strain"_TF_domains.tsv)
+SigP2=$(ls $OutDir/sigP2_headers_combined.txt)
+SigP3=$(ls $OutDir/sigP3_headers_combined.txt)
+SigP4=$(ls $OutDir/sigP4_headers_combined.txt)
+Phobius=$(ls $OutDir/phobius_headers_combined.txt)
+TM_out=$(ls gene_pred/trans_mem/$Organism/$Strain/"$Strain"_TM_genes_pos.txt)
+GPI_out=$(ls gene_pred/trans_mem/$Organism/$Strain/GPIsom/GPI_pos.fa)
+RxLR_Motif=$(ls analysis/RxLR_effectors/RxLR_EER_regex_finder/$Organism/$Strain/${Strain}_all_secreted_RxLR_regex.fa)
+# RxLR_EER_Motif=$(ls $OutDir/${Strain}_combined_RxLR_EER_regex.fa)
+RxLR_Hmm=$(ls $OutDir/${Strain}_combined_RxLR_hmmer.fa)
+RxLR_WY=$(ls $OutDir/${Strain}_combined_WY_hmmer.fa)
+CRN_LFLAK=$(ls $OutDir/${Strain}_combined_CRN_LFLAK_hmm.fa)
+CRN_DWL=$(ls $OutDir/${Strain}_combined_CRN_DWL_hmm.fa)
+# CAZY_Hmm=$(ls gene_pred/CAZY/*/*/*CAZY.out.dm.ps | grep "$Strain")
+EffP_list=$(ls analysis/effectorP/$Organism/$Strain/"$Organism"_"$Strain"_EffectorP_headers.txt)
+CAZY_list=$(ls gene_pred/CAZY/$Organism/$Strain/"$Strain"_CAZY.out.dm.ps)
+PhiHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_phi_accessions_hits_headers.txt)
+# ToxinHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_CDC_genes_hits_headers.txt)
+InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
+SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vMar2018_tophit_parsed.tbl)
+Orthology=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
+OrthoStrainID='Pc_CR1'
+echo $OrthoStrainID
+OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
+DEGs=$(ls alignment/salmon/DeSeq2/*_DEGs.txt | sed "s/.txt/.txt /g" | tr -d "\n")
+fpkm=$(ls alignment/salmon/DeSeq2/fpkm_norm_counts.txt)
+SNPs=$(ls analysis/popgen/SNP_calling/*annotated.vcf)
+Phasing=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.txt)
+Indels=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel.filtered_no_errors_annotated.vcf)
+SVs=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv.filtered_no_errors_annotated.vcf)
 
-  ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
-  $ProgDir/P414_annotation_table.py \
-  --protein_fasta $Fasta \
-  --conversion_log $GeneConversion \
-  --ORF_gff $OrfGff \
-  --genes_gff $GeneGff \
-  --SigP2 $SigP2 \
-  --SigP3 $SigP3 \
-  --SigP4 $SigP4 \
-  --phobius $Phobius \
-  --TM_list $TM_out \
-  --RxLR_regex $RxLR_Motif \
-  --RxLR_hmm $RxLR_Hmm \
-  --CRN_dwl $CRN_DWL \
-  --CRN_lflak $CRN_LFLAK \
-  --EffP_list $EffP_list \
-  --PhiHits $PhiHits \
-  --CAZY $CAZY_list \
-  --TFs $TFs \
-  --DEGs $DEGs \
-  --fpkm $fpkm \
-  --InterPro $InterPro \
-  --Swissprot $SwissProt \
-  --SNPs $SNPs \
-  --InDels $Indels \
-  --SVs $SVs \
-  --orthogroups $Orthology \
-  --strain_id $OrthoStrainID  \
-  --OrthoMCL_all $OrthoStrainAll \
-  > $OutDir/"$Strain"_annotation_ncbi2.tsv
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
+$ProgDir/P414_annotation_table.py \
+--protein_fasta $Fasta \
+--conversion_log $GeneConversion \
+--ORF_gff $OrfGff \
+--genes_gff $GeneGff \
+--SigP2 $SigP2 \
+--SigP3 $SigP3 \
+--SigP4 $SigP4 \
+--phobius $Phobius \
+--TM_list $TM_out \
+--RxLR_regex $RxLR_Motif \
+--RxLR_hmm $RxLR_Hmm \
+--CRN_dwl $CRN_DWL \
+--CRN_lflak $CRN_LFLAK \
+--EffP_list $EffP_list \
+--PhiHits $PhiHits \
+--CAZY $CAZY_list \
+--TFs $TFs \
+--DEGs $DEGs \
+--fpkm $fpkm \
+--InterPro $InterPro \
+--Swissprot $SwissProt \
+--SNPs $SNPs \
+--InDels $Indels \
+--SVs $SVs \
+--phasing $Phasing \
+--orthogroups $Orthology \
+--strain_id $OrthoStrainID  \
+--OrthoMCL_all $OrthoStrainAll \
+> $OutDir/"$Strain"_annotation_ncbi.tsv
 done
 ```
 
@@ -3927,6 +3929,64 @@ cat $OutDir/"$Strain"_annotation_ncbi_cr_expanded.tsv | grep 'RxLR' | less -S
 
 cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'apple loss' > $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv
 cat $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv | grep 'RxLR' | wc -l
+```
+
+Investigating DEGs
+
+```bash
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv)
+echo "DEGs"
+cat $AnnotTab | grep -w 'DEG' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -v -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | wc -l
+echo "Differentially expressed genes in planta"
+cat $AnnotTab | grep -w 'DEG' | grep -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | wc -l
+
+cat $AnnotTab | grep -w 'DEG' | grep -e 'early expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'late expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'upregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'upregulated in planta (all)' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'upregulated in planta (some)' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'downregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'downregulated in planta (all)' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -e 'downregulated in planta (some)' | wc -l
+
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'early expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'late expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'upregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'downregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -v -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | wc -l
+
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CAZY' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'early expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CAZY' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'late expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CAZY' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'upregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CAZY' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'downregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CAZY' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -v -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | wc -l
+
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CRN' | grep -e 'early expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CRN' | grep -e 'late expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CRN' | grep -e 'upregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CRN' | grep -e 'downregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'CRN' | grep -v -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | wc -l
+
+cat $AnnotTab | grep -w 'DEG' | grep -w 'RxLR' | grep -e 'early expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'RxLR' | grep -e 'late expressed' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'RxLR' | grep -e 'upregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'RxLR' | grep -e 'downregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | grep -w 'RxLR' | grep -v -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | wc -l
+
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$11 ~ /Yes/ { print }' | grep -e 'downregulated in planta' | wc -l
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$26 ~ /\w/' | grep -e 'early expressed' | cut -f26 | sort | uniq -c
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$26 ~ /\w/' | grep -e 'late expressed' | cut -f26 | sort | uniq -c
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$26 ~ /\w/' | grep -e 'upregulated in planta' | cut -f26 | sort | uniq -c
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$26 ~ /\w/' | grep -e 'downregulated in planta' |cut -f26 | sort | uniq -c
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$26 ~ /\w/' | grep -v -e 'early expressed' -e 'late expressed' -e 'upregulated in planta' -e 'downregulated in planta' | cut -f26 | sort | uniq -c
 
 
+cat $AnnotTab | awk -F "\t" '$11 ~ /Yes/' | wc -l
+cat $AnnotTab | grep -w 'CAZY' | awk -F "\t" '$11 ~ /Yes/' | wc -l
+cat $AnnotTab | grep -w 'CRN' | wc -l
+cat $AnnotTab | grep -w 'RxLR' | wc -l
+cat $AnnotTab | awk -F "\t" '$26 ~ /\w/' | cut -f26 | sort | uniq -c
+
+cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$39 > 2' | less -S
 ```
