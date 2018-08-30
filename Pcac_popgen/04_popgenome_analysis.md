@@ -209,7 +209,7 @@ cd $CurDir
 ## Calculate diversity and nutrality stats
 
 
-Nucleotide diversity stats were calculsated on my local machine
+Nucleotide diversity stats were calculated on my local machine
 
 ### Pi
 
@@ -253,6 +253,13 @@ p <- ggplot(df3[which(df2$value>0)],, aes(x = variable, y = value)) +
 
 p <- p + labs(x = '', y = "Nucleotide diversity (\u03C0)")
 ggsave('Pcac_Pi_nonsyn_boxplot.jpg', p)
+```
+
+
+Calculate Pi for different groups of genes:
+
+```R
+
 
 ```
 
