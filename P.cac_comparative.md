@@ -1362,7 +1362,7 @@ Alignments were concatenated prior to gene prediction
 ```bash
 qlogin -pe smp 8
 cd /home/groups/harrisonlab/project_files/idris
-for StrainDir in $(ls -d ../../../../../data/scratch/armita/idris/alignment/star/P.*/*); do
+for StrainDir in $(for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
 echo $StrainDir
 BamFiles=$(ls $StrainDir/*/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
 OutDir=$StrainDir/concatenated
