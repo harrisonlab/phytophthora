@@ -234,7 +234,7 @@ point.
 
 ```bash
 export PYTHONPATH="/home/armita/.local/lib/python3.5/site-packages"
-for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' -e 'D-1' | grep -v '11-40' | grep '404'); do
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' -e 'D-1' | grep -v '11-40' | grep -w '4032'); do
   Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
   Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
   echo "$Organism - $Strain"
@@ -256,12 +256,13 @@ Gag was run using the modified gff file as well as the annie annotation file.
 Gag was noted to output database references incorrectly, so these were modified.
 
 ```bash
-for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' -e 'D-1' | grep -v '11-40'); do
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' -e 'D-1' | grep -w '404'); do
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
 echo "$Organism - $Strain"
 OutDir="genome_submission/$Organism/$Strain"
-GffFile=$(ls gene_pred/final_incl_ORF/$Organism/"$Strain"/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+# GffFile=$(ls gene_pred/final_incl_ORF/$Organism/"$Strain"/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+GffFile=$(ls gene_pred/final_incl_ORF/$Organism/"$Strain"/final_genes_genes_incl_ORFeffectors_renamed_corrected.gff3)
 mkdir -p $OutDir/gag/round1
 gag.py -f $Assembly -g $GffFile -a $OutDir/annie_corrected_output.csv --fix_start_stop -o $OutDir/gag/round1 2>&1 | tee $OutDir/gag_log1.txt
 sed -i 's/Dbxref/db_xref/g' $OutDir/gag/round1/genome.tbl
@@ -288,19 +289,21 @@ Note - all input files for tbl2asn need to be in the same directory and have the
 same basename.
 
 ```bash
-for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40' | grep -v 'D-1'); do
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40' | grep -v 'D-1' | grep -w '404'); do
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
 echo "$Organism - $Strain"
+OrganismSbt=$(echo $Organism | sed 's/P./Phytophthora /g')
 OutDir="genome_submission/$Organism/$Strain"
 
 cp $Assembly $OutDir/gag/round1/genome.fsa
 SbtFile=$(ls /home/groups/harrisonlab/project_files/idris/genome_submission/P.cactorum/414_v2/template.sbt)
 SRA_metadata=$(ls genome_submission/Pcac_PRJNA391273_locus_tags.txt)
 BioSample=$(cat $SRA_metadata | grep "$Strain" | cut -f2 -d ' ' | head -n1)
-cat $SbtFile | sed "s/SAMN06766401/$BioSample/g" > $OutDir/gag/round1/genome.sbt
+SRA_metadata=$(ls genome_submission/Pcac_PRJNA391273_locus_tags.txt)
+cat $SbtFile | sed 's/PRJNA383548//g'| sed "s/SAMN06766401/$BioSample/g" > $OutDir/gag/round1/genome.sbt
 mkdir -p $OutDir/tbl2asn/round1
-tbl2asn -p $OutDir/gag/round1/. -t $OutDir/gag/round1/genome.sbt -r $OutDir/tbl2asn/round1 -M n -X E -Z $OutDir/gag/round1/discrep.txt -j "[organism=$Organism] [strain=$Strain]"
+tbl2asn -p $OutDir/gag/round1/. -t $OutDir/gag/round1/genome.sbt -r $OutDir/tbl2asn/round1 -M n -X E -Z $OutDir/gag/round1/discrep.txt -j "[organism=$OrganismSbt] [strain=$Strain]"
 done
 ```
 
@@ -322,24 +325,24 @@ annotation then genes, mRNA and exon features need to reflect this by marking
 them as incomplete ('unknown_UTR').
 
 ```bash
-  for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40' | grep -v 'D-1' | grep -w '404'); do
-    Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
-    Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
-    echo "$Organism - $Strain"
-    OutDir="genome_submission/$Organism/$Strain"
-    LocusTag=$(cat genome_submission/Pcac_PRJNA391273_locus_tags.txt | grep -w "$Strain" | cut -f1 -d ' ')
-    echo $LocusTag
-    mkdir -p $OutDir/gag/edited
-    ProgDir=/home/armita/git_repos/emr_repos/tools/genbank_submission
-    $ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $LocusTag --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --remove_product_locus_tags "True" --del_name_from_prod "True" --out_tbl $OutDir/gag/edited/genome.tbl
-  done > log.txt
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40' | grep -v 'D-1'); do
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
+echo "$Organism - $Strain"
+OutDir="genome_submission/$Organism/$Strain"
+LocusTag=$(cat genome_submission/Pcac_PRJNA391273_locus_tags.txt | grep -w "$Strain" | cut -f1 -d ' ')
+echo $LocusTag
+mkdir -p $OutDir/gag/edited
+ProgDir=/home/armita/git_repos/emr_repos/tools/genbank_submission
+$ProgDir/edit_tbl_file/ncbi_tbl_corrector.py --inp_tbl $OutDir/gag/round1/genome.tbl --inp_val $OutDir/tbl2asn/round1/genome.val --locus_tag $LocusTag --lab_id $LabID --gene_id "remove" --edits stop pseudo unknown_UTR correct_partial --remove_product_locus_tags "True" --del_name_from_prod "True" --out_tbl $OutDir/gag/edited/genome.tbl
+done > log.txt
 ```
 
 
 ## Generating a structured comment detailing annotation methods
 
 ```bash
-  for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40' | grep -v 'D-1'); do
+  for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40' | grep -v 'D-1' | grep -w '4032'); do
     Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
     Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
     echo "$Organism - $Strain"
@@ -370,10 +373,11 @@ for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unma
   OutDir="genome_submission/$Organism/$Strain"
   FinalName="$Organism"_"$Strain"_Armitage_2017
   cp $Assembly $OutDir/gag/edited/genome.fsa
-  SbtFile=$(ls /home/groups/harrisonlab/project_files/idris/genome_submission/P.cactorum/414_v2/template.sbt)
-  SRA_metadata=$(ls genome_submission/Pcac_PRJNA391273_locus_tags.txt)
-  BioSample=$(cat $SRA_metadata | grep -w "$Strain" | cut -f2 -d ' ' | head -n1)
-  cat $SbtFile | sed "s/SAMN06766401/$BioSample/g" > $OutDir/gag/edited/genome.sbt
+  # SbtFile=$(ls /home/groups/harrisonlab/project_files/idris/genome_submission/P.cactorum/414_v2/template.sbt)
+  # SRA_metadata=$(ls genome_submission/Pcac_PRJNA391273_locus_tags.txt)
+  # BioSample=$(cat $SRA_metadata | grep -w "$Strain" | cut -f2 -d ' ' | head -n1)
+  # cat $SbtFile | sed "s/SAMN06766401/$BioSample/g" > $OutDir/gag/edited/genome.sbt
+  cp $OutDir/gag/round1/genome.sbt $OutDir/gag/edited/genome.sbt
   mkdir $OutDir/tbl2asn/final
   tbl2asn -p $OutDir/gag/edited/. -t $OutDir/gag/edited/genome.sbt -r $OutDir/tbl2asn/final -M n -X E -Z $OutDir/tbl2asn/final/discrep.txt -j "[organism=$Organism] [strain=$Strain]" -l paired-ends -a r10k -w $OutDir/gag/edited/annotation_methods.strcmt.txt
   cat $OutDir/tbl2asn/final/genome.sqn | sed 's/_pilon//g' | sed "s/Saccharopine dehydrogenase \[NAD\S*\w/Saccharopine dehydrogenase/g" | sed 's/aldolase_/aldolase/g' > $OutDir/tbl2asn/final/$FinalName.sqn
@@ -402,16 +406,16 @@ mkdir P.cactorum_4032_Armitage_2017
 cd P.cactorum_4032_Armitage_2017
 put P.cactorum_4032_Armitage_2017.sqn
 cd ../
-
-mkdir P.cactorum_P421_Armitage_2017
-cd P.cactorum_P421_Armitage_2017
-put P.cactorum_P421_Armitage_2017.sqn
-cd ../
-
-mkdir P.cactorum_11-40_Armitage_2017
-cd P.cactorum_11-40_Armitage_2017
-put P.cactorum_11-40_Armitage_2017.sqn
-cd ../
+#
+# mkdir P.cactorum_P421_Armitage_2017
+# cd P.cactorum_P421_Armitage_2017
+# put P.cactorum_P421_Armitage_2017.sqn
+# cd ../
+#
+# mkdir P.cactorum_11-40_Armitage_2017
+# cd P.cactorum_11-40_Armitage_2017
+# put P.cactorum_11-40_Armitage_2017.sqn
+# cd ../
 
 mkdir P.cactorum_4040_Armitage_2017
 cd P.cactorum_4040_Armitage_2017
@@ -462,11 +466,11 @@ mkdir P.cactorum_416_Armitage_2017
 cd P.cactorum_416_Armitage_2017
 put P.cactorum_416_Armitage_2017.sqn
 cd ../
-
-mkdir P.idaei_SCRP370_Armitage_2017
-cd P.idaei_SCRP370_Armitage_2017
-put P.idaei_SCRP370_Armitage_2017.sqn
-cd ../
+#
+# mkdir P.idaei_SCRP370_Armitage_2017
+# cd P.idaei_SCRP370_Armitage_2017
+# put P.idaei_SCRP370_Armitage_2017.sqn
+# cd ../
 
 mkdir P.cactorum_17-21_Armitage_2017
 cd P.cactorum_17-21_Armitage_2017
@@ -487,9 +491,41 @@ mkdir P.cactorum_2003_3_Armitage_2017
 cd P.cactorum_2003_3_Armitage_2017
 put P.cactorum_2003_3_Armitage_2017.sqn
 cd ../
+#
+# mkdir P.cactorum_P295_Armitage_2017
+# cd P.cactorum_P295_Armitage_2017
+# put P.cactorum_P295_Armitage_2017.sqn
+# cd ../
+```
 
-mkdir P.cactorum_P295_Armitage_2017
-cd P.cactorum_P295_Armitage_2017
-put P.cactorum_P295_Armitage_2017.sqn
-cd ../
+Commands to generate discrepancy files in the format they’ll see at NCBI, will label fatal errors etc.
+
+Add this line to profile to use asndisc
+
+```bash
+PATH=${PATH}:/home/adamst/prog/ncbi_asndisc
+
+for sqn_dir in $(ls -d genome_submission/P.*/*/tbl2asn/final | grep '11-40')
+do
+  # Sqn=$(basename $sqn_dir/*Armitage_2017.sqn)
+    asndisc -p $sqn_dir -x Armitage_2017.sqn -o $sqn_dir/discrep.val -X ALL -P t
+done
+```
+
+
+
+# Edit Gff to remove genes predicted by CodingQuary to start beyond the end of a contig.
+
+```bash
+for InpGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3); do
+Organism=$(echo $InpGff | rev | cut -d '/' -f3 | rev)
+Strain=$(echo $InpGff| rev | cut -d '/' -f2 | rev )
+echo "$Organism - $Strain"
+Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/${Strain}_contigs_unmasked.fa)
+# OutDir=$(dirname $Assembly)
+OutFile=$(echo $InpGff | sed 's/.gff3/_corrected.gff3/g')
+ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+$ProgDir/correct_genes_beyond_contigs.py --inp_gff $InpGff --inp_fasta $Assembly > $OutFile
+done
+
 ```
