@@ -3883,7 +3883,7 @@ $ProgDir/P414_annotation_table.py \
 --orthogroups $Orthology \
 --strain_id $OrthoStrainID  \
 --OrthoMCL_all $OrthoStrainAll \
-> $OutDir/"$Strain"_annotation_ncbi.tsv
+> $OutDir/"$Strain"_annotation_ncbi2.tsv
 done
 ```
 
@@ -3930,6 +3930,85 @@ cat $OutDir/"$Strain"_annotation_ncbi_cr_expanded.tsv | grep 'RxLR' | less -S
 cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'apple loss' > $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv
 cat $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv | grep 'RxLR' | wc -l
 ```
+
+investigating gene gain / loss in a phylogenetic context
+
+              |-G- Fxa isolates
+         |---F|
+         |    |-H- "10300 isolate"
+     |-C-|
+     |   |    |-E-- Md isolates
+     |   |---D|
+ |-B-|        |-I- "17-21" LR isolate
+ |   |
+ |   |
+-|   |------------ "LV007"
+ |
+ |
+ |--------------A- Pi isolates
+
+note, because gene models from LV007 (subclade from clade B) werent included in
+the orthology analysis gene gain/loss was not assessed using clade B. Because
+there was no genome to phase gene gain loss in clades A/C, gain / loss could not
+be attributed, but differences were able to be observed.
+
+```bash
+cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -e '_gain' -e '_loss' | cut -f21,25 | sort | uniq | cut -f2 | sed 's/;/\n/g' | grep -v "^$" | sort | uniq -c
+```
+
+```
+1124 A_gain or C_loss
+ 273 A_loss or C_gain
+  10 D_gain
+   9 D_loss
+  14 E_gain
+  19 E_loss
+  45 F_gain
+   3 F_loss
+  10 G_gain
+   1 G_loss
+ 424 H_gain
+ 264 H_loss
+  79 I_gain
+  54 I_loss
+```
+```bash
+
+Orthology=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
+OrthoStrainID='Pc_CR1'
+echo $OrthoStrainID
+OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+$ProgDir/Pc_orthogroup_gain-loss.py \
+--orthogroups $Orthology \
+--strain_id $OrthoStrainID  \
+--OrthoMCL_all $OrthoStrainAll \
+> tmp.txt
+
+cat tmp.txt | cut -f2 | sed 's/;/\n/g' | sort | uniq -c
+```
+
+```
+
+7520 equal
+11205
+ 1124 A_gain or C_loss
+ 1690 A_loss or C_gain
+   72 D_gain
+    9 D_loss
+   47 E_gain
+   19 E_loss
+   45 F_gain
+   21 F_loss
+   10 G_gain
+    1 G_loss
+  491 H_gain
+  264 H_loss
+  111 I_gain
+   54 I_loss
+```
+
+
 
 Investigating DEGs
 
