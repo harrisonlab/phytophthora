@@ -57,8 +57,8 @@ density_plot2 <- ggplot(df1, aes(df1$five_IG, df1$three_IG)) +
     xlab("5' IG length") +
     ylab("3' IG length") +
     scale_fill_gradientn(colours=r)
-ggsave(o1, density_plot, dpi=300, height=10, width=12)
-df2 <- df1()
+ggsave(o1, density_plot2, dpi=300, height=10, width=12)
+df2 <- df1
 #df2
 colnames(df2) <- c("ID", "five_IG", "three_IG")
 density_plot3 <-  density_plot2 + scale_fill_gradientn(colours=c("grey", "grey")) +
