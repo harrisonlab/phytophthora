@@ -157,7 +157,7 @@ Results were summarised using the commands:
 ```
 
 
-The falcon assembly was polished using Pilon
+The SMARTdevnovo assembly was polished using Pilon
 
 ```bash
 for Assembly in $(ls assembly/SMARTdenovo/P.cactorum/414/414_smartdenovo.dmo.lay.utg); do
@@ -1282,6 +1282,32 @@ done
 
 ```
   P.cactorum	414	18468452	5361346	19269912
+```
+
+```bash
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa); do
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/$Organism/414)
+echo "$Organism - $Strain"
+TrimF1_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n1 | tail -n1);
+TrimR1_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n1 | tail -n1);
+TrimF2_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n2 | tail -n1);
+TrimR2_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n2 | tail -n1);
+TrimF3_Read=$(ls $IlluminaDir/F/*trim.fq.gz | head -n3 | tail -n1);
+TrimR3_Read=$(ls $IlluminaDir/R/*trim.fq.gz | head -n3 | tail -n1);
+echo $TrimF1_Read
+echo $TrimR1_Read
+echo $TrimF2_Read
+echo $TrimR2_Read
+echo $TrimF3_Read
+echo $TrimR3_Read
+InDir=$(dirname $Assembly)
+# OutDir=$InDir/aligned_MiSeq
+OutDir=alignment/bowtie/$Organism/$Strain
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
+qsub $ProgDir/bowtie/sub_bowtie_3lib.sh $Assembly $TrimF1_Read $TrimR1_Read $TrimF2_Read $TrimR2_Read $TrimF3_Read $TrimR3_Read $OutDir
+done
 ```
 
 # Gene Prediction
@@ -3914,7 +3940,7 @@ done
 ```
 
 
-Investigating orthogroup expansion:
+### Investigating orthogroup expansion:
 
 ```bash
 cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -w -e 'crown rot expanded' -e 'apple loss'  | cut -f21 | sort | uniq | wc -l
@@ -3951,9 +3977,12 @@ note, because gene models from LV007 (subclade from clade B) werent included in
 the orthology analysis gene gain/loss was not assessed using clade B. Because
 there was no genome to phase gene gain loss in clades A/C, gain / loss could not
 be attributed, but differences were able to be observed.
-
+<!--
 ```bash
-cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -e '_gain' -e '_loss' | cut -f21,25 | sort | uniq | cut -f2 | sed 's/;/\n/g' | grep -v "^$" | sort | uniq -c
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+OutDir=gene_pred/annotation/P.cactorum/414
+Strain=414
+cat $AnnotTab | grep -e '_gain' -e '_loss' | cut -f21,25 | sort | uniq | cut -f2 | sed 's/;/\n/g' | grep -v "^$" | sort | uniq -c
 ```
 
 ```
@@ -3971,21 +4000,24 @@ cat $OutDir/"$Strain"_annotation_ncbi2.tsv | grep -e '_gain' -e '_loss' | cut -f
  264 H_loss
   79 I_gain
   54 I_loss
-```
+``` -->
+
 ```bash
 
 Orthology=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
 OrthoStrainID='Pc_CR1'
 echo $OrthoStrainID
 OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
+OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
+mkdir -p $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
 $ProgDir/Pc_orthogroup_gain-loss.py \
 --orthogroups $Orthology \
 --strain_id $OrthoStrainID  \
 --OrthoMCL_all $OrthoStrainAll \
-> tmp.txt
+> $OutDir/Pcac_gain-loss.tsv
 
-cat tmp.txt | cut -f2 | sed 's/;/\n/g' | sort | uniq -c
+cat $OutDir/Pcac_gain-loss.tsv | cut -f2 | sed 's/;/\n/g' | sort | uniq -c
 ```
 
 ```
@@ -4008,9 +4040,50 @@ cat tmp.txt | cut -f2 | sed 's/;/\n/g' | sort | uniq -c
    54 I_loss
 ```
 
+```bash
+OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
+cat $OutDir/Pcac_gain-loss.tsv | grep 'G' | cut -f1 > $OutDir/G_orthogroups.txt
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+cat $AnnotTab | grep -w -f $OutDir/G_orthogroups.txt > $OutDir/G_orthogroups_P414.tsv
+
+#---
+# Clade F
+#---
+cat $OutDir/Pcac_gain-loss.tsv | grep 'F' | cut -f1 > $OutDir/F_orthogroups.txt
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+cat $AnnotTab | grep -w -f $OutDir/F_orthogroups.txt > $OutDir/F_orthogroups_P414.tsv
+cat $OutDir/F_orthogroups_P414.tsv | grep -w 'RxLR' | cut -f1
+
+Genes=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta)
+
+OutDir=/home/groups/harrisonlab/project_files/idris/analysis/genomes_blast
+mkdir -p $OutDir
+cat $Genes | grep -A 4 'g22827' | sed 's/>/>Pc_P414_/g' > $OutDir/Pc_Fa_P414_F_RxLRs.fa
+cat $Genes | grep -A 8 'g24384' | sed 's/>/>Pc_P414_/g' >> $OutDir/Pc_Fa_P414_F_RxLRs.fa
 
 
-Investigating DEGs
+#---
+# Clade D
+#---
+cd /home/groups/harrisonlab/project_files/idris
+OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
+cat $OutDir/Pcac_gain-loss.tsv | grep 'D_' | cut -f1 > $OutDir/D_orthogroups.txt
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
+
+cat $AnnotTab | grep -w -f $OutDir/D_orthogroups.txt > $OutDir/D_orthogroups_62471.tsv
+cat $OutDir/D_orthogroups_62471.tsv | grep -w 'RxLR' | cut -f1
+
+Genes=$(ls gene_pred/final_incl_ORF/P.cactorum/62471/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta)
+
+OutDir=/home/groups/harrisonlab/project_files/idris/analysis/genomes_blast
+mkdir -p $OutDir
+cat $Genes | grep -A 8 'g14088' | sed 's/>/>Pc_62471_/g' > $OutDir/Pc_Md_62471_D_RxLRs.fa
+cat $Genes | grep -A 7 'g23418' | sed 's/>/>Pc_62471_/g' >> $OutDir/Pc_Md_62471_D_RxLRs.fa
+cat $Genes | grep -A 4 'g24378' | sed 's/>/>Pc_62471_/g' >> $OutDir/Pc_Md_62471_D_RxLRs.fa
+
+```
+
+### Investigating DEGs
 
 ```bash
 AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv)
