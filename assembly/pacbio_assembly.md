@@ -3914,7 +3914,7 @@ done
 ```
 
 ```bash
-for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi.tsv | grep '414'); do
+for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi2.tsv | grep '414'); do
   Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
   Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
   GeneNum=$(cat $File | cut -f1 | tail -n+2 | cut -f1 -d '.' | uniq | wc -l)
@@ -3925,18 +3925,21 @@ for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi.tsv | grep '414'); d
   RxLR=$(cat $File | cut -f14 | tail -n+2 | grep "RxLR" |wc -l)
   CRN=$(cat $File | cut -f17 | tail -n+2 | grep "CRN" | wc -l)
   TFs=$(cat $File | cut -f20 | tail -n+2 | grep -v "^$" | wc -l)
-  Elicitin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "MAMP:Elicitin" | wc -l)
-  Transglutaminase=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "MAMP:Transglutaminase" | wc -l)
-  NLP=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:NLP" | wc -l)
-  Kazal=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (Kazal-type)" | wc -l)
-  Cathepsin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (cathepsin)" | wc -l)
-  Cystatin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (cystatin-like)" | wc -l)
-  GlucanaseInhibitor=$(cat $File | cut -f11,25 | grep 'Yes' | tail -n+2 | grep "Apoplastic:Glucanase inhibitor" | wc -l)
-  Phytotoxin=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Phytotoxin" | wc -l)
-  Cutinase=$(cat $File | cut -f11,25 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Cutinase" | wc -l)
+  Elicitin=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "MAMP:Elicitin" | wc -l)
+  Transglutaminase=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "MAMP:Transglutaminase" | wc -l)
+  NLP=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "Apoplastic:NLP" | wc -l)
+  Kazal=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (Kazal-type)" | wc -l)
+  Cathepsin=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (cathepsin)" | wc -l)
+  Cystatin=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Protease inhibitor (cystatin-like)" | wc -l)
+  GlucanaseInhibitor=$(cat $File | cut -f11,27 | grep 'Yes' | tail -n+2 | grep "Apoplastic:Glucanase inhibitor" | wc -l)
+  Phytotoxin=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Phytotoxin" | wc -l)
+  Cutinase=$(cat $File | cut -f11,27 | tail -n+2 | grep 'Yes' | grep "Apoplastic:Cutinase" | wc -l)
   printf "$Organism\t$Strain\t$GeneNum\t$ProtNum\t$Secreted\t$EffP\t$Cazy\t$RxLR\t$CRN"
   printf "\t$TFs\t$Elicitin\t$Transglutaminase\t$NLP\t$Kazal\t$Cathepsin\t$Cystatin\t$GlucanaseInhibitor\t$Phytotoxin\t$Cutinase\n"
 done
+```
+```
+P.cactorum	414	29552	29913	1887	507	281	158	127	1215	43	14	22	17	3	2	21	3	5
 ```
 
 
@@ -3958,7 +3961,7 @@ cat $OutDir/"$Strain"_annotation_ncbi_md_loss.tsv | grep 'RxLR' | wc -l
 ```
 
 investigating gene gain / loss in a phylogenetic context
-
+```
               |-G- Fxa isolates
          |---F|
          |    |-H- "10300 isolate"
@@ -3972,7 +3975,7 @@ investigating gene gain / loss in a phylogenetic context
  |
  |
  |--------------A- Pi isolates
-
+```
 note, because gene models from LV007 (subclade from clade B) werent included in
 the orthology analysis gene gain/loss was not assessed using clade B. Because
 there was no genome to phase gene gain loss in clades A/C, gain / loss could not
@@ -4141,4 +4144,20 @@ cat $AnnotTab | grep -w 'RxLR' | wc -l
 cat $AnnotTab | awk -F "\t" '$26 ~ /\w/' | cut -f26 | sort | uniq -c
 
 cat $AnnotTab | grep -w 'DEG' | awk -F "\t" '$39 > 2' | less -S
+```
+
+
+
+# Summarise variants
+
+Summarise SNP, indel and SVs from the P414 annotation table
+
+```bash
+cd /data/scratch/armita/idris
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+OutDir=analysis/popgen/indel_calling/svaba
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
+$ProgDir/summarise_P414_variants.py --annotation_table $AnnotTab \
+  > $OutDir/P414_summarised_variants.tsv
+
 ```

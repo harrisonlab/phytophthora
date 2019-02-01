@@ -43,6 +43,19 @@ class FamilyVarObj(object):
         """set the object, defining the dictionary."""
         dict = defaultdict(list)
         self.gene_family_dict = dict
+        self.gene_family_dict['Genes'] = TaxaVarObj()
+        self.gene_family_dict['RxLR'] = TaxaVarObj()
+        self.gene_family_dict['CRN'] = TaxaVarObj()
+        self.gene_family_dict['CAZY'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:Cutinase'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:Glucanase inhibitor'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:NLP'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:Phytotoxin'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:Protease inhibitor (cathepsin)'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:Protease inhibitor (cystatin-like)'] = TaxaVarObj()
+        self.gene_family_dict['Apoplastic:Protease inhibitor (Kazal-type)'] = TaxaVarObj()
+        self.gene_family_dict['MAMP:Elicitin'] = TaxaVarObj()
+        self.gene_family_dict['MAMP:Transglutaminase'] = TaxaVarObj()
     def add_family(self, family):
         "Add a TaxaVarObj to the for a given gene family"
         self.gene_family_dict[family] = TaxaVarObj()
@@ -77,14 +90,17 @@ class TaxaVarObj(object):
         "Count the number of variants present for a species"
         SNP_count = len(set(self.variant_dict[group]))
         return(SNP_count)
-        # for a in ['P.cactorum_strawberry', 'P.cactorum_apple', 'P.cactorum_strawberry_LR', 'P.idaei']:
-        #     SNP_count = len(self.variant_dict[a])
-        #     print("\t".join([a, str(SNP_count)]))
-            # PcFa_count = len(self.variant_dict['P.cactorum_strawberry'])
-            # PcMd_count = len(self.variant_dict['P.cactorum_apple'])
-            # PcFaLR_count = len(self.variant_dict['P.cactorum_strawberry_LR'])
-            # Pi_count = len(self.variant_dict['P.idaei'])
-            # print ''
+    def get_all_variants(self):
+        "Count the number of variants present for all species"
+        list1 = self.variant_dict['P.idaei']
+        list2 = self.variant_dict['P.cactorum_apple']
+        list3 = self.variant_dict['P.cactorum_strawberry']
+        list4 = self.variant_dict['P.cactorum_strawberry_LR']
+        total_list = list1 + list2 + list3 + list4
+        return(total_list)
+        # num_genes = len(set(total_list))
+        # return(num_genes)
+
 
 
 #-----------------------------------------------------
@@ -110,38 +126,78 @@ class TaxaVarObj(object):
 with open(conf.annotation_table) as f:
     a_lines = f.readlines()
 
-
-
 #-----------------------------------------------------
 # Step X
 # Identify variants
 #-----------------------------------------------------
 
-GenesObj = FamilyVarObj()
-GenesObj.add_family('Genes')
-GenesObj.add_family('RxLR')
-GenesObj.add_family('CRN')
+# TotalGenes = FamilyVarObj()
+# AllVarObj = FamilyVarObj()
+SnpObj = FamilyVarObj()
+InDelObj = FamilyVarObj()
+SvObj = FamilyVarObj()
+
 # SNP_genes_obj = TaxaVarObj()
 
 for line in a_lines[1:]:
     line = line.rstrip()
     split_line = line.split('\t')
     gene_id = split_line[0]
+    # if gene_id == 'g26864.t1':
+    #     print line
+    secreted_col = split_line[10]
     RxLR_col = split_line[13]
     CRN_col = split_line[16]
-    # print CRN_col
+    CAZY_col = split_line[18]
+    apoplast_col = split_line[26]
     SNP_col = split_line[29]
     if SNP_col:
         for SNP_variants in SNP_col.split('|'):
             split_col = SNP_variants.split(':')
             # print split_col
             effect = split_col[0]
-            taxa = split_col[1]
-            GenesObj.gene_family_dict['Genes'].add_variant(gene_id, taxa)
+            SNP_taxa = split_col[1]
+            SnpObj.gene_family_dict['Genes'].add_variant(gene_id, SNP_taxa)
             if RxLR_col:
-                GenesObj.gene_family_dict['RxLR'].add_variant(gene_id, taxa)
+                SnpObj.gene_family_dict['RxLR'].add_variant(gene_id, SNP_taxa)
             if CRN_col:
-                GenesObj.gene_family_dict['CRN'].add_variant(gene_id, taxa)
+                SnpObj.gene_family_dict['CRN'].add_variant(gene_id, SNP_taxa)
+            if all([secreted_col, CAZY_col]):
+                SnpObj.gene_family_dict['CAZY'].add_variant(gene_id, SNP_taxa)
+            if all([secreted_col, apoplast_col]):
+                SnpObj.gene_family_dict[apoplast_col].add_variant(gene_id, SNP_taxa)
+    InDel_col = split_line[30]
+    if InDel_col:
+        for InDel_variants in InDel_col.split('|'):
+            split_col = InDel_variants.split(':')
+            # print split_col
+            effect = split_col[0]
+            indel_taxa = split_col[1]
+            InDelObj.gene_family_dict['Genes'].add_variant(gene_id, indel_taxa)
+            if RxLR_col:
+                InDelObj.gene_family_dict['RxLR'].add_variant(gene_id, indel_taxa)
+            if CRN_col:
+                InDelObj.gene_family_dict['CRN'].add_variant(gene_id, indel_taxa)
+            if all([secreted_col, CAZY_col]):
+                InDelObj.gene_family_dict['CAZY'].add_variant(gene_id, indel_taxa)
+            if all([secreted_col, apoplast_col]):
+                InDelObj.gene_family_dict[apoplast_col].add_variant(gene_id, indel_taxa)
+    SV_col = split_line[31]
+    if SV_col:
+        for SV_variants in SV_col.split('|'):
+            split_col = SV_variants.split(':')
+            effect = split_col[0]
+            sv_taxa = split_col[1]
+            SvObj.gene_family_dict['Genes'].add_variant(gene_id, sv_taxa)
+            if RxLR_col:
+                SvObj.gene_family_dict['RxLR'].add_variant(gene_id, sv_taxa)
+            if CRN_col:
+                SvObj.gene_family_dict['CRN'].add_variant(gene_id, sv_taxa)
+            if all([secreted_col, CAZY_col]):
+                SvObj.gene_family_dict['CAZY'].add_variant(gene_id, sv_taxa)
+            if all([secreted_col, apoplast_col]):
+                SvObj.gene_family_dict[apoplast_col].add_variant(gene_id, sv_taxa)
+
 
 
 # print(" ".join(SNP_obj.variant_dict['P.idaei']))
@@ -153,17 +209,70 @@ for line in a_lines[1:]:
 # Summarise variants
 #-----------------------------------------------------
 
-header_line = ['Group', 'Total non-syn SNPs', 'Genes with non-syn SNPs', 'RxLRs with non-syn SNPs', 'CRNs with non-syn SNPs']
+family_list = [
+    'Genes',
+    'RxLR',
+    'CRN',
+    'CAZY',
+    'Apoplastic:Cutinase',
+    'Apoplastic:Glucanase inhibitor',
+    'Apoplastic:NLP',
+    'Apoplastic:Phytotoxin',
+    'Apoplastic:Protease inhibitor (cathepsin)',
+    'Apoplastic:Protease inhibitor (cystatin-like)',
+    'Apoplastic:Protease inhibitor (Kazal-type)',
+    'MAMP:Elicitin',
+    'MAMP:Transglutaminase']
+header_line = ['Group', 'Total non-syn SNPs']
+header_line.extend(family_list)
+
+for variant_type in [SnpObj, InDelObj, SvObj]:
+    print("\t".join(header_line))
+    for a in ['P.cactorum_strawberry', 'P.cactorum_apple', 'P.cactorum_strawberry_LR', 'P.idaei']:
+        outline = [a]
+        outline.append(str(variant_type.gene_family_dict['Genes'].count_variants(a)))
+        for family in family_list:
+            outline.append(str(variant_type.gene_family_dict[family].count_gene_variants(a)))
+        print("\t".join(outline))
+
+
+header_line = ['Group']
+header_line.extend(family_list)
 print("\t".join(header_line))
+outline = ['total_vairants']
+# outline.append(str(variant_type.gene_family_dict['Genes'].count_variants(a)))
+for family in family_list:
+    SNP_vars = SnpObj.gene_family_dict[family].get_all_variants()
+    indel_vars = InDelObj.gene_family_dict[family].get_all_variants()
+    sv_vars = SvObj.gene_family_dict[family].get_all_variants()
+    total_vars = set(SNP_vars + indel_vars + sv_vars)
+    outline.append(str(len(total_vars)))
+print("\t".join(outline))
+
 for a in ['P.cactorum_strawberry', 'P.cactorum_apple', 'P.cactorum_strawberry_LR', 'P.idaei']:
     outline = [a]
-    outline.append(str(GenesObj.gene_family_dict['Genes'].count_variants(a)))
-    outline.append(str(GenesObj.gene_family_dict['Genes'].count_gene_variants(a)))
-    outline.append(str(GenesObj.gene_family_dict['RxLR'].count_gene_variants(a)))
-    outline.append(str(GenesObj.gene_family_dict['CRN'].count_gene_variants(a)))
+    for family in family_list:
+        SNP_vars = SnpObj.gene_family_dict[family].variant_dict[a]
+        indel_vars = InDelObj.gene_family_dict[family].variant_dict[a]
+        sv_vars = SvObj.gene_family_dict[family].variant_dict[a]
+        total_vars = set(SNP_vars + indel_vars + sv_vars)
+        outline.append(str(len(total_vars)))
     print("\t".join(outline))
-    # len(self.variant_dict[a])
-    # print("\t".join([a, str(SNP_count)]))
 
-    # SNP_variants =
-    # print(SNP_col)
+
+
+# SNP_vars = SnpObj.gene_family_dict['Apoplastic:Protease inhibitor (Kazal-type)'].get_all_variants()
+# indel_vars = InDelObj.gene_family_dict['Apoplastic:Protease inhibitor (Kazal-type)'].get_all_variants()
+# sv_vars = SvObj.gene_family_dict['Apoplastic:Protease inhibitor (Kazal-type)'].get_all_variants()
+# total_vars = set(SNP_vars + indel_vars + sv_vars)
+# print(" ".join(total_vars))
+# print(str(len(total_vars)))
+    # # Output InDel variants
+    # outline.append(str(InDelObj.gene_family_dict['Genes'].count_variants(a)))
+    # for family in family_list:
+    #     outline.append(str(InDelObj.gene_family_dict[family].count_gene_variants(a)))
+    # # Output structural variants
+    # outline.append(str(SvObj.gene_family_dict['Genes'].count_variants(a)))
+    # for family in family_list:
+    #     outline.append(str(SvObj.gene_family_dict[family].count_gene_variants(a)))
+    # print("\t".join(outline))
