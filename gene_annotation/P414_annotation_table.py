@@ -1056,7 +1056,7 @@ for line in SV_lines:
 
 strain_id = conf.strain_id + "|"
 all_isolates = conf.OrthoMCL_all
-orthogroup_dict = defaultdict(lambda: "\t")
+orthogroup_dict = defaultdict(lambda: "\t\t")
 orthogroup_content_dict = defaultdict(list)
 for line in orthogroup_lines:
     line = line.rstrip("\n")
@@ -1127,6 +1127,7 @@ print "\t".join([
     'content_counts',
     'content_str',
     'expansion_status',
+    'clade_expansion',
     'phi',
     'ipr_effectors',
     'variation_level',
