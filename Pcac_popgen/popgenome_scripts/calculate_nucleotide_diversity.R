@@ -1,5 +1,5 @@
-
-setwd("/Users/armita/Downloads/popstats/summary_stats")
+#!/usr/bin/Rscript
+setwd("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates")
 library("PopGenome")
 library("ggplot2")
 ######################## BEFORE RUNNING ################################
@@ -37,7 +37,10 @@ all_folders <- list.dirs("contigs", full.names = FALSE)
 #Remove the gff folder from PopGenome contig analysis
 contig_folders <- all_folders[all_folders != "gff"]
 
-###Loop through each contig containing folder to calculate stats on each contig separately.
+#------
+# Loop through each contig containing folder to calculate stats on each contig separately.
+#------
+
 for (dir in contig_folders[contig_folders != ""]){
 #for (dir in contig_folders[contig_folders == "contig_10"]){
 contig_folder <- paste("contigs/", dir, sep = "")
@@ -70,8 +73,12 @@ file_table <- paste(dir, "_", population_names[i], "_Pi_per_gene.txt", sep = "")
 file_table2 <- paste("genome_", population_names[i],
 "_Pi_per_gene_all.txt", sep = "")
 current_gff <- paste(gff, "/", dir, ".gff", sep = "")
-gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
-    feature = FALSE, extract.gene.names = TRUE)
+# gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
+#     feature = FALSE, extract.gene.names = TRUE)
+gff <- read.delim(current_gff, header=F, comment.char="#")
+gff.genes <- gff[gff[,3]=="gene",]
+gff.genes <- gff.genes[order(gff.genes[,4]),]
+gene_ids <- gsub(";", "", gff.genes[,9])
 Pi_table <- cbind(gene_ids, Pi[, i])
 write.table(Pi_table, file = paste(outdir, file_table, sep="/"), sep = "\t", quote = FALSE,
 col.names = FALSE)
@@ -140,8 +147,12 @@ GENOME.class.split <- F_ST.stats(GENOME.class.split)
 FST_results <- get.F_ST(GENOME.class.split)
 dxy <- GENOME.class.split@nuc.diversity.between / GENOME.class.split@n.sites
 current_gff <- paste(gff, "/", dir, ".gff", sep = "")
-gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
-    feature = FALSE, extract.gene.names = TRUE)
+# gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
+#     feature = FALSE, extract.gene.names = TRUE)
+gff <- read.delim(current_gff, header=F, comment.char="#")
+gff.genes <- gff[gff[,3]=="gene",]
+gff.genes <- gff.genes[order(gff.genes[,4]),]
+gene_ids <- gsub(";", "", gff.genes[,9])
 
 #print a histogram of Dxy distribution
 #write table with raw data
@@ -240,8 +251,12 @@ for (i in seq_along(population_names)){
   file_table2 <- paste("genome_", population_names[i],
   "_Pi_n_s_per_gene_all.txt", sep = "")
   current_gff <- paste(gff, "/", dir, ".gff", sep = "")
-  gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
-      feature = FALSE, extract.gene.names = TRUE)
+  # gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
+  #     feature = FALSE, extract.gene.names = TRUE)
+  gff <- read.delim(current_gff, header=F, comment.char="#")
+  gff.genes <- gff[gff[,3]=="gene",]
+  gff.genes <- gff.genes[order(gff.genes[,4]),]
+  gene_ids <- gsub(";", "", gff.genes[,9])
   Pi_table <- cbind(gene_ids, Pi_ns[, i])
   write.table(Pi_table, file = paste(outdir, file_table, sep = "/"), sep = "\t", quote = FALSE,
   col.names = FALSE)
@@ -307,6 +322,7 @@ ggsave(paste(outdir, comp_slide_file, sep="/"), slide_comparison)
 }
 
 }
+#-------
 
 ###Plot genome wide histograms
 for (i in seq_along(population_names)){
