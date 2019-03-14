@@ -893,6 +893,19 @@ qsub $ProgDir/sub_quickmerge.sh $PacBioAssembly $HybridAssembly $OutDir $AnchorL
 done
 ```
 
+KAT kmer spectra analysis
+
+```bash
+Assembly=$(ls assembly/spades_pacbio/*/*/filtered_contigs/contigs_min_500bp.fasta)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/*/414)
+ReadsF=$(ls $IlluminaDir/F/414_170210_F_trim.fq.gz)
+ReadsR=$(ls $IlluminaDir/R/414_170210_R_trim.fq.gz)
+OutDir=$(dirname $Assembly)
+Prefix="P414_spades_pacbio"
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/kat
+qsub $ProgDir/sub_kat.sh $Assembly $ReadsF $ReadsR $OutDir $Prefix
+```
+
 Quast
 
 ```bash
@@ -1283,6 +1296,30 @@ done
 ```
   P.cactorum	414	18468452	5361346	19269912
 ```
+
+KAT kmer spectra analysis
+
+```bash
+Assembly=$(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa)
+IlluminaDir=$(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/*/414)
+cat $IlluminaDir/F/*_F_trim.fq.gz > $IlluminaDir/F/F_trim_appended.fq.gz
+cat $IlluminaDir/R/*_R_trim.fq.gz > $IlluminaDir/R/R_trim_appended.fq.gz
+ReadsF=$(ls $IlluminaDir/F/F_trim_appended.fq.gz)
+ReadsR=$(ls $IlluminaDir/R/R_trim_appended.fq.gz)
+OutDir=$(dirname $Assembly)/kat
+Prefix="spades_pacbio"
+MaxFreq="300"
+ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/kat
+qsub $ProgDir/sub_kat.sh $Assembly $ReadsF $ReadsR $OutDir $Prefix $MaxFreq
+```
+
+after KAT jobs have finished running, then remove appended trimmed reads
+```bash
+rm ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/*/414/*/F_trim_appended.fq.gz
+rm ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/*/414/*/R_trim_appended.fq.gz
+```
+
+Perform read alignment to assess genome coverage
 
 ```bash
 for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa); do
@@ -3725,6 +3762,50 @@ Eval="1e-30"
 ```
 
 
+## Identifying homologs to previously characterised effectors
+
+```bash
+  qlogin
+cd /data/scratch/armita/idris
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa ); do
+Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+echo "$Organism - $Strain"
+OutDir=analysis/blast_homology/$Organism/$Strain/Avr_homologs
+mkdir -p $OutDir
+AvrFasta=$(ls ../../../../home/groups/harrisonlab/project_files/idris/analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+dbType="nucl"
+CdsFasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+Eval="1e-30"
+#-------------------------------------------------------
+# 		Step 1.		Blast cds vs avr gene database
+#-------------------------------------------------------
+Prefix="${Strain}_vs_appended_oomycete_effectors"
+makeblastdb -in $AvrFasta -input_type fasta -dbtype nucl -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+tblastx -db $OutDir/$Prefix.db -query $CdsFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+
+#-------------------------------------------------------
+# 		Step 2.		Blast avr gene database vs cds
+#-------------------------------------------------------
+Prefix="appended_oomycete_effectors_vs_${Strain}"
+makeblastdb -in $CdsFasta -input_type fasta -dbtype nucl -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+tblastx -db $OutDir/$Prefix.db -query $AvrFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+
+#-------------------------------------------------------
+# 		Step 3.		reciprical hits
+#-------------------------------------------------------
+cat $OutDir/${Strain}_vs_appended_oomycete_effectors_hits_headers.txt > $OutDir/all_hits.txt
+cat $OutDir/appended_oomycete_effectors_vs_${Strain}_hits_headers.txt | awk ' { t = $1; $1 = $2; $2 = t; print; } ' OFS=$'\t' >> $OutDir/all_hits.txt
+
+cat $OutDir/all_hits.txt | sort | uniq -d > $OutDir/reciprical_best_hits.txt
+printf "Number of reciprical blast pairs: "
+cat $OutDir/reciprical_best_hits.txt | wc -l
+rm $OutDir/all_hits.txt
+done
+```
+
 
 
 # RNAseq
@@ -4044,6 +4125,26 @@ cat $OutDir/Pcac_gain-loss.tsv | cut -f2 | sed 's/;/\n/g' | sort | uniq -c
 ```
 
 ```bash
+InFile=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss/Pcac_gain-loss.tsv)
+for Branch in D E F G H; do
+  echo $Branch
+  OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss/clade_${Branch}"
+  mkdir $OutDir
+  for State in gain loss; do
+    echo $State
+    cat $InFile | grep "${Branch}_${State}" > $OutDir/${Branch}_${State}_orthogroups.txt
+    cat $OutDir/${Branch}_${State}_orthogroups.txt | cut -f1 > $OutDir/${Branch}_${State}_orthogroup_headers.txt
+    # Extract P414 gain/losses
+    echo "P414"
+    AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+    cat $AnnotTab | grep -w -f $OutDir/${Branch}_${State}_orthogroup_headers.txt > $OutDir/${Branch}_${State}_orthogroups_P414.txt
+    # Extract 62471 gain/losses
+    echo "62471"
+    AnnotTab=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
+    cat $AnnotTab | grep -w -f $OutDir/${Branch}_${State}_orthogroup_headers.txt > $OutDir/${Branch}_${State}_orthogroups_62471.txt
+  done
+done
+
 OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
 cat $OutDir/Pcac_gain-loss.tsv | grep 'G' | cut -f1 > $OutDir/G_orthogroups.txt
 AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
@@ -4159,5 +4260,32 @@ OutDir=analysis/popgen/indel_calling/svaba
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
 $ProgDir/summarise_P414_variants.py --annotation_table $AnnotTab \
   > $OutDir/P414_summarised_variants.tsv
+```
 
+# Summarise popstats
+
+popgen stats had been calculated on my local computer using
+calculate_nucleotide_diversity.R. Therefore, the annotation table was downloaded
+to my local computer.
+
+On local computer:
+```bash
+  cd /Users/armita/Downloads/popstats
+  ProjDir=/data/scratch/armita/idris
+  AnnotTab=gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv
+  scp cluster:$ProjDir/$AnnotTab .
+```
+
+
+Summarise Pi(a)/Pi(s) by effector annotation from the P414 annotation table
+(On local computer)
+```bash
+cd /Users/armita/Downloads/popstats
+AnnotTab=$(ls 414_annotation_ncbi2.tsv)
+Pi1=$(ls /Users/armita/Downloads/popstats/richard/Pcac_Pi/genome_Pcac_Fa_Pi_n_s_per_gene_all.txt)
+Pi2=$(ls /Users/armita/Downloads/popstats/richard/Pcac_Pi/genome_Pcac_Md_Pi_n_s_per_gene_all.txt)
+OutDir=Pcac_Pi
+ProgDir=/Users/armita/cluster_mount/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
+$ProgDir/summarise_Pi-a_Pi-s_by_category.py --annotation_table $AnnotTab --Pcac_Fa_Pi_stats $Pi1 --Pcac_Md_Pi_stats $Pi2 | less -S
+  > $OutDir/P414_summarised_variants.tsv
 ```
