@@ -88,7 +88,7 @@ Linkage disequilibrium:
 Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
 ExcludeList="11-40 17-21"
 Prefix=crown-rot_apple_isolates
-OutDir=analysis/popgen/SNP_calling/summary_stats/$Prefix
+OutDir=analysis/popgen/SNP_calling/summary_stats3/$Prefix
 mkdir -p $OutDir
 VcfLib=/home/sobczm/bin/vcflib/bin
 $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
@@ -106,7 +106,7 @@ http://popgenome.weebly.com/uploads/5/1/5/7/51573093/whole_genome_analyses_using
 ```bash
 CurDir=/data/scratch/armita/idris
 Prefix=crown-rot_apple_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
 ```
 
@@ -121,7 +121,7 @@ Folder No. 2: named "contigs", contains subfolders, each subfolder named with ex
 
 ```bash
 CurDir=/data/scratch/armita/idris
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 mkdir -p $WorkDir/all
 mkdir -p $WorkDir/gff
 mkdir -p $WorkDir/contigs
@@ -132,12 +132,12 @@ mkdir -p $WorkDir/contigs
 ```bash
 CurDir=/data/scratch/armita/idris
 Prefix=crown-rot_apple_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 Gff=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 
 cd $WorkDir/gff
-ProgDir=/home/adamst/git_repos/scripts/popgen
-$ProgDir/summary_stats/split_gff_contig.sh $CurDir/$Gff
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+$ProgDir/split_gff_contig.sh $CurDir/$Gff
 cd $CurDir
 ```
 
@@ -153,15 +153,15 @@ For the ploidy set <1|2|3>:
 
 ```bash
 CurDir=/data/scratch/armita/idris
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 
 Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
-Vcf=$(ls analysis/popgen/SNP_calling/summary_stats/crown-rot_apple_isolates/crown-rot_apple_isolates_filtered.recode.vcf)
+Vcf=$(ls analysis/popgen/SNP_calling/summary_stats3/crown-rot_apple_isolates/crown-rot_apple_isolates_filtered.recode.vcf)
 Ploidy=2
 
 cd $WorkDir/contigs
-ProgDir=/home/adamst/git_repos/scripts/popgen
-python $ProgDir/summary_stats/vcf_to_fasta.py $CurDir/$Vcf $CurDir/$Reference $Ploidy
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+python $ProgDir/vcf_to_fasta.py $CurDir/$Vcf $CurDir/$Reference $Ploidy
 cd $CurDir
 ```
 
@@ -171,7 +171,7 @@ cd $CurDir
 
 ```bash
 CurDir=/data/scratch/armita/idris
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
 cp $Reference $WorkDir/.
 ```
@@ -180,7 +180,8 @@ cp $Reference $WorkDir/.
 
 ```bash
 CurDir=/data/scratch/armita/idris
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+Prefix=crown-rot_apple_isolates
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 cd $WorkDir/contigs
 for File in $(ls *.fasta); do
     Prefix=${File%.fasta}
@@ -194,13 +195,15 @@ cd $CurDir
 
 ```bash
 CurDir=/data/scratch/armita/idris
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
+Prefix=crown-rot_apple_isolates
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats3/$Prefix
 cd $WorkDir
 for File in $(ls $PWD/contigs/*/*.fasta); do
     Prefix=$(basename "$File" .fasta)
     expected_gff="$PWD/gff/${Prefix}.gff"
     if [ ! -f "$expected_gff" ]; then
-       rm -rf $(dirname $File)
+      echo "dirname $File"
+      rm -rf $(dirname $File)
     fi
 done
 cd $CurDir
@@ -211,6 +214,18 @@ cd $CurDir
 
 Nucleotide diversity stats were calculated on my local machine
 
+the file structure was downloaded using the commands:
+
+(on local computer)
+```bash
+  cd /Users/armita/Downloads/Pc
+  scp -r cluster:/data/scratch/armita/idris/analysis/popgen/SNP_calling/summary_stats3 .
+  cd summary_stats3
+```
+
+Commands used to do these analyses are documented in:
+popgenome_scripts/calculate_nucleotide_diversity.R
+
 ### Pi
 
 Outputs were analysed using:
@@ -219,9 +234,9 @@ Outputs were analysed using:
 # install.packages("symbols")
 library(ggplot2)
 library("symbols")
-Fa_Pi <- read.delim("~/Downloads/popstats/summary_stats/genome_Pcac_Fa_Pi_per_gene_all.txt", header=FALSE)
-Md_Pi <- read.delim("~/Downloads/popstats/summary_stats/genome_Pcac_Md_Pi_per_gene_all.txt", header=FALSE)
-Ri_Pi <- read.delim("~/Downloads/popstats/summary_stats/genome_Pcac_Ri_Pi_per_gene_all.txt", header=FALSE)
+Fa_Pi <- read.delim("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates/genome_Pcac_Fa_Pi_per_gene_all.txt", header=FALSE)
+Md_Pi <- read.delim("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates/genome_Pcac_Md_Pi_per_gene_all.txt", header=FALSE)
+Ri_Pi <- read.delim("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates/genome_Pcac_Ri_Pi_per_gene_all.txt", header=FALSE)
 df1 <- data.frame(Fa_Pi$V3)
 df1$Pi_Md <- Md_Pi$V3
 df1$Pi_Ri <- Ri_Pi$V3
@@ -237,9 +252,9 @@ p <- p + labs(x = '', y = "Nucleotide diversity (\u03C0)")
 ggsave('Pcac_Pi_boxplot.jpg', p)
 
 
-Fa_Pi <- read.delim("~/Downloads/popstats/summary_stats/genome_Pcac_Fa_Pi_n_s_per_gene_all.txt", header=FALSE)
-Md_Pi <- read.delim("~/Downloads/popstats/summary_stats/genome_Pcac_Md_Pi_n_s_per_gene_all.txt", header=FALSE)
-Ri_Pi <- read.delim("~/Downloads/popstats/summary_stats/genome_Pcac_Ri_Pi_n_s_per_gene_all.txt", header=FALSE)
+Fa_Pi <- read.delim("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates/genome_Pcac_Fa_Pi_n_s_per_gene_all.txt", header=FALSE)
+Md_Pi <- read.delim("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates/genome_Pcac_Md_Pi_n_s_per_gene_all.txt", header=FALSE)
+Ri_Pi <- read.delim("/Users/armita/Downloads/Pc/summary_stats3/crown-rot_apple_isolates/genome_Pcac_Ri_Pi_n_s_per_gene_all.txt", header=FALSE)
 df1 <- data.frame(Fa_Pi$V3)
 df1$Pi_Md <- Md_Pi$V3
 df1$Pi_Ri <- Ri_Pi$V3
@@ -315,7 +330,7 @@ qsub $ProgDir/sub_calculate_fst.sh
 
 
 ```bash
-ProgDir2=/home/adamst/git_repos/ProgDir/phytophthora_fragariae/popgen_analysis/popgenome_ProgDir
+ProgDir2=/home/armita/git_repos/emr_repos/ProgDir/phytophthora_fragariae/popgen_analysis/popgenome_ProgDir
 qsub $ProgDir2/sub_calculate_nucleotide_diversity.sh
 qsub $ProgDir2/sub_calculate_neutrality_stats.sh
 qsub $ProgDir2/sub_calculate_fst.sh
@@ -359,7 +374,7 @@ WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix
 Gff=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 
 cd $WorkDir/gff
-ProgDir=/home/adamst/git_repos/scripts/popgen
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen
 $ProgDir/summary_stats/split_gff_contig.sh $CurDir/$Gff
 cd $CurDir
 ```
@@ -384,7 +399,7 @@ Vcf=$(ls analysis/popgen/SNP_calling/summary_stats/crown-rot_isolates/crown-rot_
 Ploidy=2
 
 cd $WorkDir/contigs
-ProgDir=/home/adamst/git_repos/scripts/popgen
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen
 python $ProgDir/summary_stats/vcf_to_fasta.py $CurDir/$Vcf $CurDir/$Reference $Ploidy
 cd $CurDir
 ```
