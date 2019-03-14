@@ -538,18 +538,219 @@ GoodProts=$(ls $WorkDir/goodProteins/goodProteins.fasta)
 cat $GoodProts | grep '>' | wc -l
 ```
 
-## Extracting fasta files for orthogroups:
+## Extracting protein fasta files for orthogroups:
 
 ```bash
+  IsolateAbrv=Pcac_Pinf_publication
+  WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
   ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
-  OrthogroupsTxt=$(ls $WorkDir/Orthogroups.txt)
+  OrthogroupsTxt=$(ls $WorkDir/${IsolateAbrv}_orthogroups.txt)
   GoodProts=$WorkDir/goodProteins/goodProteins.fasta
   OutDir=$WorkDir/orthogroups_fasta
   mkdir -p $OutDir
   $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogroupsTxt --fasta $GoodProts --out_dir $OutDir
 ```
 
-# 6) Downstream analysis
+## Extracting nucleotide fasta files for orthogroups:
+
+```bash
+  mkdir $WorkDir/formatted_nuc
+```
+
+P414
+
+```bash
+  Taxon_code=Pc_CR1
+  Fasta_file=$(ls /data/scratch/armita/idris/gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+12-420
+
+```bash
+  Taxon_code=Pc_CR2
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/12420/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+15-13
+
+```bash
+  Taxon_code=Pc_CR3
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/15_13/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+15-7
+
+```bash
+  Taxon_code=Pc_CR4
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/15_7/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+2003-3
+
+```bash
+  Taxon_code=Pc_CR5
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/2003_3/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+4032
+
+```bash
+  Taxon_code=Pc_CR6
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/4032/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+4040
+
+```bash
+  Taxon_code=Pc_CR7
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/4040/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+P404
+
+```bash
+  Taxon_code=Pc_CR8
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/404/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+
+P415
+
+```bash
+  Taxon_code=Pc_CR9
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/415/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+P416
+
+```bash
+  Taxon_code=Pc_CR10
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/416/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+P421
+
+```bash
+  Taxon_code=Pc_CR11
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/P421_v2/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+PC13/15
+
+```bash
+  Taxon_code=Pc_CR12
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/PC13_15/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+10300
+
+```bash
+  Taxon_code=Pc_CR13
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/10300/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+Format fasta files - P. cactorum leather rot
+
+11-40
+
+```bash
+  Taxon_code=Pc_LR1
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/11-40/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+17-21
+
+```bash
+  Taxon_code=Pc_LR2
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/17-21/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+Format fasta files - P. cactorum malus x domestica
+
+62471
+
+```bash
+  Taxon_code=Pc_MD1
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/62471/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+P295
+
+```bash
+  Taxon_code=Pc_MD2
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/P295/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+R36/14
+
+```bash
+  Taxon_code=Pc_MD3
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.cactorum/R36_14/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+Format fasta files - P. idaei Rubus idaeu
+
+P371
+
+```bash
+  Taxon_code=Pi_RI1
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.idaei/371/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+SCRP370
+
+```bash
+  Taxon_code=Pi_RI2
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.idaei/SCRP370/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+SCRP376
+
+```bash
+  Taxon_code=Pi_RI3
+  Fasta_file=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/final_incl_ORF/P.idaei/SCRP376/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  cat $Fasta_file | sed "s/>/>${Taxon_code}\|/g" > $WorkDir/formatted_nuc/"$Taxon_code".fasta
+```
+
+```bash
+  cat $WorkDir/formatted_nuc/*_*.fasta > $WorkDir/formatted_nuc/goodCDS.fasta
+
+  IsolateAbrv=Pcac_Pinf_publication
+  WorkDir=analysis/orthology/orthomcl/$IsolateAbrv
+  ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/orthoMCL
+  OrthogroupsTxt=$(ls $WorkDir/${IsolateAbrv}_orthogroups.txt)
+  GoodProts=$WorkDir/formatted_nuc/goodCDS.fasta
+  OutDir=$WorkDir/orthogroups_fasta_nuc
+  mkdir -p $OutDir
+  $ProgDir/orthoMCLgroups2fasta.py --orthogroups $OrthogroupsTxt --fasta $GoodProts --out_dir $OutDir
+```
+
+
+
+
+
+
+<!-- # 6) Downstream analysis
 
 Particular orthogroups were analysed for expansion in isolates.
 
@@ -791,4 +992,4 @@ The following number genes from isolate 1166 are contained in these orthogorups:
 54
 The following number genes from isolate 1177 are contained in these orthogorups:
 60
-```
+``` -->
