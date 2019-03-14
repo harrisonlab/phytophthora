@@ -1117,7 +1117,32 @@ P.idaei	371	15109356	4134856	16074815
 P.idaei	SCRP370	15417500	4122740	16384703
 P.idaei	SCRP376	15516157	4111645	16516659
 ```
+## KAT assembly qc
 
+KAT kmer spectra analysis
+
+```bash
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+  Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev | sed 's/_v2//g')
+  Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+  echo "$Organism - $Strain"
+  IlluminaDir=$(ls -d qc_dna/paired/*/$Strain)
+  cat $IlluminaDir/F/*_trim.fq.gz > $IlluminaDir/F/F_trim_appended.fq.gz
+  cat $IlluminaDir/R/*_trim.fq.gz > $IlluminaDir/R/R_trim_appended.fq.gz
+  ReadsF=$(ls $IlluminaDir/F/F_trim_appended.fq.gz)
+  ReadsR=$(ls $IlluminaDir/R/R_trim_appended.fq.gz)
+  OutDir=$(dirname $Assembly)/kat
+  Prefix="${Strain}_repeat_masked"
+  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/kat
+  qsub $ProgDir/sub_kat.sh $Assembly $ReadsF $ReadsR $OutDir $Prefix 200
+done
+```
+
+after KAT jobs have finished running, then remove appended trimmed reads
+```bash
+  rm ../../../../home/groups/harrisonlab/project_files/alternaria/qc_dna/paired/*/*/*/F_trim_appended.fq.gz
+  rm ../../../../home/groups/harrisonlab/project_files/alternaria/qc_dna/paired/*/*/*/R_trim_appended.fq.gz
+```
 # Gene Prediction
 
 
@@ -1362,7 +1387,7 @@ Alignments were concatenated prior to gene prediction
 ```bash
 qlogin -pe smp 8
 cd /home/groups/harrisonlab/project_files/idris
-for StrainDir in $(for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
+for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
 echo $StrainDir
 BamFiles=$(ls $StrainDir/*/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
 OutDir=$StrainDir/concatenated
@@ -4462,6 +4487,104 @@ blastx -num_threads 6 -db $OutDir/$Prefix.db -query $QueryFasta -outfmt 6 -num_a
 cat $OutDir/${Prefix}_hits.txt | grep 'effector' | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
 done > log.txt
 ```
+
+## Identifying homologs to previously characterised effectors
+
+```bash
+qlogin
+cd /home/groups/harrisonlab/project_files/idris
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+  Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+  Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+  echo "$Organism - $Strain"
+  OutDir=analysis/blast_homology/$Organism/$Strain/Avr_homologs
+  mkdir -p $OutDir
+  AvrFasta=$(ls analysis/blast_homology/oomycete_avr_genes/appended_oomycete_effectors_cds.fasta)
+  dbType="nucl"
+  CdsFasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  Eval="1e-30"
+  #-------------------------------------------------------
+  # 		Step 1.		Blast cds vs avr gene database
+  #-------------------------------------------------------
+  Prefix="${Strain}_vs_appended_oomycete_effectors"
+  makeblastdb -in $AvrFasta -input_type fasta -dbtype nucl -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+  tblastx -db $OutDir/$Prefix.db -query $CdsFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+  cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+
+  #-------------------------------------------------------
+  # 		Step 2.		Blast avr gene database vs cds
+  #-------------------------------------------------------
+  Prefix="appended_oomycete_effectors_vs_${Strain}"
+  makeblastdb -in $CdsFasta -input_type fasta -dbtype nucl -title $Prefix.db -parse_seqids -out $OutDir/$Prefix.db
+  tblastx -db $OutDir/$Prefix.db -query $AvrFasta -outfmt 6 -num_alignments 1 -out $OutDir/${Prefix}_hits.txt -evalue $Eval
+  cat $OutDir/${Prefix}_hits.txt | cut -f1,2 | sort | uniq > $OutDir/${Prefix}_hits_headers.txt
+
+  #-------------------------------------------------------
+  # 		Step 3.		reciprocal hits
+  #-------------------------------------------------------
+  cat $OutDir/${Strain}_vs_appended_oomycete_effectors_hits_headers.txt > $OutDir/all_hits.txt
+  cat $OutDir/appended_oomycete_effectors_vs_${Strain}_hits_headers.txt | awk ' { t = $1; $1 = $2; $2 = t; print; } ' OFS=$'\t' >> $OutDir/all_hits.txt
+
+  cat $OutDir/all_hits.txt | sort | uniq -d > $OutDir/reciprocal_best_hits.txt
+  printf "Number of reciprocal blast pairs: "
+  cat $OutDir/reciprocal_best_hits.txt | wc -l
+  rm $OutDir/all_hits.txt
+done
+```
+
+Extract genes for reciprocal hits:
+
+```bash
+cd /home/groups/harrisonlab/project_files/idris
+for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+  Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
+  Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
+  echo "$Organism - $Strain"
+  OutDir=analysis/blast_homology/$Organism/$Strain/Avr_homologs
+  mkdir -p $OutDir
+  CdsFasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
+  reciprocalHeaders=$(ls $OutDir/reciprocal_best_hits.txt)
+  cat $reciprocalHeaders | cut -f1 > $OutDir/reciprocal_best_hits_headers.txt
+  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+  $ProgDir/extract_from_fasta.py --fasta $CdsFasta --headers $OutDir/reciprocal_best_hits_headers.txt > $OutDir/${Strain}_reciprocal_best_hits.fa
+  rm $OutDir/reciprocal_best_hits.fa
+done
+```
+
+### Avr3 genes
+
+The Pc isoaltes ex apple carried Avr3a homologs
+
+The orthogroup 19835 was identified as representing these genes. This was
+
+extracted from the CDS orthogroup files:
+
+```bash
+ls analysis/orthology/orthomcl/Pcac_Pinf_publication/orthogroups_fasta_nuc/orthogroup19835.fa
+```
+
+Orthogroup522 was noted to contain reciprocal blast homologs to Avr3b
+
+```bash
+ls analysis/orthology/orthomcl/Pcac_Pinf_publication/orthogroups_fasta_nuc/orthogroup522.fa
+```
+
+### Avh32 genes
+
+The Pc isolates ex strawberry carried a gene that was an avr1d homolog.
+This turned out to be a closer homolog to Avh32 from P. sojae.
+
+The orthogroup 19835 was identified as representing these genes. This was
+
+extracted from the CDS orthogroup files:
+
+```bash
+cat /data/scratch/armita/idris/gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv | grep -e 'Avr1d'
+ls analysis/orthology/orthomcl/Pcac_Pinf_publication/orthogroups_fasta_nuc/orthogroup14979.fa
+```
+
+The Avh32 alignment to P. sojae showed 30 nucleotide differences between the
+sequences leading to 22 amino acid differences between the proteins.
 
 
 # Building Annotation Tables
