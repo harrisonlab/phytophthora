@@ -482,9 +482,10 @@ for a in $(ls analysis/popgen/indel_calling/svaba/*_no_errors.vcf | grep -v 'unf
     NonsynSnps=$(cat $OutDir/"$Prefix"_nonsyn.vcf | grep -v '#' | wc -l)
     SynSnps=$(cat $OutDir/"$Prefix"_syn.vcf | grep -v '#' | wc -l)
     # #-
-    # # SNPs in effectors
+    # # SNPs in BUSCO
     # #-
     # AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv)
+    # AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
     # Busco=$(ls gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene/busco_single_copy_gene_headers.txt)
     # RxLR=$(ls gene_pred/annotation/P.cactorum/414_v2/renamed_RxLR.txt)
     # CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
@@ -616,3 +617,66 @@ Pcac_svaba_sv.svaba.indel_no_errors	71962	13018	12364	0	12364	0	124	0	98	0	38
 AllSnps	GeneSnps	CdsSnps	SynSnps	NonsynSnps	BuscoSynSnps	BuscoNonSynSnps	RxlrSynSnps	RxlrNonSynSnps	CrnSynSnps	CrnNonSynSnps
 Pcac_svaba_sv.svaba.sv_no_errors	4630	1371	1350	0	1350	0	11	0	16	0	3
 ```
+
+
+# 3.0 Comparisons of groups to reference P414 genome
+<!--
+```bash
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+
+  for Vcf in $(ls analysis/popgen/indel_calling/svaba/*.filtered_no_errors_annotated.vcf | head -n1); do
+    summarise variants
+  done
+
+```
+-->
+
+<!--
+# 3.1 P. idaei vs P414
+
+```bash
+  Prefix=Pi_vs_P414
+  OutDir=analysis/popgen/indel_calling/svaba/$Prefix
+  mkdir -p $OutDir
+
+  for Vcf in $(ls analysis/popgen/indel_calling/svaba/*.filtered_no_errors_annotated.vcf | head -n1); do
+    Variant=$(echo $Vcf | rev |  cut -f3 -d '.' | rev)
+    echo "$Variant"
+    x="_vs_414_aligned_sorted.bam"
+    ExcludeList="12420$x 15_13$x 15_7$x 2003_3$x 4032$x 404$x 415$x 416$x 62471$x PC13_15$x P295$x R36_14$x 414$x 4040$x 11-40$x 17-21$x P421$x"
+    VcfLib=/home/sobczm/bin/vcflib/bin
+    $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/${Prefix}_${Variant}.vcf
+    VcfTools=/home/sobczm/bin/vcftools/bin
+    $VcfTools/vcftools --vcf $OutDir/${Prefix}_${Variant}.vcf --max-non-ref-ac 1 --out $OutDir/${Prefix}_${Variant}_filtered
+    # $VcfTools/vcftools --vcf $OutDir/${Prefix}_${Variant}.vcf --maf 0.001 --recode --out $OutDir/${Prefix}_${Variant}_filtered
+  done
+
+
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
+      echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
+      filename=$(basename "$Vcf")
+      Prefix=$(echo $filename | sed 's/.vcf//g')
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
+      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
+      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
+  done
+``` -->
