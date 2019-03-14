@@ -1,5 +1,6 @@
 library("PopGenome")
 library("ggplot2")
+setwd('/Users/armita/Downloads/popstats/summary_stats')
 
 ######################## BEFORE RUNNING ################################
 #Assign individuals to appropriate populations (or just 1!)
@@ -29,7 +30,7 @@ contig_folders <- all_folders[all_folders != "gff"]
 
 ###Loop through each contig containing folder to calculate stats on each contig separately.
 for (dir in contig_folders[contig_folders != ""]){
-  contig_folder <- paste("contigs/", dir, sep = "")
+  contig_folder <- paste("contigs", dir, sep = "")
   GENOME.class <- readData(contig_folder, gffpath = gff, include.unknown = TRUE)
   GENOME.class <- set.populations(GENOME.class, populations)
 

@@ -75,10 +75,10 @@ file_table2 <- paste("genome_", population_names[i],
 current_gff <- paste(gff, "/", dir, ".gff", sep = "")
 # gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
 #     feature = FALSE, extract.gene.names = TRUE)
-gff <- read.delim(current_gff, header=F, comment.char="#")
-gff.genes <- gff[gff[,3]=="gene",]
-gff.genes <- gff.genes[order(gff.genes[,4]),]
-gene_ids <- gsub(";", "", gff.genes[,9])
+gff_table <- read.delim(current_gff, header=F, comment.char="#")
+gff_table.genes <- gff_table[gff_table[,3]=="gene",]
+gff_table.genes <- gff_table.genes[order(gff_table.genes[,4]),]
+gene_ids <- gsub(";", "", gff_table.genes[,9])
 Pi_table <- cbind(gene_ids, Pi[, i])
 write.table(Pi_table, file = paste(outdir, file_table, sep="/"), sep = "\t", quote = FALSE,
 col.names = FALSE)
@@ -149,10 +149,10 @@ dxy <- GENOME.class.split@nuc.diversity.between / GENOME.class.split@n.sites
 current_gff <- paste(gff, "/", dir, ".gff", sep = "")
 # gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
 #     feature = FALSE, extract.gene.names = TRUE)
-gff <- read.delim(current_gff, header=F, comment.char="#")
-gff.genes <- gff[gff[,3]=="gene",]
-gff.genes <- gff.genes[order(gff.genes[,4]),]
-gene_ids <- gsub(";", "", gff.genes[,9])
+gff_table <- read.delim(current_gff, header=F, comment.char="#")
+gff_table.genes <- gff_table[gff_table[,3]=="gene",]
+gff_table.genes <- gff_table.genes[order(gff_table.genes[,4]),]
+gene_ids <- gsub(";", "", gff_table.genes[,9])
 
 #print a histogram of Dxy distribution
 #write table with raw data
@@ -253,10 +253,10 @@ for (i in seq_along(population_names)){
   current_gff <- paste(gff, "/", dir, ".gff", sep = "")
   # gene_ids <- get_gff_info(GENOME.class.split, current_gff, chr = dir,
   #     feature = FALSE, extract.gene.names = TRUE)
-  gff <- read.delim(current_gff, header=F, comment.char="#")
-  gff.genes <- gff[gff[,3]=="gene",]
-  gff.genes <- gff.genes[order(gff.genes[,4]),]
-  gene_ids <- gsub(";", "", gff.genes[,9])
+  gff_table <- read.delim(current_gff, header=F, comment.char="#")
+  gff_table.genes <- gff_table[gff_table[,3]=="gene",]
+  gff_table.genes <- gff_table.genes[order(gff_table.genes[,4]),]
+  gene_ids <- gsub(";", "", gff_table.genes[,9])
   Pi_table <- cbind(gene_ids, Pi_ns[, i])
   write.table(Pi_table, file = paste(outdir, file_table, sep = "/"), sep = "\t", quote = FALSE,
   col.names = FALSE)
