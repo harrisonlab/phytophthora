@@ -57,17 +57,18 @@ cat $GeneGff  | grep -f $OutDir/DEG_CRNs_headers.txt > $OutDir/DEG_CRNs.gff
 $ProgDir/gff2circos_scatterplot.py --gff $OutDir/DEG_CRNs.gff --feature mRNA --value 0.66 > $OutDir/DEG_CRNs_scatterplot.txt
 
 
-  # Convert FoC MiSeq reads aligning in 100kb windows into coverage stats
-  # for ReadsBam in $(ls assembly/merged_canu_spades/P.cactorum/414/filtered_contigs/aligned_MiSeq/contigs_min_500bp_renamed.fasta_aligned_sorted.bam); do
-  # for ReadsBam in $(ls analysis/genome_alignment/bowtie/*/*/vs_414/414_contigs_unmasked.fa_aligned_sorted.bam | grep 'vs_414'); do
-  #   Strain=$(echo $ReadsBam | rev | cut -f3 -d '/' | rev)
-  #   Organism=$(echo $ReadsBam | rev | cut -f4 -d '/' | rev)
-  #   # AlignDir=$(dirname $ReadsBam)
-  #   echo "$Organism - $Strain"
-  #   bedtools coverage -a $OutDir/414_100kb_windows.gff -b $ReadsBam > $OutDir/"$Strain"_coverage_vs_414.bed
-  #   # Convert coverage bed files into circos format
-  #   $ProgDir/coverage_bed2circos.py --bed $OutDir/"$Strain"_coverage_vs_414.bed > $OutDir/"$Strain"_coverage_vs_414_scatterplot.txt
-  # done
+#  Convert FoC MiSeq reads aligning in 100kb windows into coverage stats
+OutDir=analysis/circos/P.cactorum/414_final
+for ReadsBam in $(ls assembly/merged_SMARTdenovo_spades/P.cactorum/414/polished/aligned_MiSeq/contigs_min_500bp_renamed.fasta_aligned.bam); do
+Strain=$(echo $ReadsBam | rev | cut -f4 -d '/' | rev)
+Organism=$(echo $ReadsBam | rev | cut -f5 -d '/' | rev)
+# AlignDir=$(dirname $ReadsBam)
+echo "$Organism - $Strain"
+bedtools coverage -a $OutDir/414_100kb_windows.gff -b $ReadsBam > $OutDir/"$Strain"_coverage_vs_414.bed
+# Convert coverage bed files into circos format
+ProgDir=~/git_repos/emr_repos/scripts/fusarium/pathogen/identify_LS_chromosomes/circos
+$ProgDir/coverage_bed2circos.py --bed $OutDir/"$Strain"_coverage_vs_414.bed > $OutDir/"$Strain"_coverage_vs_414_scatterplot.txt
+done
 
 for Vcf in $(ls analysis/popgen/SNP_calling/*/*_filtered_no_indels.recode.vcf); do
   echo $Vcf
