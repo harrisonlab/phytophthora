@@ -22,8 +22,10 @@ r <- rf(32)
 # # This plots the heamap but we dont have control of the order of the columns
 
 plot_heatmap <- function(matrix, prefix) {
+  nrows <- dim(matrix)[1]
   png(paste("../", prefix, "_heatmap.png", sep=""),    # create PNG for the heat map
    width = 5*300,        # 5 x 300 pixels
+   # height = (nrows*32)+400+200,
    height = 10*300,
    res = 300,            # 300 pixels per inch
    pointsize = 12)       # smaller font size
