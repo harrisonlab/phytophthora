@@ -15,7 +15,7 @@ cd /data/scratch/armita/idris
 Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
 ExcludeList="11-40 17-21 10300 LV007"
 Prefix=core_isolates
-OutDir=analysis/popgen/SNP_calling/summary_stats/$Prefix
+OutDir=analysis/popgen/SNP_calling/summary_stats2/$Prefix
 mkdir -p $OutDir
 VcfLib=/home/sobczm/bin/vcflib/bin
 $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
@@ -40,7 +40,7 @@ Slim down the vcf to the three populations:
 Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
 ExcludeList="11-40 17-21 10300 LV007"
 Prefix=core_isolates
-OutDir=analysis/popgen/SNP_calling/summary_stats/$Prefix
+OutDir=analysis/popgen/SNP_calling/summary_stats2/$Prefix
 mkdir -p $OutDir
 VcfLib=/home/sobczm/bin/vcflib/bin
 $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
@@ -54,7 +54,7 @@ $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels 
 ```bash
 Prefix=core_isolates
 CurDir=/data/scratch/armita/idris
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 
 mkdir -p $WorkDir/all
 mkdir -p $WorkDir/gff
@@ -67,11 +67,11 @@ mkdir -p $WorkDir/contigs
 CurDir=/data/scratch/armita/idris
 cd $CurDir
 Prefix=core_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 Gff=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 cd $WorkDir/gff
-ProgDir=/home/adamst/git_repos/scripts/popgen
-$ProgDir/summary_stats/split_gff_contig.sh $CurDir/$Gff
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+$ProgDir/split_gff_contig.sh $CurDir/$Gff
 cd $CurDir
 ```
 
@@ -89,16 +89,16 @@ For the ploidy set <1|2|3>:
 CurDir=/data/scratch/armita/idris
 cd $CurDir
 Prefix=core_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 
 
 Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
-Vcf=$(ls analysis/popgen/SNP_calling/summary_stats/$Prefix/${Prefix}_filtered.recode.vcf)
+Vcf=$(ls analysis/popgen/SNP_calling/summary_stats2/$Prefix/${Prefix}_filtered.recode.vcf)
 Ploidy=2
 
 cd $WorkDir/contigs
-ProgDir=/home/adamst/git_repos/scripts/popgen
-python $ProgDir/summary_stats/vcf_to_fasta.py $CurDir/$Vcf $CurDir/$Reference $Ploidy
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+python $ProgDir/vcf_to_fasta.py $CurDir/$Vcf $CurDir/$Reference $Ploidy
 cd $CurDir
 ```
 
@@ -109,7 +109,7 @@ cd $CurDir
 ```bash
 CurDir=/data/scratch/armita/idris
 Prefix=core_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 
 Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
 cp $Reference $WorkDir/.
@@ -120,7 +120,7 @@ cp $Reference $WorkDir/.
 ```bash
 CurDir=/data/scratch/armita/idris
 Prefix=core_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 cd $WorkDir/contigs
 for File in $(ls *.fasta); do
     Prefix=${File%.fasta}
@@ -136,7 +136,7 @@ cd $CurDir
 ```bash
 CurDir=/data/scratch/armita/idris
 Prefix=core_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 
 cd $WorkDir
 for File in $(ls $PWD/contigs/*/*.fasta); do
@@ -152,7 +152,7 @@ cd $CurDir
 ```bash
 CurDir=/data/scratch/armita/idris
 Prefix=core_isolates
-WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_genes
+WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats2/$Prefix/neutrality_genes
 mkdir $WorkDir/fasta
 cd $WorkDir/fasta
 for File in $(ls ../contigs/*/*.fasta); do
@@ -163,8 +163,12 @@ cd $CurDir
 
 ```bash
 Prefix=core_isolates
-cd analysis/popgen/SNP_calling/summary_stats/core_isolates/neutrality_genes
+cd analysis/popgen/SNP_calling/summary_stats2/core_isolates/neutrality_genes
+# ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
+# Rscript --vanilla $ProgDir/calculate_nucleotide_diversity.R
 ```
+
+Commands documented in calculate_nucleotide_diversity.R were used.
 
 ```R
 library("PopGenome")
@@ -233,7 +237,7 @@ GENOME.class.split.syn <- diversity.stats(GENOME.class.split, pi = TRUE,
 Pi_ns <- GENOME.class.split.nonsyn@Pi /
 GENOME.class.split.syn@Pi / GENOME.class.split@n.sites
 Pi_ns_d <- as.data.frame(Pi_ns)
-
+# Write data
 ```
 
 ```
@@ -275,6 +279,7 @@ $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels 
 ## create the directory structure
 
 ```bash
+Prefix=core_isolates
 CurDir=/data/scratch/armita/idris
 WorkDir=$CurDir/analysis/popgen/SNP_calling/summary_stats/$Prefix/neutrality_RxLR
 
@@ -299,7 +304,7 @@ ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $RxlrHeaders $Gff effector ID > $RxlrGff
 
 cd $WorkDir/gff
-ProgDir=/home/adamst/git_repos/scripts/popgen
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen
 $ProgDir/summary_stats/split_gff_contig.sh $RxlrGff
 cd $CurDir
 ```
@@ -324,7 +329,7 @@ Vcf=$(ls analysis/popgen/SNP_calling/summary_stats/$Prefix/${Prefix}_filtered.re
 Ploidy=2
 
 cd $WorkDir/contigs
-ProgDir=/home/adamst/git_repos/scripts/popgen
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen
 python $ProgDir/summary_stats/vcf_to_fasta.py $CurDir/$Vcf $CurDir/$Reference $Ploidy
 cd $CurDir
 ```
@@ -491,7 +496,7 @@ ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $Headers $Gff effector ID > $FeatGff
 
 cd $WorkDir/gff
-ProgDir=/home/adamst/git_repos/scripts/popgen
+ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen
 $ProgDir/summary_stats/split_gff_contig.sh $FeatGff
 cd $CurDir
 ```
