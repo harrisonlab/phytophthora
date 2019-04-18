@@ -192,6 +192,9 @@ mv 414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popge
 ```bash
 Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf)
 OutDir=$(dirname $Vcf)
+# Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended.vcf)
+# OutDir=$(dirname $Vcf)_test
+mkdir -p $OutDir
 Errors=$OutDir/414_error_SNPs.tsv
 FilteredVcf=$OutDir/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
