@@ -553,6 +553,32 @@ cat $GoodProts | grep '>' | wc -l
 
 ## Extracting nucleotide fasta files for orthogroups:
 
+
+```
+Pc_CR1 - P414
+Pc_CR2 - 12-420
+Pc_CR3 - 15-13
+Pc_CR4 - 15-7
+Pc_CR5 - 2003-3
+Pc_CR6 - 4032
+Pc_CR7 - 4040
+Pc_CR8 - P404
+Pc_CR9 - P415
+Pc_CR10 - P416
+Pc_CR11 - P421
+Pc_CR12 - PC13/15
+Pc_CR13 - 10300
+Pc_LR1 - 11-40
+Pc_LR2 - 17-21
+Pc_MD1 - 62471
+Pc_MD2 - P295
+Pc_MD3 - R36/14
+Pi_RI1 - P371
+Pi_RI2 - SCRP370
+Pi_RI3 - SCRP376
+```
+
+
 ```bash
   mkdir $WorkDir/formatted_nuc
 ```
