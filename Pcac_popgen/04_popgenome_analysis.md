@@ -101,7 +101,7 @@ https://cran.r-project.org/web/packages/PopGenome/PopGenome.pdf
 http://popgenome.weebly.com/uploads/5/1/5/7/51573093/whole_genome_analyses_using_vcf_files.pdf
 
 
-##Set inital variables
+## Set inital variables
 
 ```bash
 CurDir=/data/scratch/armita/idris
@@ -209,7 +209,7 @@ done
 cd $CurDir
 ```
 
-## Calculate diversity and nutrality stats
+## Calculate diversity and neutrality stats
 
 
 Nucleotide diversity stats were calculated on my local machine
