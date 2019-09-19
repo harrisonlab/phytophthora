@@ -5,7 +5,7 @@ Alignment of reads from a single run:
 
 ```bash
   Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
-  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -w -v -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
+  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -w -v -e '10300' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -50,8 +50,8 @@ for isolates with three runs of data:
 
 ```bash
   Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
-  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '10300'); do
-  # for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '404' -e '414'); do
+  # for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '10300'); do
+  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '404' -e '414'); do
     echo $StrainPath
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
@@ -83,7 +83,7 @@ for isolates with three runs of data:
 ## 2.1 Rename input mapping files in each folder by prefixing with the strain ID
 
 ```bash
-  for File in $(ls analysis/genome_alignment/bowtie/*/*/vs_414/*sorted); do
+  for File in $(ls analysis/genome_alignment/bowtie/*/*/vs_62471/62471_contigs*sorted.bam | grep -e '404' -e '414'); do
     Strain=$(echo $File | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $File | rev | cut -f4 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -91,7 +91,7 @@ for isolates with three runs of data:
     CurDir=$PWD
     mkdir -p $OutDir
     cd $OutDir
-    cp -s $CurDir/$File "$Strain"_vs_414_aligned_sorted.bam
+    cp -s $CurDir/$File "$Strain"_vs_62471_aligned_sorted.bam
     cd $CurDir
   done
 ```
@@ -102,7 +102,7 @@ Convention used:
 qsub $ProgDir/sub_pre_snp_calling.sh <INPUT SAM FILE> <SAMPLE_ID>
 
 ```bash
-for Sam in $(ls analysis/popgen/*/*/*_vs_414_aligned_sorted.bam); do
+for Sam in $(ls analysis/popgen/*/*/*_vs_62471_aligned_sorted.bam); do
 Strain=$(echo $Sam | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Sam | rev | cut -f3 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -127,7 +127,7 @@ output="${filename%.*}.dict"
 ##Prepare genome reference indexes required by GATK
 
 ```bash
-Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_softmasked_repeatmasker_TPSI_appended.fa)
+Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
 OutName=$(echo $Reference | sed 's/.fa/.dict/g')
 OutDir=$(dirname $Reference)
 mkdir -p $OutDir
@@ -142,7 +142,7 @@ samtools faidx $Reference
 Reference=$(ls repeat_masked/P.cactorum/414_v2/filtered_contigs_repmask/414_v2_contigs_unmasked.fa)
 for AlignDir in $(ls -d analysis/popgen/P.*/*/); do
     Index="$Reference".dict
-    Directory=analysis/genome_alignment/bowtie/*/$Strain/vs_414/
+    Directory=analysis/genome_alignment/bowtie/*/$Strain/vs_62471/
     cp $Index $AlignDir/.
 done
 ``` -->
@@ -154,12 +154,14 @@ depending on what samples are being analysed. See inside the submission script
 below:
 
 ```bash
+Isolate=62471
+Reference=$(ls /home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w "${Isolate}")
 CurDir=$PWD
 OutDir=analysis/popgen/SNP_calling
 mkdir -p $OutDir
 cd $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-qsub $ProgDir/sub_SNP_calling_multithreaded.sh
+qsub $ProgDir/sub_SNP_calling_multithreaded2.sh $Reference $Isolate
 cd $CurDir
 ```
 
@@ -169,7 +171,7 @@ Only retain biallelic high-quality SNPS with no missing data (for any individual
 
 ```bash
 # cp analysis/popgen/SNP_calling/414_contigs_unmasked_temp.vcf analysis/popgen/SNP_calling/414_contigs_unmasked.vcf
-Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended.vcf)
+Vcf=$(ls analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended.vcf)
 ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
 # mq=40
 # qual=30
@@ -183,19 +185,25 @@ qsub $ProgDir/sub_vcf_parser.sh $Vcf 40 30 10 30 1 Y
 ```
 
 ```bash
-mv 414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
+mv 62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
 ```
 
+```
+After filtering, kept 20 out of 20 Individuals
+Outputting VCF file...
+After filtering, kept 312399 out of a possible 777526 Sites
+Run Time = 43.00 seconds
+```
 
 ## Remove sequencing errors from vcf files:
 
 ```bash
-Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf)
+Vcf=$(ls analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf)
 OutDir=$(dirname $Vcf)
-Errors=$OutDir/414_error_SNPs.tsv
-FilteredVcf=$OutDir/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
+Errors=$OutDir/62471_error_SNPs.tsv
+FilteredVcf=$OutDir/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-$ProgDir/flag_error_SNPs.py --ploidy 'diploid' --inp_vcf $Vcf --ref_isolate 414 --errors $Errors --filtered $FilteredVcf
+$ProgDir/flag_error_SNPs.py --ploidy 'diploid' --inp_vcf $Vcf --ref_isolate 62471 --errors $Errors --filtered $FilteredVcf
 echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
 cat $Errors
 # cat $Errors | wc -l
@@ -203,7 +211,14 @@ echo "These have been removed from the vcf file"
 ```
 
 ```
-
+contig_269	662
+contig_445	27725
+contig_680	16701
+contig_738	18714
+contig_1161	1206
+contig_1161	1235
+contig_1358	10879
+contig_1358	10910
 ```
 
 <!--
@@ -225,7 +240,7 @@ General VCF stats (remember that vcftools needs to have the PERL library exporte
   # Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
   # Stats=$(echo $Vcf | sed 's/.vcf/.stat/g')
   # perl $VcfTools/vcf-stats $Vcf > $Stats
-  VcfFiltered=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
+  VcfFiltered=$(ls analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
   Stats=$(echo $VcfFiltered | sed 's/.vcf/.stat/g')
   perl $VcfTools/vcf-stats $VcfFiltered > $Stats
 ```
@@ -233,7 +248,7 @@ General VCF stats (remember that vcftools needs to have the PERL library exporte
 Calculate the index for percentage of shared SNP alleles between the individuals.
 
 ```bash
-  for Vcf in $(ls analysis/popgen/SNP_calling/*filtered_no_errors.vcf); do
+  for Vcf in $(ls analysis/popgen/SNP_calling/vs_62471/*filtered_no_errors.vcf); do
       ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
       $ProgDir/similarity_percentage.py $Vcf
   done
@@ -241,7 +256,7 @@ Calculate the index for percentage of shared SNP alleles between the individuals
 
 # Visualise the output as heatmap and clustering dendrogram
 ```bash
-for Log in $(ls analysis/popgen/SNP_calling/*distance.log); do
+for Log in $(ls analysis/popgen/SNP_calling/vs_62471/*distance.log); do
   ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
   Rscript --vanilla $ProgDir/distance_matrix.R $Log
   mv Rplots.pdf analysis/popgen/SNP_calling/.
@@ -252,9 +267,9 @@ done
 ## Carry out PCA and plot the results
 
 This step could not be carried out due to problems installing dependancies
-
+<!--
 ```bash
-for Vcf in $(ls analysis/popgen/SNP_calling/*filtered_no_errors.vcf); do
+for Vcf in $(ls analysis/popgen/SNP_calling/vs_62471/*filtered_no_errors.vcf); do
     echo $Vcf
     ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
     # Out=$(basename $Vcf)
@@ -262,19 +277,15 @@ for Vcf in $(ls analysis/popgen/SNP_calling/*filtered_no_errors.vcf); do
     echo $Out
     /home/deakig/R3.4/bin/Rscript --vanilla $ProgDir/pca.R $Vcf $Out/PCA.pdf
 done
-```
+``` -->
 
-```
-The total number of samples: 20
-The total number of SNPs: 329296
-```
 
 
 ## Calculate a NJ tree
 
 These commands didnt work as P. idaei is too distant for sufficient sites to be shared
 between isolates
-
+<!--
 based on all the SNPs. Outputs a basic display of the tree, plus a Newick file to be used for displaying the tree in FigTree and beautifying it.
 
 cut down the vcf to remove P. idaei information.
@@ -419,7 +430,7 @@ cp $Gff $SnpEff/data/P414v1.0/genes.gff
 #Build database using GFF3 annotation
 java -jar $SnpEff/snpEff.jar build -gff3 -v P414v1.0
 ```
-
+ -->
 
 ## Annotate VCF files
 ```bash
