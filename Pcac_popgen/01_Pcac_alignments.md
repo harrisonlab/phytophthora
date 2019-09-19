@@ -5,7 +5,7 @@ Alignment of reads from a single run:
 
 ```bash
   Reference=$(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '414')
-  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -w -v -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
+  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -w -v -e '10300' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
@@ -50,8 +50,8 @@ for isolates with three runs of data:
 
 ```bash
   Reference=$(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '414')
-  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '10300'); do
-  # for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '404' -e '414'); do
+  # for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '10300'); do
+  for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '404' -e '414'); do
     echo $StrainPath
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
