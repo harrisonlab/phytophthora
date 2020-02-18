@@ -1,10 +1,11 @@
 
-# 1. Alignment of Pcac raw reads vs the 62471 genome
+# 1. Alignment of Pcac raw reads vs the 36-14 genome
 
 Alignment of reads from a single run:
 
 ```bash
-  Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+  # Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+  Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w 'R36_14')
   for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -w -v -e '10300' -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e 'P.cactorum' -e 'P.idaei'); do
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
@@ -13,7 +14,8 @@ Alignment of reads from a single run:
     R_Read=$(ls $StrainPath/R/*_trim.fq.gz)
     echo $F_Read
     echo $R_Read
-    OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_62471
+    # OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_62471
+    OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_R36_14
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
     qsub $ProgDir/bowtie/sub_bowtie.sh $Reference $F_Read $R_Read $OutDir
   done
@@ -24,7 +26,8 @@ Alignment of reads from multiple sequencing runs:
 For isolates with two runs of data:
 
 ```bash
-  Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+  # Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+  Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w 'R36_14')
   for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '2003_3' -e '415' -e '416' -e 'PC13_15'); do
     echo $StrainPath
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
@@ -40,7 +43,8 @@ For isolates with two runs of data:
     echo $R1_Read
     echo $F2_Read
     echo $R2_Read
-    OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_62471
+    # OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_62471
+    OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_R36_14
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
     qsub $ProgDir/bowtie/sub_bowtie_2lib.sh $Reference $F1_Read $R1_Read $F2_Read $R2_Read $OutDir
   done
@@ -49,7 +53,8 @@ For isolates with two runs of data:
 for isolates with three runs of data:
 
 ```bash
-  Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+  # Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+  Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w 'R36_14')
   # for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '10300'); do
   for StrainPath in $(ls -d ../../../../home/groups/harrisonlab/project_files/idris/qc_dna/paired/P.*/* | grep -e 'P.cactorum' -e 'P.idaei' | grep -w -e '404' -e '414'); do
     echo $StrainPath
@@ -70,7 +75,8 @@ for isolates with three runs of data:
     echo $R2_Read
     echo $F3_Read
     echo $R3_Read
-    OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_62471
+    # OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_62471
+    OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_R36_14
     ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
     qsub $ProgDir/bowtie/sub_bowtie_3lib.sh $Reference $F1_Read $R1_Read $F2_Read $R2_Read $F3_Read $R3_Read $OutDir
   done
@@ -83,7 +89,9 @@ for isolates with three runs of data:
 ## 2.1 Rename input mapping files in each folder by prefixing with the strain ID
 
 ```bash
-  for File in $(ls analysis/genome_alignment/bowtie/*/*/vs_62471/62471_contigs*sorted.bam | grep -e '404' -e '414'); do
+  cd /data/scratch/armita/idris
+  # for File in $(ls analysis/genome_alignment/bowtie/*/*/vs_62471/62471_contigs*sorted.bam | grep -e '404' -e '414'); do
+  for File in $(ls analysis/genome_alignment/bowtie/*/*/vs_R36_14/R36_14_contigs*sorted.bam); do
     Strain=$(echo $File | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $File | rev | cut -f4 -d '/' | rev)
     echo "$Organism - $Strain"
@@ -91,7 +99,8 @@ for isolates with three runs of data:
     CurDir=$PWD
     mkdir -p $OutDir
     cd $OutDir
-    cp -s $CurDir/$File "$Strain"_vs_62471_aligned_sorted.bam
+    # cp -s $CurDir/$File "$Strain"_vs_62471_aligned_sorted.bam
+    cp -s $CurDir/$File "$Strain"_vs_R36_14_aligned_sorted.bam
     cd $CurDir
   done
 ```
@@ -102,7 +111,7 @@ Convention used:
 qsub $ProgDir/sub_pre_snp_calling.sh <INPUT SAM FILE> <SAMPLE_ID>
 
 ```bash
-for Sam in $(ls analysis/popgen/*/*/*_vs_62471_aligned_sorted.bam); do
+for Sam in $(ls analysis/popgen/*/*/*_vs_R36_14_aligned_sorted.bam); do
 Strain=$(echo $Sam | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Sam | rev | cut -f3 -d '/' | rev)
 echo "$Organism - $Strain"
@@ -127,7 +136,8 @@ output="${filename%.*}.dict"
 ##Prepare genome reference indexes required by GATK
 
 ```bash
-Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w '62471')
+# Reference=$(ls ../../../../home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w 'R36_14')
+Reference=$(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w 'R36_14')
 OutName=$(echo $Reference | sed 's/.fa/.dict/g')
 OutDir=$(dirname $Reference)
 mkdir -p $OutDir
@@ -154,7 +164,8 @@ depending on what samples are being analysed. See inside the submission script
 below:
 
 ```bash
-Isolate=62471
+# Isolate=62471
+Isolate='R36_14'
 Reference=$(ls /home/groups/harrisonlab/project_files/idris/repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa | grep -w "${Isolate}")
 CurDir=$PWD
 OutDir=analysis/popgen/SNP_calling
@@ -170,8 +181,7 @@ cd $CurDir
 Only retain biallelic high-quality SNPS with no missing data (for any individual) for genetic analyses below (in some cases, may allow some missing data in order to retain more SNPs, or first remove poorly sequenced individuals with too much missing data and then filter the SNPs).
 
 ```bash
-# cp analysis/popgen/SNP_calling/414_contigs_unmasked_temp.vcf analysis/popgen/SNP_calling/414_contigs_unmasked.vcf
-Vcf=$(ls analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended.vcf)
+Vcf=$(ls analysis/popgen/SNP_calling/vs_R36_14/R36_14_contigs_softmasked_repeatmasker_TPSI_appended.vcf)
 ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
 # mq=40
 # qual=30
@@ -185,41 +195,53 @@ qsub $ProgDir/sub_vcf_parser.sh $Vcf 40 30 10 30 1 Y
 ```
 
 ```bash
-mv 62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
+# mv 62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
+mv R36_14_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/vs_R36_14/R36_14_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
 ```
 
 ```
 After filtering, kept 20 out of 20 Individuals
 Outputting VCF file...
-After filtering, kept 312399 out of a possible 777526 Sites
-Run Time = 43.00 seconds
+After filtering, kept 65666 out of a possible 143123 Sites
+Run Time = 9.00 seconds
 ```
 
 ## Remove sequencing errors from vcf files:
 
 ```bash
-Vcf=$(ls analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf)
+Isoalte="R36_14"
+Vcf=$(ls analysis/popgen/SNP_calling/vs_${Isoalte}/${Isoalte}_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf)
 OutDir=$(dirname $Vcf)
-Errors=$OutDir/62471_error_SNPs.tsv
-FilteredVcf=$OutDir/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
+Errors=$OutDir/${Isoalte}_error_SNPs.tsv
+FilteredVcf=$OutDir/${Isoalte}_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf
 ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-$ProgDir/flag_error_SNPs.py --ploidy 'diploid' --inp_vcf $Vcf --ref_isolate 62471 --errors $Errors --filtered $FilteredVcf
-echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
-cat $Errors
+$ProgDir/flag_error_SNPs.py --ploidy 'diploid' --inp_vcf $Vcf --ref_isolate ${Isoalte} --errors $Errors --filtered $FilteredVcf
+# echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
+# cat $Errors
 # cat $Errors | wc -l
+echo "the number of SNPs before filtering errors:"
+cat $Vcf | grep -v '#' | wc -l
+echo "the number of SNPs after filtering errors:"
+cat $FilteredVcf | grep -v '#' | wc -l
 echo "These have been removed from the vcf file"
 ```
 
+<!--
 ```
-contig_269	662
-contig_445	27725
-contig_680	16701
-contig_738	18714
-contig_1161	1206
-contig_1161	1235
-contig_1358	10879
-contig_1358	10910
+This is the output errors file but it can't be right.
 ```
+```
+contig_3	283491
+contig_4	77401
+contig_13	51801
+contig_27	55400
+contig_51	29459
+contig_53	2727
+contig_56	29940
+contig_72	9040
+contig_77	35680
+contig_80	82020
+``` -->
 
 <!--
 In some organisms, may want to thin (subsample) SNPs in high linkage diseqilibrium down to
@@ -235,12 +257,13 @@ $VcfTools/vcftools --vcf $input_vcf --thin 10000 --recode --out ${input_vcf%.vcf
 General VCF stats (remember that vcftools needs to have the PERL library exported)
 
 ```bash
+  Isolate="R36_14"
   VcfTools=/home/sobczm/bin/vcftools/bin
   export PERL5LIB="$VcfTools:$PERL5LIB"
   # Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
   # Stats=$(echo $Vcf | sed 's/.vcf/.stat/g')
   # perl $VcfTools/vcf-stats $Vcf > $Stats
-  VcfFiltered=$(ls analysis/popgen/SNP_calling/vs_62471/62471_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
+  VcfFiltered=$(ls analysis/popgen/SNP_calling/vs_${Isolate}/${Isolate}_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
   Stats=$(echo $VcfFiltered | sed 's/.vcf/.stat/g')
   perl $VcfTools/vcf-stats $VcfFiltered > $Stats
 ```
@@ -248,7 +271,8 @@ General VCF stats (remember that vcftools needs to have the PERL library exporte
 Calculate the index for percentage of shared SNP alleles between the individuals.
 
 ```bash
-  for Vcf in $(ls analysis/popgen/SNP_calling/vs_62471/*filtered_no_errors.vcf); do
+  Isolate="R36_14"
+  for Vcf in $(ls analysis/popgen/SNP_calling/vs_${Isolate}/*filtered_no_errors.vcf); do
       ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
       $ProgDir/similarity_percentage.py $Vcf
   done
@@ -256,7 +280,7 @@ Calculate the index for percentage of shared SNP alleles between the individuals
 
 # Visualise the output as heatmap and clustering dendrogram
 ```bash
-for Log in $(ls analysis/popgen/SNP_calling/vs_62471/*distance.log); do
+for Log in $(ls analysis/popgen/SNP_calling/vs_${Isolate}/*distance.log); do
   ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
   Rscript --vanilla $ProgDir/distance_matrix.R $Log
   mv Rplots.pdf analysis/popgen/SNP_calling/.
@@ -391,7 +415,7 @@ t <- t + geom_nodelab(data=nodes, size=2, hjust=+0.05) # colours as defined by c
 # Save as PDF and force a 'huge' size plot
 ggsave("Pcac_SNP_phylogeny.pdf", width =20, height = 25, units = "cm", limitsize = FALSE)
 ```
-
+ -->
 
 # Identify SNPs in gene models:
 
@@ -415,34 +439,52 @@ Fus2v1.0.genome : Fus2
 Bc16v1.0.genome: BC-16
 # P414 genome
 P414v1.0.genome: 414
+# 62471 genome
+62471v1.0.genome: 62471
+# R36_14 genome
+R36_14v1.0.genome: R36_14
+# SCRP371 genome
+SCRP371v1.0.genome: SCRP371
 ```
 
 Collect input files
 
 ```bash
-Reference=$(ls repeat_masked/P.cactorum/414/filtered_contigs_repmask/414_contigs_unmasked.fa)
-Gff=$(ls gene_pred/final_incl_ORF/P.cactorum/414/final_genes_genes_incl_ORFeffectors_renamed.gff3)
+Organism="P.cactorum"
+Strain="R36_14"
+DbName="R36_14v1.0"
+# Strain="62471"
+# DbName="62471v1.0"
+ProjDir=/home/groups/harrisonlab/project_files/idris
+Reference=$(ls $ProjDir/repeat_masked/${Organism}/${Strain}/filtered_contigs_repmask/${Strain}_contigs_unmasked.fa)
+Gff=$(ls $ProjDir/gene_pred/final_incl_ORF/${Organism}/${Strain}/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 SnpEff=/home/sobczm/bin/snpEff
-mkdir $SnpEff/data/P414v1.0
-cp $Reference $SnpEff/data/P414v1.0/sequences.fa
-cp $Gff $SnpEff/data/P414v1.0/genes.gff
+mkdir $SnpEff/data/${DbName}
+cp $Reference $SnpEff/data/${DbName}/sequences.fa
+cp $Gff $SnpEff/data/${DbName}/genes.gff
 
 #Build database using GFF3 annotation
-java -jar $SnpEff/snpEff.jar build -gff3 -v P414v1.0
+java -jar $SnpEff/snpEff.jar build -gff3 -v ${DbName}
 ```
- -->
+
 
 ## Annotate VCF files
 ```bash
-CurDir=/data/scratch/armita/idris
+Organism="P.cactorum"
+Strain="R36_14"
+DbName="R36_14v1.0"
+# Strain="62471"
+# DbName="62471v1.0"
+# CurDir=/data/scratch/armita/idris
+CurDir=/home/groups/harrisonlab/project_files/idris
 cd $CurDir
-for a in $(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf); do
+for a in $(ls analysis/popgen/SNP_calling/vs_${Strain}/*_filtered_no_errors.vcf); do
     echo $a
     filename=$(basename "$a")
     Prefix=${filename%.vcf}
     OutDir=$(ls -d analysis/popgen/SNP_calling)
     SnpEff=/home/sobczm/bin/snpEff
-    java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $a > $OutDir/"$Prefix"_annotated.vcf
+    java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 ${DbName} $a > $OutDir/"$Prefix"_annotated.vcf
     mv snpEff_genes.txt $OutDir/snpEff_genes_"$Prefix".txt
     mv snpEff_summary.html $OutDir/snpEff_summary_"$Prefix".html
     # mv 414_v2_contigs_unmasked_filtered* $OutDir/.
@@ -465,122 +507,28 @@ for a in $(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf); do
     CdsSnps=$(cat $OutDir/"$Prefix"_coding.vcf | grep -v '#' | wc -l)
     NonsynSnps=$(cat $OutDir/"$Prefix"_nonsyn.vcf | grep -v '#' | wc -l)
     SynSnps=$(cat $OutDir/"$Prefix"_syn.vcf | grep -v '#' | wc -l)
-#     #-
-#     # SNPs in effectors
-#     #-
-#     AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv)
-#     Busco=$(ls gene_pred/busco/P.cactorum/414_v2/genes/run_final_genes_combined.gene/busco_single_copy_gene_headers.txt)
-#     RxLR=$(ls gene_pred/annotation/P.cactorum/414_v2/renamed_RxLR.txt)
-#     CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
-#     cat $AnnotaTable | cut -f1,12 | tail -n+2 | grep 'Yes' | cut -f1 > $RxLR
-#     cat $AnnotaTable | cut -f1,13 | tail -n+2 | grep 'Yes' | cut -f1 > $CRN
-#     #-
-#     # syn SNPs in effectors:
-#     #-
-#     SynVcf=$OutDir/"$Prefix"_syn.vcf
-#     ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-#     BuscoOut=$OutDir/"$Prefix"_syn_Busco.vcf
-#     $ProgDir/vcf_extract_genes.py --vcf $SynVcf --gene_list $Busco > $BuscoOut
-#     BuscoSynSnps=$(cat $BuscoOut | grep -v '#' | wc -l)
-#     RxlrOut=$OutDir/"$Prefix"_syn_RxLR.vcf
-#     $ProgDir/vcf_extract_genes.py --vcf $SynVcf --gene_list $RxLR > $RxlrOut
-#     RxlrSynSnps=$(cat $RxlrOut | grep -v '#' | wc -l)
-#     CrnOut=$OutDir/"$Prefix"_CRN.vcf
-#     $ProgDir/vcf_extract_genes.py --vcf $SynVcf --gene_list $CRN > $CrnOut
-#     CrnSynSnps=$(cat $CrnOut | grep -v '#' | wc -l)  
-#     #-
-#     # non-syn SNPs in effectors:
-#     #-
-#     NonSynVcf=$OutDir/"$Prefix"_nonsyn.vcf
-#     BuscoOut=$OutDir/"$Prefix"_nonsyn_Busco.vcf
-#     ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-#     $ProgDir/vcf_extract_genes.py --vcf $NonSynVcf --gene_list $Busco > $BuscoOut
-#     BuscoNonSynSnps=$(cat $BuscoOut | grep -v '#' | wc -l)
-#     RxlrOut=$OutDir/"$Prefix"_nonsyn_RxLR.vcf
-#     $ProgDir/vcf_extract_genes.py --vcf $NonSynVcf --gene_list $RxLR > $RxlrOut
-#     RxlrNonSynSnps=$(cat $RxlrOut | grep -v '#' | wc -l)
-#     CrnOut=$OutDir/"$Prefix"_nonsyn_CRN.vcf
-#     $ProgDir/vcf_extract_genes.py --vcf $NonSynVcf --gene_list $CRN > $CrnOut
-#     CrnNonSynSnps=$(cat $CrnOut | grep -v '#' | wc -l)
-#     printf "Comparison\$AllSnps\tGeneSnps\tCdsSnps\tSynSnps\tNonsynSnps\tBuscoSynSnps\tBuscoNonSynSnps\tRxlrSynSnps\tRxlrNonSynSnps\tCrnSynSnps\tCrnNonSynSnps\n"
-#     printf "$Prefix\t$AllSnps\t$GeneSnps\t$CdsSnps\t$SynSnps\t$NonsynSnps\t$BuscoSynSnps\t$BuscoNonSynSnps\t$RxlrSynSnps\t$RxlrNonSynSnps\t$CrnSynSnps\t$CrnNonSynSnps\n"
-#
-#     #-
-#     # Make venn diagrams
-#     # -
-#     # These relate to the number of SNPs differing from the P414
-#     # reference in eahc group
-# for Vcf in $(ls analysis/popgen/SNP_calling/*_nonsyn*.vcf | grep -v -e 'recode' -e '.vcf_'); do
-# Prefix=$(echo $Vcf | sed 's/.vcf//g')
-# Group1="12420 15_13 15_7 2003_3 4032 404 4040 414 415 416 62471"
-# Group2="PC13_15 P295 R36_14"
-# Group3="371 SCRP370 SCRP376"
-# ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-# $ProgDir/vcf_2_venn.py --vcf $Vcf --g1_name Pc_Fxa --g1_isolates $Group1 --g2_name Pc_Mxd --g2_isolates $Group2 --g3_name Pi_Ri --g3_isolates $Group3 --prefix $Prefix
-# done
 done
 ```
 
-# 3.0 Comparisons of groups to reference P414 genome
+# 3.0 Comparisons of groups to reference 62471 genome
 
-# 3.1 P. idaei vs P414
+# 3.2 P. cactorum ex. apple vs 62471
 
 ```bash
-  Prefix=Pi_vs_P414
+  Organism="P.cactorum"
+  Strain="R36_14"
+  DbName="R36_14v1.0"
+  # Strain="62471"
+  # DbName="62471v1.0"
+
+  Prefix=Pc_apple_vs_${Strain}
   OutDir=analysis/popgen/SNP_calling/$Prefix
   mkdir -p $OutDir
 
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="12420 15_13 15_7 2003_3 4032 404 415 416 62471 PC13_15 P295 R36_14 414 4040 11-40 17-21 P421"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --non-ref-ac-any 1 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      Prefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
-  done
-```
-
-# 3.2 P. cactorum ex. apple vs P414
-
-```bash
-  Prefix=Pc_apple_vs_P414
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
+  Vcf=$(ls analysis/popgen/SNP_calling/vs_${Strain}/*_filtered_no_errors.vcf)
   ExcludeList="12420 15_13 15_7 2003_3 4032 4040 404 415 416 371 SCRP370 SCRP376 414 4040 11-40 17-21 P421"
   VcfLib=/home/sobczm/bin/vcflib/bin
   $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
 
   VcfTools=/home/sobczm/bin/vcftools/bin
   $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
@@ -588,12 +536,12 @@ done
   for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
       echo $Vcf
       ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+      $ProgDir/annotate_snps_genome.sh $Vcf ${DbName}
 
       filename=$(basename "$Vcf")
       Prefix=$(echo $filename | sed 's/.vcf//g')
       SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 ${DbName} $Vcf > $OutDir/"$Prefix"_annotated.vcf
       mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
       mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
 
@@ -612,526 +560,9 @@ done
   done
 ```
 
-# 3.3 P. cactorum ex. strawberry vs P414
-
-```bash
-  Prefix=Pc_strawberry_vs_P414
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="62471 P295 R36_14 371 SCRP370 SCRP376 11-40 17-21"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      Prefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
-  done
 ```
-
-
-# 3.4 P414 vs P414
-
-```bash
-  Prefix=P414_vs_P414
-  # Prefix=P414_vs_P414_maria_and_tools
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="12420 15_13 15_7 2003_3 4032 404 415 416 PC13_15 62471 P295 R36_14 371 SCRP370 SCRP376 4040 11-40 17-21 P421"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  # VcfTools=/home/sobczm/bin/vcftools/bin
-  # $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      OutPrefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$OutPrefix"_annotated.vcf
-      # mv snpEff_genes.txt $OutDir/snpEff_genes_$OutPrefix.txt
-      # mv snpEff_summary.html $OutDir/snpEff_summary_$OutPrefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$OutPrefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$OutPrefix"_syn.vcf
-  done
-  /home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/vcf_extract_variant_ratio.py --inp_vcf analysis/popgen/SNP_calling/P414_vs_P414/P414_vs_P414_filtered_no_indels.recode_nonsyn.vcf --ref_isolate 414 > $OutDir/P414_vs_P414_filtered_no_indels.recode_nonsyn_ratio.tsv
+WARNINGS: Some warning were detected
+Warning type	Number of warnings
+WARNING_TRANSCRIPT_INCOMPLETE	2
+WARNING_TRANSCRIPT_NO_STOP_CODON	1
 ```
-
-
-
-# 3.4 Leather rot vs P414
-
-```bash
-  Prefix=Pc_leather_rot_vs_P414
-  # Prefix=P414_vs_P414_maria_and_tools
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="12420 15_13 15_7 2003_3 4032 404 415 416 PC13_15 62471 P295 R36_14 414 371 SCRP370 SCRP376 4040 P421"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  # VcfTools=/home/sobczm/bin/vcftools/bin
-  # $VcfTools/vcftools --vcf $OutDir/"$Prefix"_filtered.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      OutPrefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$OutPrefix"_annotated.vcf
-      # mv snpEff_genes.txt $OutDir/snpEff_genes_$OutPrefix.txt
-      # mv snpEff_summary.html $OutDir/snpEff_summary_$OutPrefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$OutPrefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$OutPrefix"_syn.vcf
-  done
-  /home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/vcf_extract_variant_ratio.py --inp_vcf analysis/popgen/SNP_calling/P414_vs_P414/P414_vs_P414_filtered_no_indels.recode_nonsyn.vcf --ref_isolate 414 > $OutDir/P414_vs_P414_filtered_no_indels.recode_nonsyn_ratio.tsv
-```
-
-## Summarise SNP effects
-
-```bash
-AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv)
-Busco=$(ls gene_pred/busco/P.cactorum/414/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene/busco_single_copy_gene_headers.txt)
-
-OutDir=analysis/popgen/SNP_calling
-# RxLR=$(ls gene_pred/annotation/P.cactorum/414/renamed_RxLR.txt)
-# CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
-cat $AnnotaTable | grep -w 'RxLR' | cut -f1 > $OutDir/RxLR_genes.txt
-cat $AnnotaTable | grep -w 'CRN' | cut -f1 > $OutDir/CRN_genes.txt
-  printf "Comparison\tAllSnps\tGeneSnps\tCdsSnps\tSynSnps\tNonsynSnps\tBuscoSynSnps\tBuscoNonSynSnps\tRxlrSynSnps\tRxlrNonSynSnps\tCrnSynSnps\tCrnNonSynSnps\n"
-for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414*); do
-  Comparison=$(echo $Folder | rev | cut -f1 -d '/' | rev)
-  AllSnps=$(cat $Folder/*_no_indels.recode_annotated.vcf | grep -v '#' | wc -l)
-  GeneSnps=$(cat $Folder/*_no_indels.recode_gene.vcf | grep -v '#' | wc -l)
-  CdsSnps=$(cat $Folder/*_no_indels.recode_coding.vcf | grep -v '#' | wc -l)
-  NonsynSnps=$(cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -v '#' | wc -l)
-  SynSnps=$(cat $Folder/*_no_indels.recode_syn.vcf | grep -v '#' | wc -l)
-  #syn SNPs in effectors:
-  BuscoOut=$Folder/"$Comparison"_no_indels.recode_syn_Busco.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -w -f $Busco > $BuscoOut
-  BuscoSynSnps=$(cat $BuscoOut | wc -l)
-  RxlrOut=$Folder/"$Comparison"_no_indels.recode_syn_RxLR.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $OutDir/RxLR_genes.txt > $RxlrOut
-  RxlrSynSnps=$(cat $RxlrOut | wc -l)
-  CrnOut=$Folder/"$Comparison"_no_indels.recode_syn_CRN.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $OutDir/CRN_genes.txt > $CrnOut
-  CrnSynSnps=$(cat $CrnOut | wc -l)  
-  # non-syn SNPs in effectors:
-  BuscoOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_Busco.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -w -f $Busco > $BuscoOut
-  BuscoNonSynSnps=$(cat $BuscoOut | wc -l)
-  RxlrOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_RxLR.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $OutDir/RxLR_genes.txt > $RxlrOut
-  RxlrNonSynSnps=$(cat $RxlrOut | wc -l)
-  CrnOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_CRN.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $OutDir/CRN_genes.txt > $CrnOut
-  CrnNonSynSnps=$(cat $CrnOut | wc -l)
-  printf "$Comparison\t$AllSnps\t$GeneSnps\t$CdsSnps\t$SynSnps\t$NonsynSnps\t$BuscoSynSnps\t$BuscoNonSynSnps\t$RxlrSynSnps\t$RxlrNonSynSnps\t$CrnSynSnps\t$CrnNonSynSnps\n"
-done
-```
-
-```
-Comparison	AllSnps	GeneSnps	CdsSnps	SynSnps	NonsynSnps	BuscoSynSnps	BuscoNonSynSnps	RxlrSynSnps	RxlrNonSynSnps	CrnSynSnps	CrnNonSynSnps
-P414_vs_P414	67	46	30	13	17	0	0	0	0	0	0
-Pc_apple_vs_P414	26333	13787	12318	5918	6400	119	77	9	15	2	6
-Pc_leather_rot_vs_P414	20780	11037	9843	4537	5306	92	70	3	14	3	7
-Pc_strawberry_vs_P414	1536	844	748	281	467	11	4	0	0	0	0
-Pi_vs_P414	306259	165226	147237	71897	75340	1453	978	137	299	35	74
-```
-
-Phase SNPs
-
-For  all SNPs
-```bash
-Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors.vcf)
-OutName=$(echo $Vcf | sed 's/.vcf/_phased.tsv/g')
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
-$ProgDir/phase_Pc_vcf.py --inp_vcf $Vcf > $OutName
-echo $(basename $OutName)
-cat $OutName | cut -f1 | sort | uniq -c | sort -nr
-```
-
-```
-289778 species private fixed
-  9850 crown rot private fixed
-  7787 apple private unfixed
-  7508 leather rot variant
-  7185 apple private fixed
-  5105 P. idaei private unfixed
-  1407 crown rot private unfixed
-   593 P. cactorum private crown rot fixed
-   325 triallelic SNP
-    85 P. cactorum private unfixed
-    25 P. cactorum private apple fixed
-    11 ancestral variation differentially fixed
-     6 ancestral variation crown rot fixed
-     6 ancestral variation apple fixed
-     1 ancestral variation unfixed
-```
-<!--
-```bash
-Phased=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_phased.tsv)
-cat $Phased | grep -w -f analysis/popgen/SNP_calling/RxLR_genes.txt | cut -f1 | sort | uniq -c | sort -nr
-``` -->
-
-For Non-Syn SNPs
-
-```bash
-Vcf=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn.vcf)
-Prefix=$(echo $Vcf | sed 's/.vcf//g')
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/popgenome_scripts
-# $ProgDir/phase_Pc_vcf.py --inp_vcf $Vcf > $OutName
-echo $(basename ${Prefix}_phased.tsv)
-cat ${Prefix}_phased.tsv | cut -f1,9 | cut -f1,7 -d'|' | sed "s/ANN=.*|//g"  > ${Prefix}_phased.txt
-cat ${Prefix}_phased.tsv | cut -f1 | sort | uniq -c | sort -nr
-```
-
-```
-71014 species private fixed
- 2613 crown rot private fixed
- 1902 leather rot variant
- 1848 apple private unfixed
- 1568 apple private fixed
- 1343 P. idaei private unfixed
-  444 crown rot private unfixed
-  123 P. cactorum private crown rot fixed
-   68 triallelic SNP
-   17 P. cactorum private unfixed
-    3 P. cactorum private apple fixed
-    1 ancestral variation crown rot fixed
-```
-
-```bash
-Phased=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.tsv)
-cat $Phased | grep -w -f analysis/popgen/SNP_calling/RxLR_genes.txt | cut -f1 | sort | uniq -c | sort -nr
-```
-
-```
-284 species private fixed
-   7 crown rot private fixed
-   6 P. idaei private unfixed
-   5 apple private fixed
-   4 leather rot variant
-   1 triallelic SNP
-   1 P. cactorum private crown rot fixed
-   1 apple private unfixed
-```
-
-<!--
-# Venn plots for non-synonymous SNPs
-
-```bash
-
-Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-Group1="12420 15_13 15_7 2003_3 4032 404 414 415 416 62471"
-Group2="PC13_15 P295 R36_14"
-Group3="371 SCRP370 SCRP376"
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-$ProgDir/vcf_2_venn.py --vcf $Vcf --g1_name Pc_Fxa --g1_isolates $Group1 --g2_name Pc_Mxd --g2_isolates $Group2 --g3_name Pi_Ri --g3_isolates $Group3 --prefix tmp_GT
-```
-
-# 4. Comparison of SNPs within groups (not in reference to P414)
-
-These steps use a minor allele count of '1' during the vcftools step.
-
-# 4.1 within P. idaei
-
-```bash
-  Prefix=Pi_vs_Pi
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="12420 15_13 15_7 2003_3 4032 404 414 415 416 62471 PC13_15 P295 R36_14"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      Prefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
-
-      # Identify SNP frequency within each group:
-      $VcfTools/vcftools --vcf $OutDir/"$Prefix"_syn.vcf --freq --out $OutDir/"$Prefix"_syn
-      $VcfTools/vcftools --vcf $OutDir/"$Prefix"_nonsyn.vcf --freq --out $OutDir/"$Prefix"_nonsyn
-
-  done
-```
-
-
-# 4.2 within P. cactorum ex apple
-
-```bash
-  Prefix=Pc_apple_vs_Pc_apple
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="12420 15_13 15_7 2003_3 4032 4040 404 414 415 416 62471 371 SCRP370 SCRP376"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      Prefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
-
-      # Identify SNP frequency within each group:
-      $VcfTools/vcftools --vcf $OutDir/"$Prefix"_syn.vcf --freq --out $OutDir/"$Prefix"_syn
-      $VcfTools/vcftools --vcf $OutDir/"$Prefix"_nonsyn.vcf --freq --out $OutDir/"$Prefix"_nonsyn
-  done
-```
-
-
-
-# 4.2 within P. cactorum ex strawberry
-
-```bash
-  Prefix=Pc_strawberry_vs_Pc_strawberry
-  OutDir=analysis/popgen/SNP_calling/$Prefix
-  mkdir -p $OutDir
-
-  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
-  ExcludeList="PC13_15 P295 R36_14 371 SCRP370 SCRP376"
-  VcfLib=/home/sobczm/bin/vcflib/bin
-  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
-  # ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/snp
-  # $ProgDir/filter_vcf_non_reference.py --i $OutDir/$Prefix.vcf --o $OutDir/"$Prefix"_filtered.vcf
-
-  VcfTools=/home/sobczm/bin/vcftools/bin
-  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --max-missing 0.95 --remove-indels --mac 1 --recode --out $OutDir/"$Prefix"_filtered_no_indels
-
-  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
-      echo $Vcf
-      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
-      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
-
-      filename=$(basename "$Vcf")
-      Prefix=$(echo $filename | sed 's/.vcf//g')
-      SnpEff=/home/sobczm/bin/snpEff
-      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$Prefix"_annotated.vcf
-      mv snpEff_genes.txt $OutDir/snpEff_genes_$Prefix.txt
-      mv snpEff_summary.html $OutDir/snpEff_summary_$Prefix.html
-
-      #Create subsamples of SNPs containing those in a given category
-
-      #genic (includes 5', 3' UTRs)
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_gene.vcf
-      #coding
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$Prefix"_coding.vcf
-      #non-synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_nonsyn.vcf
-      #synonymous
-      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$Prefix"_annotated.vcf > $OutDir/"$Prefix"_syn.vcf
-      #Four-fold degenrate sites (output file suffix: 4fd)
-      ProgDir=/home/sobczm/bin/popgen/summary_stats
-      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$Prefix"_syn.vcf
-
-      # Identify SNP frequency within each group:
-      $VcfTools/vcftools --vcf $OutDir/"$Prefix"_syn.vcf --freq --out $OutDir/"$Prefix"_syn
-      $VcfTools/vcftools --vcf $OutDir/"$Prefix"_nonsyn.vcf --freq --out $OutDir/"$Prefix"_nonsyn
-  done
-```
-
-## Summarise SNP effects
-
-```bash
-AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414_v2/414_v2_gene_table_incl_exp.tsv)
-RxLR="gene_pred/annotation/P.cactorum/414_v2/renamed_RxLR.txt"
-CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
-cat $AnnotaTable | cut -f1,12 | tail -n+2 | grep 'Yes' | cut -f1 > $RxLR
-cat $AnnotaTable | cut -f1,13 | tail -n+2 | grep 'Yes' | cut -f1 > $CRN
-
-for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_* | grep -e 'Pi_vs_Pi' -e 'Pc_apple_vs_Pc_apple' -e 'Pc_strawberry_vs_Pc_strawberry'); do
-  Comparison=$(echo $Folder | rev | cut -f1 -d '/' | rev)
-  AllSnps=$(cat $Folder/*_no_indels.recode_annotated.vcf | grep -v '#' | wc -l)
-  GeneSnps=$(cat $Folder/*_no_indels.recode_gene.vcf | grep -v '#' | wc -l)
-  CdsSnps=$(cat $Folder/*_no_indels.recode_coding.vcf | grep -v '#' | wc -l)
-  NonsynSnps=$(cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -v '#' | wc -l)
-  SynSnps=$(cat $Folder/*_no_indels.recode_syn.vcf | grep -v '#' | wc -l)
-  #syn SNPs in effectors:
-  BuscoOut=$Folder/"$Comparison"_no_indels.recode_syn_Busco.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -w -f $Busco > $BuscoOut
-  BuscoSynSnps=$(cat $BuscoOut | wc -l)
-  RxlrOut=$Folder/"$Comparison"_no_indels.recode_syn_RxLR.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $RxLR > $RxlrOut
-  RxlrSynSnps=$(cat $RxlrOut | wc -l)
-  CrnOut=$Folder/"$Comparison"_no_indels.recode_syn_CRN.vcf
-  cat $Folder/*_no_indels.recode_syn.vcf | grep -f $CRN > $CrnOut
-  CrnSynSnps=$(cat $CrnOut | wc -l)  
-  # non-syn SNPs in effectors:
-  BuscoOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_Busco.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -w -f $Busco > $BuscoOut
-  BuscoNonSynSnps=$(cat $BuscoOut | wc -l)
-  RxlrOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_RxLR.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $RxLR > $RxlrOut
-  RxlrNonSynSnps=$(cat $RxlrOut | wc -l)
-  CrnOut=$Folder/"$Comparison"_no_indels.recode_nonsyn_CRN.vcf
-  cat $Folder/*_no_indels.recode_nonsyn.vcf | grep -f $CRN > $CrnOut
-  CrnNonSynSnps=$(cat $CrnOut | wc -l)
-  printf "$Comparison\t$AllSnps\t$GeneSnps\t$CdsSnps\t$SynSnps\t$NonsynSnps\t$BuscoSynSnps\t$BuscoNonSynSnps\t$RxlrSynSnps\t$RxlrNonSynSnps\t$CrnSynSnps\t$CrnNonSynSnps\n"
-done
-```
-
-```
-Pc_apple_vs_Pc_apple	29182	15934	14314	6893	7421	65	72	9	20	3	11
-Pc_strawberry_vs_Pc_strawberry	25557	14070	12652	6019	6633	58	61	8	18	3	10
-Pi_vs_Pi	5321	2844	2588	1027	1561	8	10	2	4	5	11
-```
-
-## extracting genes of interest from vcf files
-
-SOme genes were noted to be of particular interest in gene annotation files.
-
-these were extracted using:
-```bash
-for Vcf in $(ls analysis/popgen/SNP_calling/*_nonsyn*.vcf | grep -v -e 'recode' -e '.vcf_'); do
-OutDir=$(dirname $Vcf)
-printf \
-"g5726.t1
-g12834.t1
-g13724.t1
-g13723.t1
-g17937.t1
-g18059.t1
-g7924.t1
-g9970.t1
-g20761.t1
-g4271.t1
-g14040.t1
-g21158.t1
-g7088.t1
-g4807.t1
-g13726.t1
-g14771.t1
-g10788.t1" \
-> $OutDir/interesting_genes_from_annot_tab.txt
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
-$ProgDir/vcf_extract_genes.py --vcf $Vcf --gene_list $OutDir/interesting_genes_from_annot_tab.txt > $OutDir/interesting_genes_from_annot_tab.vcf
-GenesBySector=$(ls /home/groups/harrisonlab/project_files/idris/analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_no_errors_nonsyn_genes_by_venn_sector.txt)
-cat $GenesBySector | grep -f $OutDir/interesting_genes_from_annot_tab.txt | sort | uniq
-done
-``` -->

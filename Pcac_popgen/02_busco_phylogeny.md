@@ -8,7 +8,8 @@ was copied into the idris project folder
 
 ```bash
 mkdir -p gene_pred/busco/P.cactorum/414/assembly
-cp -r /data/scratch/armita/idris/assembly/merged_SMARTdenovo_spades/P.cactorum/414/filtered/run_filtered_contigs_renamed gene_pred/busco/P.cactorum/414/assembly/.
+# cp -r /data/scratch/armita/idris/assembly/merged_SMARTdenovo_spades/P.cactorum/414/filtered/run_filtered_contigs_renamed gene_pred/busco/P.cactorum/414/assembly/.
+cp -r /data/scratch/armita/idris/gene_pred/busco/P.cactorum/414/assembly/run_414_contigs_unmasked gene_pred/busco/P.cactorum/414/assembly
 ```
 
 Create a list of all BUSCO IDs
@@ -17,9 +18,10 @@ Create a list of all BUSCO IDs
 cd /home/groups/harrisonlab/project_files/idris
 
 # pushd /home/sobczm/bin/BUSCO_v1.22/fungi/hmms
-OutDir=analysis/popgen/busco_phylogeny
+OutDir=analysis/popgen/busco_phylogeny_stramenopiles
 mkdir -p $OutDir
-BuscoDb="eukaryota_odb9"
+# BuscoDb="eukaryota_odb9"
+BuscoDb="alveolata_stramenophiles_ensembl"
 ls -1 /home/groups/harrisonlab/dbBusco/$BuscoDb/hmms/*hmm | rev | cut -f1 -d '/' | rev | sed -e 's/.hmm//' > $OutDir/all_buscos_"$BuscoDb".txt
 ```
 
@@ -29,10 +31,10 @@ Then create a fasta file containing all the aligned reads for each busco gene fo
 alignment later.
 
 ```bash
-printf "" > analysis/popgen/busco_phylogeny/single_hits.txt
-for Busco in $(cat analysis/popgen/busco_phylogeny/all_buscos_*.txt); do
+printf "" > analysis/popgen/busco_phylogeny_stramenopiles/single_hits.txt
+for Busco in $(cat analysis/popgen/busco_phylogeny_stramenopiles/all_buscos_*.txt); do
 echo $Busco
-OutDir=analysis/popgen/busco_phylogeny/$Busco
+OutDir=analysis/popgen/busco_phylogeny_stramenopiles/$Busco
 mkdir -p $OutDir
 for Fasta in $(ls gene_pred/busco/*/*/assembly/*/single_copy_busco_sequences/$Busco*.fna | grep -e 'P.cactorum' -e 'P.idaei' | grep -e 'contigs_unmasked' -e 'filtered_contigs_renamed' -e 'LV007' | grep -v -e '414_old' -e '414_v2'); do
 Strain=$(echo $Fasta | rev | cut -f5 -d '/' | rev)
@@ -42,7 +44,7 @@ cat $Fasta | sed "s/:.*.fasta:/:"$Organism"_"$Strain":/g" > $OutDir/"$Organism"_
 done
 cat $OutDir/*_*_"$Busco".fasta > $OutDir/"$Busco"_appended.fasta
 SingleBuscoNum=$(cat $OutDir/"$Busco"_appended.fasta | grep '>' | wc -l)
-printf "$Busco\t$SingleBuscoNum\n" >> analysis/popgen/busco_phylogeny/single_hits.txt
+printf "$Busco\t$SingleBuscoNum\n" >> analysis/popgen/busco_phylogeny_stramenopiles/single_hits.txt
 done
 ```
 
@@ -50,15 +52,15 @@ If all isolates have a single copy of a busco gene, move the appended fasta to
 a new folder
 
 ```bash
-  OutDir=analysis/popgen/busco_phylogeny/alignments
+  OutDir=analysis/popgen/busco_phylogeny_stramenopiles/alignments
   mkdir -p $OutDir
-  OrganismNum=$(cat analysis/popgen/busco_phylogeny/single_hits.txt | cut -f2 | sort -nr | head -n1)
-  for Busco in $(cat analysis/popgen/busco_phylogeny/all_buscos_*.txt); do
+  OrganismNum=$(cat analysis/popgen/busco_phylogeny_stramenopiles/single_hits.txt | cut -f2 | sort -nr | head -n1)
+  for Busco in $(cat analysis/popgen/busco_phylogeny_stramenopiles/all_buscos_*.txt); do
   echo $Busco
-  HitNum=$(cat analysis/popgen/busco_phylogeny/single_hits.txt | grep "$Busco" | cut -f2)
+  HitNum=$(cat analysis/popgen/busco_phylogeny_stramenopiles/single_hits.txt | grep "$Busco" | cut -f2)
   if [ $HitNum == $OrganismNum ]; then
-    # cp analysis/popgen/busco_phylogeny/$Busco/"$Busco"_appended.fasta $OutDir/.
-    cat analysis/popgen/busco_phylogeny/$Busco/"$Busco"_appended.fasta \
+    # cp analysis/popgen/busco_phylogeny_stramenopiles/$Busco/"$Busco"_appended.fasta $OutDir/.
+    cat analysis/popgen/busco_phylogeny_stramenopiles/$Busco/"$Busco"_appended.fasta \
     | sed "s/$Busco://g" \
     | sed "s/genome.ctg.fa://g" \
     | sed "s/_contigs_unmasked.fa//g" \
@@ -76,7 +78,7 @@ Submit alignment for single copy busco genes with a hit in each organism
 
 
 ```bash
-  AlignDir=analysis/popgen/busco_phylogeny/alignments
+  AlignDir=analysis/popgen/busco_phylogeny_stramenopiles/alignments
   CurDir=$PWD
   cd $AlignDir
   ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
@@ -86,9 +88,9 @@ Submit alignment for single copy busco genes with a hit in each organism
 
 
 ```bash
-  OutDir=analysis/popgen/busco_phylogeny/trimmed_alignments
+  OutDir=analysis/popgen/busco_phylogeny_stramenopiles/trimmed_alignments
   mkdir -p $OutDir
-  for Alignment in $(ls analysis/popgen/busco_phylogeny/alignments/*_appended_aligned.fasta); do
+  for Alignment in $(ls analysis/popgen/busco_phylogeny_stramenopiles/alignments/*_appended_aligned.fasta); do
     TrimmedName=$(basename $Alignment .fasta)"_trimmed.fasta"
     trimal -in $Alignment -out $OutDir/$TrimmedName -automated1
   done
@@ -97,7 +99,7 @@ Submit alignment for single copy busco genes with a hit in each organism
 
 
 ```bash
-for Alignment in $(ls analysis/popgen/busco_phylogeny/trimmed_alignments/*aligned_trimmed.fasta); do
+for Alignment in $(ls analysis/popgen/busco_phylogeny_stramenopiles/trimmed_alignments/*aligned_trimmed.fasta); do
 Jobs=$(qstat | grep 'sub_RAxML' | grep 'qw' | wc -l)
 while [ $Jobs -gt 2 ]; do
 sleep 2s
@@ -107,7 +109,7 @@ done
 printf "\n"
 echo $Prefix
 Prefix=$(basename $Alignment | cut -f1 -d '_')
-OutDir=analysis/popgen/busco_phylogeny/RAxML/$Prefix
+OutDir=analysis/popgen/busco_phylogeny_stramenopiles/RAxML/$Prefix
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/phylogenetics
 qsub $ProgDir/sub_RAxML.sh $Alignment $Prefix $OutDir
 done
@@ -123,9 +125,9 @@ https://github.com/smirarab/ASTRAL/blob/master/astral-tutorial.md#running-with-u
 
 
 ```bash
-OutDir=analysis/popgen/busco_phylogeny/ASTRAL
+OutDir=analysis/popgen/busco_phylogeny_stramenopiles/ASTRAL
 mkdir -p $OutDir
-cat analysis/popgen/busco_phylogeny/RAxML/*/RAxML_bestTree.* > $OutDir/Pcac_phylogeny.appended.tre
+cat analysis/popgen/busco_phylogeny_stramenopiles/RAxML/*/RAxML_bestTree.* > $OutDir/Pcac_phylogeny.appended.tre
 # InTree=$(ls /home/armita/prog/Astral/Astral/test_data/song_primates.424.gene.tre)
 # -
 # Trimm back branches that have less than 10% bootstrap support for each tree
@@ -150,7 +152,7 @@ The consensus tree was downloaded to my local machine
 * Terminal branch lengths are meanlingless from ASTRAL and should all be set to an arbitrary value. This will be done by geneious (set to 1), but it also introduces a branch length of 2 for one isolate that needs to be corrected with sed
 
 ```bash
-cat Pcac_phylogeny.consensus.scored_geneious.tre | sed 's/:2/:1/g' > Pcac_phylogeny.consensus.scored_geneious2.tre
+cat Pcac_phylogeny_stramenopiles.consensus.scored.geneious.tre | sed 's/:2/:1/g' > Pcac_phylogeny_stramenopiles.consensus.scored.geneious2.tre
 ```
 
 
@@ -228,7 +230,7 @@ ggsave("Pcac_phylogeny.pdf", width =20, height = 20, units = "cm", limitsize = F
 # (avoid alignments with low homology and lots of phylogenetically uninformative singletons).
 # For analyses involving cross-species comparisons involving highly diverged sequences with high nucleotide diversity
 # (e.g. 0.1<Pi<0.4), looking for genes with the lowest number of segregating sites.
-AlignDir=analysis/popgen/busco_phylogeny/alignments
+AlignDir=analysis/popgen/busco_phylogeny_stramenopiles/alignments
 CurDir=$PWD
 cd $AlignDir
 
@@ -259,7 +261,7 @@ Copy the relevant trimmed alignment FASTA files into
 ##PartitionFinder (nucleotide sequence evolution model)
 
 ```bash
-cd analysis/popgen/busco_phylogeny/phylogeny
+cd analysis/popgen/busco_phylogeny_stramenopiles/phylogeny
 
 config_template=/home/sobczm/bin/PartitionFinder1.1.1/partition_finder.cfg
 ct=$(basename "$config_template")
@@ -310,7 +312,7 @@ your local computer
 
 ```bash
 cd Users/armita/Downloads
-scp -r cluster:/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny/phylogeny .
+scp -r cluster:/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny_stramenopiles/phylogeny .
 ```
 
 Alignments were loaded into Geneious where they were visualised and manually sorted into
@@ -347,7 +349,7 @@ analysis
 Upload partition models back to the cluster:
 
 ```bash
-ClusterDir=/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny/phylogeny
+ClusterDir=/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny_stramenopiles/phylogeny
 scp -r bad_alignments cluster:$ClusterDir/.
 ```
 
@@ -378,14 +380,14 @@ some runs may never converge)
 cd /home/groups/harrisonlab/project_files/idris
 
 
-for File in $(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/analysis/best_scheme.txt); do
+for File in $(ls analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/good_alignments/*_appended_aligned/analysis/best_scheme.txt); do
 Busco=$(echo $File | cut -f6 -d '/' | cut -f1 -d '_')
 Model=$(cat $File | grep -A1 'Best Model' | tail -n1 | cut -f2 -d '|')
 printf "$Busco\t$Model\n"
 done
 
 # Edit NEXUS files:
-for Nexus in $(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/*_appended_aligned.NEXUS); do
+for Nexus in $(ls analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/good_alignments/*_appended_aligned/*_appended_aligned.NEXUS); do
   sed -i -r "s/^.*_P\./P./g" $Nexus
   sed -i -r "s/_contig.*\t/\t/g" $Nexus
   sed -i -r "s/_NODE.*\t/\t/g" $Nexus
@@ -398,7 +400,7 @@ done
 # by a first run of beast where tracer reported the estimated sasmple size to be below 100 (3) - increase by 50 fold.
 
 # Run Beauti
-NexusFiles=$(ls analysis/popgen/busco_phylogeny/phylogeny/good_alignments/*_appended_aligned/*.NEXUS | sed -e 's/^/ -nex /g' | tr -d '\n')
+NexusFiles=$(ls analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/good_alignments/*_appended_aligned/*.NEXUS | sed -e 's/^/ -nex /g' | tr -d '\n')
 OutFile=$(echo $Nexus | sed 's/.NEXUS/.xml/g')
 ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
 $ProgDir/beauti -template StarBeast.xml $NexusFiles
@@ -407,7 +409,7 @@ $ProgDir/beauti -template StarBeast.xml $NexusFiles
 
 
 qlogin -pe smp 8
-InXML=analysis/popgen/busco_phylogeny/phylogeny/Pcac_beauti_starBEAST2.xml
+InXML=analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/Pcac_beauti_starBEAST2.xml
 OutDir=$(dirname $InXML)"/BEAST4"
 mkdir -p $OutDir
 ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin

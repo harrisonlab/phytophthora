@@ -1,8 +1,9 @@
 #$ -S /bin/bash
 #$ -cwd
-#$ -pe smp 24
-#$ -l virtual_free=1.25G
-#$ -l h=blacklace01.blacklace|blacklace02.blacklace|blacklace04.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace07.blacklace|blacklace08.blacklace|blacklace09.blacklace|blacklace10.blacklace|blacklace12.blacklace
+#$ -pe smp 15
+#$ -l virtual_free=5.9G
+#$ -l h=blacklace01.blacklace
+# #$ -l h=blacklace01.blacklace|blacklace02.blacklace|blacklace04.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace07.blacklace|blacklace08.blacklace|blacklace09.blacklace|blacklace10.blacklace|blacklace12.blacklace
 
 # Testing parallelisation of GATk HaplotypeCaller - may crash. (It did not! Resulted in 2x speedup)
 # NOTE: this is a haploid organism. For diploid organism, change "ploidy" argument to 2.
@@ -37,7 +38,7 @@ java -jar $ProgDir/GenomeAnalysisTK.jar \
      -R $Reference \
      -T HaplotypeCaller \
      -ploidy 2 \
-     -nct 24 \
+     -nct 15 \
      --allow_potentially_misencoded_quality_scores \
      -I $Project/analysis/popgen/P.cactorum/11-40/11-40_vs_${Isolate}_aligned_sorted_nomulti_proper_sorted_nodup_rg.bam \
      -I $Project/analysis/popgen/P.cactorum/12420/12420_vs_${Isolate}_aligned_sorted_nomulti_proper_sorted_nodup_rg.bam \

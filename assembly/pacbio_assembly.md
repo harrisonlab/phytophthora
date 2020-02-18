@@ -1375,11 +1375,40 @@ echo "$Organism - $Strain"
 OutDir=$(dirname $Assembly)
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
 qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+# ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
 # BuscoDB="Fungal"
 BuscoDB="Eukaryotic"
 OutDir=gene_pred/busco/$Organism/$Strain/assembly
-qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+# qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+BuscoDB="/projects/oldhome/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
+qsub $ProgDir/slurm_busco_v3.sh $Assembly $BuscoDB $OutDir
+# BuscoDB="eukaryotic"
+# OutDir=$(dirname $Assembly)"_${BuscoDB}"
+# OutDir=gene_pred/busco_v4/$Organism/$Strain/assembly
+# # qsub $ProgDir/sub_busco_v4.sh $Assembly $BuscoDB $OutDir
+# BuscoDB="stramenopiles"
+# OutDir=$(dirname $Assembly)"_stramenopiles"
+# OutDir=gene_pred/busco_v4/$Organism/$Strain/assembly
+# qsub $ProgDir/sub_busco_v4.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+cd /projects/oldhome/groups/harrisonlab/idris
+cd /data/scratch/armita/idris/
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+OutDir=$(dirname $Assembly)
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+BuscoDB="/projects/oldhome/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+sbatch $ProgDir/slurm_busco_v3.sh $Assembly $BuscoDB $OutDir
 done
 ```
 
@@ -3807,7 +3836,6 @@ done
 ```
 
 
-
 # RNAseq
 
 Perform RNAseq pseudo-alignment using Salmon
@@ -3888,6 +3916,8 @@ nano alignment/salmon/DeSeq2/P.cactorum_RNAseq_design_parsed.txt
 
 
 ```bash
+# cp -r /data/scratch/armita/idris/gene_pred/final_incl_ORF/P.cactorum/414 gene_pred/final_incl_ORF/P.cactorum/.
+cd /data/scratch/armita/idris
 for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep '414'); do
 Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
@@ -3955,8 +3985,11 @@ echo $OrthoStrainID
 OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
 DEGs=$(ls alignment/salmon/DeSeq2/*_DEGs.txt | sed "s/.txt/.txt /g" | tr -d "\n")
 fpkm=$(ls alignment/salmon/DeSeq2/fpkm_norm_counts.txt)
-SNPs=$(ls analysis/popgen/SNP_calling/*annotated.vcf)
-Phasing=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.txt)
+SNPs=$(ls analysis/popgen/SNP_calling/*annotated.vcf | grep "$Strain")
+# SNPs=$(ls analysis/popgen/SNP_calling/414_v2_contigs_unmasked_filtered_annotated.vcf)
+PhasingSNP=$(ls analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered_no_errors_nonsyn_phased.txt)
+PhasingInDel=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel_phased_nonsyn.txt)
+PhasingSV=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv_phased_nonsyn.txt)
 Indels=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.indel.filtered_no_errors_annotated.vcf)
 SVs=$(ls analysis/popgen/indel_calling/svaba/Pcac_svaba_sv.svaba.sv.filtered_no_errors_annotated.vcf)
 
@@ -3986,16 +4019,18 @@ $ProgDir/P414_annotation_table.py \
 --SNPs $SNPs \
 --InDels $Indels \
 --SVs $SVs \
---phasing $Phasing \
+--phasing_snp $PhasingSNP \
+--phasing_indel $PhasingInDel \
+--phasing_sv $PhasingSV \
 --orthogroups $Orthology \
 --strain_id $OrthoStrainID  \
 --OrthoMCL_all $OrthoStrainAll \
-> $OutDir/"$Strain"_annotation_ncbi2.tsv
+> $OutDir/"$Strain"_annotation_ncbi3.tsv
 done
 ```
 
 ```bash
-for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi2.tsv | grep '414'); do
+for File in $(ls gene_pred/annotation/*/*/*_annotation_ncbi3.tsv | grep '414'); do
   Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
   Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
   GeneNum=$(cat $File | cut -f1 | tail -n+2 | cut -f1 -d '.' | uniq | wc -l)
@@ -4136,12 +4171,16 @@ for Branch in D E F G H; do
     cat $OutDir/${Branch}_${State}_orthogroups.txt | cut -f1 > $OutDir/${Branch}_${State}_orthogroup_headers.txt
     # Extract P414 gain/losses
     echo "P414"
-    AnnotTab=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
+    AnnotTab=$(ls /data/scratch/armita/idris/gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
     cat $AnnotTab | grep -w -f $OutDir/${Branch}_${State}_orthogroup_headers.txt > $OutDir/${Branch}_${State}_orthogroups_P414.txt
-    # Extract 62471 gain/losses
-    echo "62471"
-    AnnotTab=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
-    cat $AnnotTab | grep -w -f $OutDir/${Branch}_${State}_orthogroup_headers.txt > $OutDir/${Branch}_${State}_orthogroups_62471.txt
+    # # Extract 62471 gain/losses
+    # echo "62471"
+    # AnnotTab=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
+    # cat $AnnotTab | grep -w -f $OutDir/${Branch}_${State}_orthogroup_headers.txt > $OutDir/${Branch}_${State}_orthogroups_62471.txt
+    # Extract R36_14 gain/losses
+    echo "R36_14"
+    AnnotTab=$(ls /home/groups/harrisonlab/project_files/idris/gene_pred/annotation/P.cactorum/R36_14/R36_14_annotation_ncbi.tsv)
+    cat $AnnotTab | grep -w -f $OutDir/${Branch}_${State}_orthogroup_headers.txt > $OutDir/${Branch}_${State}_orthogroups_R36_14.txt
   done
 done
 
@@ -4169,21 +4208,67 @@ cat $Genes | grep -A 8 'g24384' | sed 's/>/>Pc_P414_/g' >> $OutDir/Pc_Fa_P414_F_
 #---
 # Clade D
 #---
+# cd /home/groups/harrisonlab/project_files/idris
+# OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
+# cat $OutDir/Pcac_gain-loss.tsv | grep 'D_' | cut -f1 > $OutDir/D_orthogroups.txt
+# AnnotTab=$(ls gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
+
+# cat $AnnotTab | grep -w -f $OutDir/D_orthogroups.txt > $OutDir/D_orthogroups_62471.tsv
+# cat $OutDir/D_orthogroups_62471.tsv | grep -w 'RxLR' | cut -f1
+#
+# Genes=$(ls gene_pred/final_incl_ORF/P.cactorum/62471/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta)
+#
+# OutDir=/home/groups/harrisonlab/project_files/idris/analysis/genomes_blast
+# mkdir -p $OutDir
+# cat $Genes | grep -A 8 'g14088' | sed 's/>/>Pc_62471_/g' > $OutDir/Pc_Md_62471_D_RxLRs.fa
+# cat $Genes | grep -A 7 'g23418' | sed 's/>/>Pc_62471_/g' >> $OutDir/Pc_Md_62471_D_RxLRs.fa
+# cat $Genes | grep -A 4 'g24378' | sed 's/>/>Pc_62471_/g' >> $OutDir/Pc_Md_62471_D_RxLRs.fa
+#
+
+
 cd /home/groups/harrisonlab/project_files/idris
 OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
 cat $OutDir/Pcac_gain-loss.tsv | grep 'D_' | cut -f1 > $OutDir/D_orthogroups.txt
-AnnotTab=$(ls gene_pred/annotation/P.cactorum/62471/62471_annotation_ncbi2.tsv)
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/R36_14/R36_14_annotation_ncbi.tsv)
 
-cat $AnnotTab | grep -w -f $OutDir/D_orthogroups.txt > $OutDir/D_orthogroups_62471.tsv
-cat $OutDir/D_orthogroups_62471.tsv | grep -w 'RxLR' | cut -f1
+cat $AnnotTab | grep -w -f $OutDir/D_orthogroups.txt > $OutDir/D_orthogroups_R36_14.tsv
+cat $OutDir/D_orthogroups_R36_14.tsv | grep -w 'RxLR' | cut -f1
 
-Genes=$(ls gene_pred/final_incl_ORF/P.cactorum/62471/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta)
+cat $OutDir/D_orthogroups_R36_14.tsv | grep -w 'CRN' | cut -f1
+
+Genes=$(ls gene_pred/final_incl_ORF/P.cactorum/R36_14/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta)
 
 OutDir=/home/groups/harrisonlab/project_files/idris/analysis/genomes_blast
 mkdir -p $OutDir
-cat $Genes | grep -A 8 'g14088' | sed 's/>/>Pc_62471_/g' > $OutDir/Pc_Md_62471_D_RxLRs.fa
-cat $Genes | grep -A 7 'g23418' | sed 's/>/>Pc_62471_/g' >> $OutDir/Pc_Md_62471_D_RxLRs.fa
-cat $Genes | grep -A 4 'g24378' | sed 's/>/>Pc_62471_/g' >> $OutDir/Pc_Md_62471_D_RxLRs.fa
+cat $Genes | sed -n '/g19522/,/>/p' | head -n-1 | sed 's/>/>Pc_R36_14_/g' > $OutDir/Pc_Md_R36_14_D_RxLRs.fa
+cat $Genes | sed -n '/g17462/,/>/p' | head -n-1 | sed 's/>/>Pc_R36_14_/g' >> $OutDir/Pc_Md_R36_14_D_RxLRs.fa
+cat $Genes | sed -n '/g24792/,/>/p' | head -n-1 | sed 's/>/>Pc_R36_14_/g' >> $OutDir/Pc_Md_R36_14_D_RxLRs.fa
+cat $Genes | sed -n '/g25079/,/>/p' | head -n-1 | sed 's/>/>Pc_R36_14_/g' >> $OutDir/Pc_Md_R36_14_D_RxLRs.fa
+
+cat $Genes | sed -n '/g21108/,/>/p' | head -n-1 | sed 's/>/>Pc_R36_14_/g' > $OutDir/Pc_Md_R36_14_D_CRNs.fa
+
+
+#---
+# Clade E
+#---
+
+cd /home/groups/harrisonlab/project_files/idris
+OutDir="/home/groups/harrisonlab/project_files/idris/analysis/orthology/gain-loss"
+cat $OutDir/Pcac_gain-loss.tsv | grep 'E_' | cut -f1 > $OutDir/E_orthogroups.txt
+AnnotTab=$(ls gene_pred/annotation/P.cactorum/R36_14/R36_14_annotation_ncbi.tsv)
+
+cat $AnnotTab | grep -w -f $OutDir/E_orthogroups.txt > $OutDir/E_orthogroups_R36_14.tsv
+cat $OutDir/E_orthogroups_R36_14.tsv | grep -w 'RxLR' | cut -f1
+
+cat $OutDir/E_orthogroups_R36_14.tsv | grep -w 'CRN' | cut -f1
+
+Genes=$(ls gene_pred/final_incl_ORF/P.cactorum/R36_14/final_genes_genes_incl_ORFeffectors_renamed.gene.fasta)
+
+OutDir=/home/groups/harrisonlab/project_files/idris/analysis/genomes_blast
+mkdir -p $OutDir
+cat $Genes | sed -n '/g19522/,/>/p' | head -n-1 | sed 's/>/>Pc_R36_14_/g' > $OutDir/Pc_Md_R36_14_E_RxLRs.fa
+
+cat $Genes | sed -n '/g24736/,/>/p' | head -n-1 |sed 's/>/>Pc_R36_14_/g' > $OutDir/Pc_Md_R36_14_E_CRNs.fa
 
 ```
 

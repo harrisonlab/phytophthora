@@ -52,7 +52,9 @@ ap.add_argument('--fpkm',required=True,type=str,help='File containing FPKM value
 ap.add_argument('--SNPs',required=True,type=str,help='Annotated vcf file, detailing SNPs and effects on genes')
 ap.add_argument('--InDels',required=True,type=str,help='Annotated vcf file, detailing InDels and effects on genes')
 ap.add_argument('--SVs',required=True,type=str,help='Annotated vcf file, detailing SVs and effects on genes')
-ap.add_argument('--phasing',required=True,type=str,help='A text file giving phasing information on SNP data')
+ap.add_argument('--phasing_snp',required=True,type=str,help='A text file giving phasing information on SNP data')
+ap.add_argument('--phasing_indel',required=True,type=str,help='A text file giving phasing information on InDel data')
+ap.add_argument('--phasing_sv',required=True,type=str,help='A text file giving phasing information on SV data')
 ap.add_argument('--orthogroups', required=True,type=str,help='A file containing results of orthology analysis')
 ap.add_argument('--strain_id',required=True,type=str,help='The identifier of this strain as used in the orthology analysis')
 ap.add_argument('--OrthoMCL_all',required=True,type=str,nargs='+',help='The identifiers of all strains used in the orthology analysis')
@@ -379,7 +381,9 @@ class Annot_obj(object):
         self.SNP_info = []
         self.SNP_phase = defaultdict(int)
         self.InDel_info = []
+        self.InDel_phase = defaultdict(int)
         self.SV_info = []
+        self.SV_phase = defaultdict(int)
         self.variation_level = set()
         self.ipr_effectors = set()
 
@@ -547,7 +551,7 @@ class Annot_obj(object):
         if any(x in presence_list for x in (population_isolates)):
             self.variation_level.add('population')
 
-    def summarise_phase(self):
+    def summarise_snp_phase(self):
         """"""
         outline = []
         for state in self.SNP_phase.keys():
@@ -555,6 +559,21 @@ class Annot_obj(object):
             outline.append(state + "(" + str(count) + ")")
         return(";".join(outline))
 
+    def summarise_indel_phase(self):
+        """"""
+        outline = []
+        for state in self.InDel_phase.keys():
+            count = self.InDel_phase[state]
+            outline.append(state + "(" + str(count) + ")")
+        return(";".join(outline))
+
+    def summarise_sv_phase(self):
+        """"""
+        outline = []
+        for state in self.SV_phase.keys():
+            count = self.SV_phase[state]
+            outline.append(state + "(" + str(count) + ")")
+        return(";".join(outline))
 
 
     def add_expr(self, exp_obj):
@@ -763,8 +782,12 @@ with open(conf.InDels) as f:
     InDel_lines = f.readlines()
 with open(conf.SVs) as f:
     SV_lines = f.readlines()
-with open(conf.phasing) as f:
-    phase_lines = f.readlines()
+with open(conf.phasing_snp) as f:
+    snp_phase_lines = f.readlines()
+with open(conf.phasing_indel) as f:
+    indel_phase_lines = f.readlines()
+with open(conf.phasing_sv) as f:
+    sv_phase_lines = f.readlines()
 
 #-----------------------------------------------------
 # Step X
@@ -1016,13 +1039,25 @@ for line in SNP_lines:
         # print gene_dict[transcript_id]
         gene_dict[transcript_id].add_SNP(line, isolate_list)
 
-#
-for line in phase_lines:
+# Phase Snps, indels and SVs
+for line in snp_phase_lines:
     line = line.rstrip("\n")
     split_line = line.split("\t")
     phase_info = split_line[0]
     transcript_id = split_line[1]
     gene_dict[transcript_id].SNP_phase[phase_info] += 1
+for line in indel_phase_lines:
+    line = line.rstrip("\n")
+    split_line = line.split("\t")
+    phase_info = split_line[0]
+    transcript_id = split_line[1]
+    gene_dict[transcript_id].InDel_phase[phase_info] += 1
+for line in sv_phase_lines:
+    line = line.rstrip("\n")
+    split_line = line.split("\t")
+    phase_info = split_line[0]
+    transcript_id = split_line[1]
+    gene_dict[transcript_id].SV_phase[phase_info] += 1
 
 isolate_list = []
 for line in InDel_lines:
@@ -1133,7 +1168,9 @@ print "\t".join([
     'variation_level',
     'SNP_phase',
     'SNP_info',
+    'InDel_phase',
     'InDel_info',
+    'SV_phase',
     'SV_info',
     'swissprot',
     'interpro',
@@ -1176,9 +1213,11 @@ for transcript_id in gene_list:
         gene_obj.phi,
         '|'.join(gene_obj.ipr_effectors),
         ",".join(gene_obj.variation_level),
-        gene_obj.summarise_phase(),
+        gene_obj.summarise_snp_phase(),
         "|".join(gene_obj.SNP_info),
+        gene_obj.summarise_indel_phase(),
         "|".join(gene_obj.InDel_info),
+        gene_obj.summarise_sv_phase(),
         "|".join(gene_obj.SV_info),
         gene_obj.swissprot,
         "|".join(gene_obj.interpro),

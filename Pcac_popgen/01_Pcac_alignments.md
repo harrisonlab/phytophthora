@@ -186,6 +186,21 @@ qsub $ProgDir/sub_vcf_parser.sh $Vcf 40 30 10 30 1 Y
 mv 414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf analysis/popgen/SNP_calling/414_contigs_softmasked_repeatmasker_TPSI_appended_filtered.vcf
 ```
 
+When filtered based on quality scores the following number of SNPs was retained:
+```
+After filtering, kept 20 out of 20 Individuals
+Outputting VCF file...
+After filtering, kept 329672 out of a possible 876366 Sites
+Run Time = 43.00 seconds
+```
+
+When filtered based solely upon missing data and indels the following SNPs were retained:
+```
+After filtering, kept 20 out of 20 Individuals
+Outputting VCF file...
+After filtering, kept 802200 out of a possible 930410 Sites
+Run Time = 93.00 seconds
+```
 
 ## Remove sequencing errors from vcf files:
 
@@ -201,7 +216,7 @@ ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen
 $ProgDir/flag_error_SNPs.py --ploidy 'diploid' --inp_vcf $Vcf --ref_isolate 414 --errors $Errors --filtered $FilteredVcf
 echo "The number of probable errors from homozygous SNPs being called from reference illumina reads vs the reference assembly is:"
 cat $Errors
-# cat $Errors | wc -l
+cat $Errors | wc -l
 echo "These have been removed from the vcf file"
 ```
 
@@ -750,19 +765,110 @@ done
   /home/armita/git_repos/emr_repos/scripts/phytophthora/Pcac_popgen/vcf_extract_variant_ratio.py --inp_vcf analysis/popgen/SNP_calling/P414_vs_P414/P414_vs_P414_filtered_no_indels.recode_nonsyn.vcf --ref_isolate 414 > $OutDir/P414_vs_P414_filtered_no_indels.recode_nonsyn_ratio.tsv
 ```
 
+
+# 3.4 Leather rot 17-21 vs P414
+
+```bash
+  Prefix=Pc_17-21_vs_P414
+  OutDir=analysis/popgen/SNP_calling/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
+  ExcludeList="12420 15_13 15_7 2003_3 4032 404 415 416 PC13_15 62471 P295 R36_14 414 371 SCRP370 SCRP376 4040 P421 11-40"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
+      echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
+      filename=$(basename "$Vcf")
+      OutPrefix=$(echo $filename | sed 's/.vcf//g')
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$OutPrefix"_annotated.vcf
+      # mv snpEff_genes.txt $OutDir/snpEff_genes_$OutPrefix.txt
+      # mv snpEff_summary.html $OutDir/snpEff_summary_$OutPrefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$OutPrefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$OutPrefix"_syn.vcf
+  done
+```
+
+
+# 3.4 Leather rot 11-40 vs P414
+
+```bash
+  Prefix=Pc_11-40_vs_P414
+  OutDir=analysis/popgen/SNP_calling/$Prefix
+  mkdir -p $OutDir
+
+  Vcf=$(ls analysis/popgen/SNP_calling/*_filtered_no_errors.vcf)
+  ExcludeList="12420 15_13 15_7 2003_3 4032 404 415 416 PC13_15 62471 P295 R36_14 414 371 SCRP370 SCRP376 4040 P421 17-21"
+  VcfLib=/home/sobczm/bin/vcflib/bin
+  $VcfLib/vcfremovesamples $Vcf $ExcludeList > $OutDir/$Prefix.vcf
+  VcfTools=/home/sobczm/bin/vcftools/bin
+  $VcfTools/vcftools --vcf $OutDir/$Prefix.vcf --non-ref-ac-any 1 --max-missing 0.95 --remove-indels --recode --out $OutDir/"$Prefix"_filtered_no_indels
+
+  for Vcf in $(ls $OutDir/"$Prefix"_filtered_no_indels.recode.vcf); do
+      echo $Vcf
+      ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/summary_stats
+      $ProgDir/annotate_snps_genome.sh $Vcf P414v1.0
+
+      filename=$(basename "$Vcf")
+      OutPrefix=$(echo $filename | sed 's/.vcf//g')
+      SnpEff=/home/sobczm/bin/snpEff
+      java -Xmx4g -jar $SnpEff/snpEff.jar -v -ud 0 P414v1.0 $Vcf > $OutDir/"$OutPrefix"_annotated.vcf
+      # mv snpEff_genes.txt $OutDir/snpEff_genes_$OutPrefix.txt
+      # mv snpEff_summary.html $OutDir/snpEff_summary_$OutPrefix.html
+
+      #Create subsamples of SNPs containing those in a given category
+
+      #genic (includes 5', 3' UTRs)
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[*].EFFECT has 'missense_variant') || (ANN[*].EFFECT has 'nonsense_variant') || (ANN[*].EFFECT has 'synonymous_variant') || (ANN[*].EFFECT has 'intron_variant') || (ANN[*].EFFECT has '5_prime_UTR_variant') || (ANN[*].EFFECT has '3_prime_UTR_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_gene.vcf
+      #coding
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant') || (ANN[0].EFFECT has 'synonymous_variant')" $OutDir/${filename%.vcf}_annotated.vcf > $OutDir/"$OutPrefix"_coding.vcf
+      #non-synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'missense_variant') || (ANN[0].EFFECT has 'nonsense_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_nonsyn.vcf
+      #synonymous
+      java -jar $SnpEff/SnpSift.jar filter "(ANN[0].EFFECT has 'synonymous_variant')" $OutDir/"$OutPrefix"_annotated.vcf > $OutDir/"$OutPrefix"_syn.vcf
+      #Four-fold degenrate sites (output file suffix: 4fd)
+      ProgDir=/home/sobczm/bin/popgen/summary_stats
+      python $ProgDir/parse_snpeff_synonymous.py $OutDir/"$OutPrefix"_syn.vcf
+  done
+```
+
+
 ## Summarise SNP effects
 
 ```bash
-AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv)
+cd /data/scratch/armita/idris/
+# AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv)
+AnnotaTable=$(ls gene_pred/annotation/P.cactorum/414/414_annotation_ncbi2.tsv)
 Busco=$(ls gene_pred/busco/P.cactorum/414/genes/run_final_genes_genes_incl_ORFeffectors_renamed.gene/busco_single_copy_gene_headers.txt)
 
-OutDir=analysis/popgen/SNP_calling
+# OutDir=analysis/popgen/SNP_calling
+OutDir=analysis/popgen/SNP_calling2
+mkdir $OutDir
 # RxLR=$(ls gene_pred/annotation/P.cactorum/414/renamed_RxLR.txt)
 # CRN=$(ls analysis/CRN_effectors/hmmer_CRN/P.cactorum/414_v2/414_v2_final_CRN_ID.txt)
 cat $AnnotaTable | grep -w 'RxLR' | cut -f1 > $OutDir/RxLR_genes.txt
 cat $AnnotaTable | grep -w 'CRN' | cut -f1 > $OutDir/CRN_genes.txt
   printf "Comparison\tAllSnps\tGeneSnps\tCdsSnps\tSynSnps\tNonsynSnps\tBuscoSynSnps\tBuscoNonSynSnps\tRxlrSynSnps\tRxlrNonSynSnps\tCrnSynSnps\tCrnNonSynSnps\n"
-for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414*); do
+for Folder in $(ls -d analysis/popgen/SNP_calling/*_vs_P414* | grep '11-40'); do
   Comparison=$(echo $Folder | rev | cut -f1 -d '/' | rev)
   AllSnps=$(cat $Folder/*_no_indels.recode_annotated.vcf | grep -v '#' | wc -l)
   GeneSnps=$(cat $Folder/*_no_indels.recode_gene.vcf | grep -v '#' | wc -l)
@@ -797,6 +903,8 @@ done
 Comparison	AllSnps	GeneSnps	CdsSnps	SynSnps	NonsynSnps	BuscoSynSnps	BuscoNonSynSnps	RxlrSynSnps	RxlrNonSynSnps	CrnSynSnps	CrnNonSynSnps
 P414_vs_P414	67	46	30	13	17	0	0	0	0	0	0
 Pc_apple_vs_P414	26333	13787	12318	5918	6400	119	77	9	15	2	6
+Pc_11-40_vs_P414  631   357   304   122   182   7   2   0 0   0 0
+Pc_17-21_vs_P414  20482 10870 9701  4481  5220  90  68  3 14  3 7
 Pc_leather_rot_vs_P414	20780	11037	9843	4537	5306	92	70	3	14	3	7
 Pc_strawberry_vs_P414	1536	844	748	281	467	11	4	0	0	0	0
 Pi_vs_P414	306259	165226	147237	71897	75340	1453	978	137	299	35	74

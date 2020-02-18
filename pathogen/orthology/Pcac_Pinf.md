@@ -773,8 +773,79 @@ SCRP376
 
 
 
+## Venn diagram to investigate leather rot isolates
 
+```bash
+OrthoTab=$(ls analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.tab)
+NewOrthoTab=$(echo $OrthoTab | sed 's/.tab/_leather_rot_summary.tab/g')
+ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/orthology
+$ProgDir/orthotab_leather_rot.py --orthotab $OrthoTab --out $NewOrthoTab \
+> analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups_apple_LR1_LR2_specific.txt
+# > analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups_CR_LR1_LR2_specific.txt
+```
 
+Genes shared between leather rot isolates
+```
+orthogroup21229
+orthogroup21803
+orthogroup21807
+orthogroup21813
+orthogroup21815
+orthogroup21826
+orthogroup21827
+orthogroup21828
+```
+
+Plot venn diagrams:
+
+Orthomcl output:
+```bash
+ProgDir=~/git_repos/emr_repos/tools/pathogen/orthology/venn_diagrams
+$ProgDir/venn_diag_4_way.r --inp $NewOrthoTab --out $(dirname $NewOrthoTab)/leather_rot_orthogroups.pdf
+```
+
+```
+[1] "Pc_CR (38672)"
+[1] 18666
+[1] 1011
+[1] "PC_MD (22447)"
+[1] 3869
+[1] 197
+[1] "PC_LR1 (18513)"
+[1] 1397
+[1] 15
+[1] "PC_LR2 (18512)"
+[1] 1550
+[1] 32
+NULL
+```
+
+gene function of leather rot isolate genes:
+
+```bash
+cat gene_pred/annotation/P.cactorum/17-21/17-21_annotation_ncbi.tsv |
+grep -e 'transcript_id' -e 'orthogroup21229' -e 'orthogroup21803' -e 'orthogroup21807' -e 'orthogroup21813' -e 'orthogroup21815' -e 'orthogroup21826' -e 'orthogroup21827' -e 'orthogroup21828' > gene_pred/annotation/P.cactorum/17-21/17-21_annotation_ncbi_leather_rot_unique.tsv
+cat gene_pred/annotation/P.cactorum/11-40/11-40_annotation_ncbi.tsv |
+grep -e 'transcript_id' -e 'orthogroup21229' -e 'orthogroup21803' -e 'orthogroup21807' -e 'orthogroup21813' -e 'orthogroup21815' -e 'orthogroup21826' -e 'orthogroup21827' -e 'orthogroup21828' > gene_pred/annotation/P.cactorum/11-40/11-40_annotation_ncbi_leather_rot_unique.tsv
+```
+
+gene function of CR, LR1, LR2 specific genes
+
+```bash
+cat gene_pred/annotation/P.cactorum/17-21/17-21_annotation_ncbi.tsv |
+grep -w -f analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups_CR_LR1_LR2_specific.txt > gene_pred/annotation/P.cactorum/17-21/17-21_annotation_ncbi_crown_rot_leather_rot_unique.tsv
+cat /data/scratch/armita/idris/gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv |
+grep -w -f analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups_CR_LR1_LR2_specific.txt > /data/scratch/armita/idris/gene_pred/annotation/P.cactorum/414/414_annotation_ncbi_crown_rot_leather_rot_unique.tsv
+```
+
+gene function of apple, LR1, LR2 specific genes
+
+```bash
+cat gene_pred/annotation/P.cactorum/17-21/17-21_annotation_ncbi.tsv |
+grep -w -f analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups_apple_LR1_LR2_specific.txt > gene_pred/annotation/P.cactorum/17-21/17-21_annotation_ncbi_apple_leather_rot_unique.tsv
+cat /data/scratch/armita/idris/gene_pred/annotation/P.cactorum/414/414_annotation_ncbi.tsv |
+grep -w -f analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups_CR_LR1_LR2_specific.txt > /data/scratch/armita/idris/gene_pred/annotation/P.cactorum/414/414_annotation_ncbi_crown_rot_leather_rot_unique.tsv
+```
 
 <!-- # 6) Downstream analysis
 

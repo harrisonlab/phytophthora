@@ -909,9 +909,11 @@ Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
 BuscoDB="Eukaryotic"
-# OutDir=gene_pred/busco/$Organism/$Strain/assembly
-OutDir=$(dirname $Assembly)
+# BuscoDB="stramenopiles"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+# OutDir=$(dirname $Assembly)"_stramenopiles"
 qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+# qsub $ProgDir/sub_busco_v4.sh $Assembly $BuscoDB $OutDir
 done
 ```
 <!--
@@ -1161,7 +1163,7 @@ Quality of genome assemblies was assessed by looking for the gene space in the a
 Busco has replaced CEGMA and was run to check gene space in assemblies
 
 ```bash
-for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414'); do
 # Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 # Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
@@ -1171,10 +1173,32 @@ OutDir=$(dirname $Assembly)
 ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
 qsub $ProgDir/sub_quast.sh $Assembly $OutDir
 ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
-# BuscoDB="Fungal"
 BuscoDB="Eukaryotic"
 OutDir=gene_pred/busco/$Organism/$Strain/assembly
 # qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+BuscoDB="/home/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+BuscoDB="stramenopiles"
+OutDir=$(dirname $Assembly)"_stramenopiles"
+OutDir=gene_pred/busco_v4/$Organism/$Strain/assembly
+# qsub $ProgDir/sub_busco_v4.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+```bash
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
+conda activate fungap
+for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+OutDir=$(dirname $Assembly)
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+BuscoDB="/projects/oldhome/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+sbatch $ProgDir/slurm_busco_v3.sh $Assembly $BuscoDB $OutDir
 done
 ```
 

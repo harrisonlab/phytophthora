@@ -68,10 +68,39 @@ The script was as ajusted as so:
  BuscoDB="Eukaryotic"
  OutDir=gene_pred/busco/$Organism/$Strain/assembly
  # OutDir=$(dirname $Assembly)
+ # qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+ BuscoDB="/home/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+ OutDir=gene_pred/busco/$Organism/$Strain/assembly
  qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
+ BuscoDB="stramenopiles"
+ # OutDir=gene_pred/busco_v4/$Organism/$Strain/assembly
+ # qsub $ProgDir/sub_busco_v4.sh $Assembly $BuscoDB $OutDir
  done
  ```
 
+
+ ```bash
+ cd /projects/oldhome/groups/harrisonlab/project_files/idris
+ conda activate fungap
+ Pcac=$(ls assembly/external_group/P.capsici/LT1534/dna/Phyca11_unmasked_genomic_scaffolds.fasta)
+ Pinf=$(ls assembly/external_group/P.infestans/T30-4/dna/Phytophthora_infestans.ASM14294v1.26.dna.genome.fa)
+ Psoj=$(ls assembly/external_group/P.sojae/P6497/dna/Physo3_AssemblyScaffolds.genome.fa)
+ Ppar=$(ls assembly/external_group/P.parisitica/310/dna/phytophthora_parasitica_inra-310_2_supercontigs.fasta)
+ Pcac=$(ls assembly/external_group/P.cactorum/LV007/dna/Phytophthora_cactorum-LV007.fa)
+
+ # for Assembly in $(ls $Pcac $Pinf $Psoj $Ppar); do
+ for Assembly in $(ls assembly/external_group/P.cactorum/LV007/dna/Phytophthora_cactorum-LV007.fa); do
+ Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+ Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+ echo "$Organism - $Strain"
+ OutDir=$(dirname $Assembly)
+ ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ OutDir=gene_pred/busco/$Organism/$Strain/assembly
+ BuscoDB="/projects/oldhome/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+ OutDir=gene_pred/busco/$Organism/$Strain/assembly
+ sbatch $ProgDir/slurm_busco_v3.sh $Assembly $BuscoDB $OutDir
+ done
+ ```
 
 To run the path pipe script all spaces and pipe symbols had to be removed
 from the headers of fasta files. This was performed using the following commands:

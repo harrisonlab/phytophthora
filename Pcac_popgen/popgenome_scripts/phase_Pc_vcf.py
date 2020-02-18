@@ -172,28 +172,6 @@ def phase_snp_line(line):
         phase = het_to_phase[",".join(status_list)]
     print "\t".join([phase, line])
 
-    # if 'var' in str(heterozygocity_dict['cr']) and 'var' not in str(heterozygocity_dict['md']) and 'var' not in str(heterozygocity_dict['pi']):
-    #     print 'crown rot private'
-    # elif 'var' not in str(heterozygocity_dict['cr']) and 'var' in str(heterozygocity_dict['md']) and 'var' not in str(heterozygocity_dict['pi']):
-    #     print 'apple private'
-    # elif 'var' not in str(heterozygocity_dict['cr']) and 'var' not in str(heterozygocity_dict['md']) and 'var' in str(heterozygocity_dict['pi']):
-    #     print 'P. idaei private'
-    # elif 'var' not in str(heterozygocity_dict['cr']) and 'var' not in str(heterozygocity_dict['md']) and 'var' not in str(heterozygocity_dict['pi']) and 'var' in str(heterozygocity_dict['lr']):
-    #     print 'leather rot SNP'
-    # elif 'var' not in str(heterozygocity_dict['cr']) and 'var_homo' in str(heterozygocity_dict['md']) and 'var_homo' in str(heterozygocity_dict['pi']):
-    #     print 'crown rot private'
-    # elif 'var_het' in str(heterozygocity_dict['cr']) and 'var' not in str(heterozygocity_dict['md']) and 'var_homo' in str(heterozygocity_dict['pi']):
-    #     print 'cactorum private, apple fixed, crown rot unfixed'
-    # elif 'var' in str(heterozygocity_dict['cr']) and 'var_homo' in str(heterozygocity_dict['md']) and 'var_homo' in str(heterozygocity_dict['pi']):
-    #     print 'crown rot private, unfixed'
-    # else:
-    #     print(heterozygocity_dict)
-        # exit()
-
-
-
-
-
 
 for line in vcf_lines:
     line = line.rstrip()

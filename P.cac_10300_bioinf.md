@@ -573,6 +573,24 @@ for Assembly in $(ls repeat_masked/*/*/*/*_contigs_unmasked.fa | grep -e 'P.cact
 done
 ```
 
+
+```bash
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
+conda activate fungap
+for Assembly in $(ls repeat_masked/*/*/*/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae' | grep -e '10300_abyss_53_repmask' -e 'T30-4' -e '310' -e 'LT1534' -e '67593' -e 'LV007' | grep 'LV007'); do
+Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
+Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
+echo "$Organism - $Strain"
+OutDir=$(dirname $Assembly)
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+BuscoDB="/projects/oldhome/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+OutDir=gene_pred/busco/$Organism/$Strain/assembly
+sbatch $ProgDir/slurm_busco_v3.sh $Assembly $BuscoDB $OutDir
+done
+```
+
+
 ```bash
   for File in $(ls gene_pred/busco/*/*/assembly/*/short_summary_*.txt | grep -e '10300' -e 'P.infestans' -e 'P.parisitica' -e 'P.capsici' -e 'P.sojae'); do
   Strain=$(echo $File| rev | cut -d '/' -f4 | rev)
