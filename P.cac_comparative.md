@@ -3,7 +3,7 @@ Phytophthora
 
 Scripts used in the analysis of Phytophthora genomes
 
-ands used during analysis of phytophthora genomes. Note - all this work was performed in the directory: /home/groups/harrisonlab/project_files/idris
+ands used during analysis of phytophthora genomes. Note - all this work was performed in the directory: /projects/oldhome/groups/harrisonlab/project_files/idris
 
 The following is a summary of the work presented in this Readme:
 Data organisation:
@@ -25,39 +25,39 @@ and annotation.
 
 
 ```bash
-  cd /home/groups/harrisonlab/project_files/idris
+  cd /projects/oldhome/groups/harrisonlab/project_files/idris
   mkdir -p raw_dna/paired/P.cactorum/404/F
   mkdir -p raw_dna/paired/P.cactorum/404/R
   mkdir -p raw_dna/paired/P.cactorum/414/F
   mkdir -p raw_dna/paired/P.cactorum/414/R
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/130614_P404
+  RawDat=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/130614_P404
   cp $RawDat/cactp404_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/404/F/.
   cp $RawDat/cactp404_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/404/R/.
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/130624_P404
+  RawDat=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/130624_P404
   cp $RawDat/130624_cactp404_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/404/F/.
   cp $RawDat/130624_cactp404_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/404/R/.
-  RawDat="/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120"
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/414_run1_F.fastq.gz
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R2_001.fastq.gz  raw_dna/paired/P.cactorum/414/R/414_run1_R.fastq.gz
-  RawDat="/home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517"
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/414_run2_F.fastq.gz
-  cp /home/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/414/R/414_run2_R.fastq.gz
+  RawDat="/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120"
+  cp /projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/414_run1_F.fastq.gz
+  cp /projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130120/cact414_S2_L001_R2_001.fastq.gz  raw_dna/paired/P.cactorum/414/R/414_run1_R.fastq.gz
+  RawDat="/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517"
+  cp /projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/414/F/414_run2_F.fastq.gz
+  cp /projects/oldhome/groups/harrisonlab/raw_data/raw_seq/cactorum/Cactorum/Cactorum\ 130517/cact414_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/414/R/414_run2_R.fastq.gz
   mkdir -p raw_dna/paired/P.cactorum/415/F
   mkdir -p raw_dna/paired/P.cactorum/415/R
   mkdir -p raw_dna/paired/P.cactorum/416/F
   mkdir -p raw_dna/paired/P.cactorum/416/R
   mkdir -p raw_dna/paired/P.cactorum/62471/F/.
   mkdir -p raw_dna/paired/P.cactorum/62471/R/.
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/150716_M01678_0023_AB0YF
+  RawDat=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/raw_reads/150716_M01678_0023_AB0YF
   cp $RawDat/Pcactorum415_S2_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/415/F/.
   cp $RawDat/Pcactorum415_S2_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/415/R/.
   cp $RawDat/Pcactorum416_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/416/F/.
   cp $RawDat/Pcactorum416_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/416/R/.
-  RawDatDir=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160108_M01678_0039_AEMMF
+  RawDatDir=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/raw_reads/160108_M01678_0039_AEMMF
   cp $RawDatDir/62471_S3_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/62471/F/.
   cp $RawDatDir/62471_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/62471/R/.
   # Data run on 13/10/16 161010_M04465_0026_000000000-APP5B
-  RawDatDir=/home/miseq_readonly/miseq_data/2016/RAW/161010_M04465_0026_000000000-APP5B/Data/Intensities/BaseCalls
+  RawDatDir=/projects/oldhome/miseq_readonly/miseq_data/2016/RAW/161010_M04465_0026_000000000-APP5B/Data/Intensities/BaseCalls
   Species=P.cactorum
   Strain=15_7
   mkdir -p raw_dna/paired/$Species/$Strain/F
@@ -71,7 +71,7 @@ and annotation.
   cp $RawDatDir/Pcact15-13_S3_L001_R1_001.fastq.gz raw_dna/paired/$Species/$Strain/F/.
   cp $RawDatDir/Pcact15-13_S3_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/.
   # Data run on 10/02/17 170210_M04465_0034_000000000-ATJ0E
-  RawDatDir=/home/miseq_data/2017/RAW/170210_M04465_0034_000000000-ATJ0E/Data/Intensities/BaseCalls
+  RawDatDir=/projects/oldhome/miseq_data/2017/RAW/170210_M04465_0034_000000000-ATJ0E/Data/Intensities/BaseCalls
   Date=170210
   Species=P.cactorum
   Strain=404
@@ -99,12 +99,12 @@ and annotation.
   cp $RawDatDir/12-420_S1_L001_R2_001.fastq.gz raw_dna/paired/$Species/$Strain/R/"$Strain"_"$Date"_R.fastq.gz
 
   # For missing data run for isolates 4032, 4040 and PC13/15
-  #  RawDatDir=/home/miseq_data/2016/RAW/160311_M04465_0006_000000000-AKT5J/Data/Intensities/BaseCalls
+  #  RawDatDir=/projects/oldhome/miseq_data/2016/RAW/160311_M04465_0006_000000000-AKT5J/Data/Intensities/BaseCalls
   # Date=160311
 
 
 
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160404_M004465_0008-ALVUT
+  RawDat=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/raw_reads/160404_M004465_0008-ALVUT
   mkdir -p raw_dna/paired/P.cactorum/2003_3/F
   mkdir -p raw_dna/paired/P.cactorum/2003_3/R
   mkdir -p raw_dna/paired/P.idaei/SCRP370/F
@@ -114,7 +114,7 @@ and annotation.
   cp $RawDat/SCRP370_S3_L001_R1_001.fastq.gz  raw_dna/paired/P.idaei/SCRP370/F/.
   cp $RawDat/SCRP370_S3_L001_R2_001.fastq.gz  raw_dna/paired/P.idaei/SCRP370/R/.
 
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160412_M04465_0010-AMLCU
+  RawDat=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/raw_reads/160412_M04465_0010-AMLCU
   mkdir -p raw_dna/paired/P.rubi/SCRP249/F
   mkdir -p raw_dna/paired/P.rubi/SCRP249/R
   mkdir -p raw_dna/paired/P.rubi/SCRP324/F
@@ -128,7 +128,7 @@ and annotation.
   cp $RawDat/SCRP333_S3_L001_R1_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/F/.
   cp $RawDat/SCRP333_S3_L001_R2_001.fastq.gz raw_dna/paired/P.rubi/SCRP333/R/.
 
-  RawDat=/home/groups/harrisonlab/raw_data/raw_seq/raw_reads/160415_M004465_00011-AMLCL
+  RawDat=/projects/oldhome/groups/harrisonlab/raw_data/raw_seq/raw_reads/160415_M004465_00011-AMLCL
   mkdir -p raw_dna/paired/P.cactorum/2003_3/F
   mkdir -p raw_dna/paired/P.cactorum/2003_3/R
   mkdir -p raw_dna/paired/P.cactorum/PC13_15/F
@@ -142,7 +142,7 @@ and annotation.
   cp $RawDat/SCRP376_S1_L001_R1_001.fastq.gz raw_dna/paired/P.idaei/SCRP376/F/.
   cp $RawDat/SCRP376_S1_L001_R2_001.fastq.gz raw_dna/paired/P.idaei/SCRP376/R/.
 
-  RawDat=/home/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160223_M04465_0003_000000000-AJ4TR/Data/Intensities/BaseCalls
+  RawDat=/projects/oldhome/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160223_M04465_0003_000000000-AJ4TR/Data/Intensities/BaseCalls
   mkdir -p raw_dna/paired/P.cactorum/415/F
   mkdir -p raw_dna/paired/P.cactorum/415/R
   mkdir -p raw_dna/paired/P.cactorum/416/F
@@ -157,7 +157,7 @@ and annotation.
   cp $RawDat/R3614_S3_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/R36_14/R/.
 
 
-  RawDat=/home/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160311_M04465_0006_000000000-AKT5J/Data/Intensities/BaseCalls
+  RawDat=/projects/oldhome/miseq_data/.tmp_nas_data/miseq_data/miseq_data/RAW/2016/160311_M04465_0006_000000000-AKT5J/Data/Intensities/BaseCalls
   mkdir -p raw_dna/paired/P.cactorum/4032/F
   mkdir -p raw_dna/paired/P.cactorum/4032/R
   mkdir -p raw_dna/paired/P.cactorum/4040/F
@@ -181,7 +181,7 @@ and annotation.
   cp $RawDat/Pcact-CN17-21_S1_L001_R1_001.fastq.gz raw_dna/paired/P.cactorum/17-21/F/.
   cp $RawDat/Pcact-CN17-21_S1_L001_R2_001.fastq.gz raw_dna/paired/P.cactorum/17-21/R/.
 
-  ProjectDir=/home/groups/harrisonlab/project_files/idris
+  ProjectDir=/projects/oldhome/groups/harrisonlab/project_files/idris
   RawDat=/data/seq_data/miseq/2018/RAW/180213_M04465_0067_000000000-BJ4DR/Data/Intensities/BaseCalls
   OutDir=raw_dna/paired/P.cactorum/P421/F
   mkdir -p $OutDir
@@ -206,7 +206,7 @@ Data quality was visualised using fastqc:
   # for RawData in $(ls raw_dna/paired/P.*/*/*/*.fastq.gz | grep '170210'); do
   for RawData in $(ls raw_dna/paired/P.cactorum/*/*/*.fastq.gz | grep -v '10300' | grep -e 'P421'); do
     echo $RawData;
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
     qsub $ProgDir/run_fastqc.sh $RawData;
   done
 ```
@@ -239,8 +239,8 @@ done
 echo $StrainPath
 Read_F=$(ls $StrainPath/F/*.fastq.gz)
 Read_R=$(ls $StrainPath/R/*.fastq.gz)
-IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+IluminaAdapters=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
 done
 ```
@@ -259,13 +259,13 @@ done
 echo $StrainPath
 Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n1 | tail -n1)
 Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n1 | tail -n1)
-IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+IluminaAdapters=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
 Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n2 | tail -n1)
 Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n2 | tail -n1)
-IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+IluminaAdapters=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
 done
 ```
@@ -283,18 +283,18 @@ done
 echo $StrainPath
 Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n1 | tail -n1)
 Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n1 | tail -n1)
-IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+IluminaAdapters=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
 Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n2 | tail -n1)
 Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n2 | tail -n1)
-IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+IluminaAdapters=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
 Read_F=$(ls $StrainPath/F/*.fastq.gz | head -n3 | tail -n1)
 Read_R=$(ls $StrainPath/R/*.fastq.gz | head -n3 | tail -n1)
-IluminaAdapters=/home/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
+IluminaAdapters=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/ncbi_adapters.fa
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/rna_qc
 qsub $ProgDir/rna_qc_fastq-mcf.sh $Read_F $Read_R $IluminaAdapters DNA
 done
 ```
@@ -304,7 +304,7 @@ Data quality was visualised once again following trimming:
 ```bash
 for TrimData in $(ls qc_dna/paired/P.cactorum/*/*/*.fq.gz | grep -e 'P421'); do
 echo $TrimData;
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $TrimData;
 done
 ```
@@ -314,7 +314,7 @@ Sequencing coveraqge was estimated:
 ```bash
 for RawData in $(ls qc_dna/paired/P.*/*/*/*q.gz | grep -e 'P421'); do
 echo $RawData;
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/dna_qc;
 qsub $ProgDir/run_fastqc.sh $RawData;
 # GenomeSz=65
 GenomeSz=60
@@ -366,7 +366,7 @@ This allowed estimation of sequencing depth and total genome size
 
 ```bash
   for TrimPath in $(ls -d qc_dna/paired/P.*/* | grep -v -e 'cactorum' | grep 'idaei'); do
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/dna_qc
     TrimF=$(ls $TrimPath/F/*.fq.gz)
     TrimR=$(ls $TrimPath/R/*.fq.gz)
     echo $TrimF
@@ -413,7 +413,7 @@ Assembly was submitted for genomes with a single run of data
 
 ```bash
 for StrainPath in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '10300' -e '404' -e '414' -e '415' -e '416' -e 'PC13_15' -e '2003_3'| grep -e 'P.cactorum' -e 'P.idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
 Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
 F_Read=$(ls $StrainPath/F/*_trim.fq.gz)
@@ -437,7 +437,7 @@ For isolates with two runs of data:
 ```bash
 for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '415' -e '416' -e 'PC13_15' -e '2003_3' | grep -e '2003_3'); do
     echo $StrainPath
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
     echo $Strain
@@ -469,7 +469,7 @@ for isolates with three runs of data:
 ```bash
 for StrainPath in $(ls -d qc_dna/paired/P.cactorum/* | grep -w -e '404' -e '414'); do
     echo $StrainPath
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades/multiple_libraries
     Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
     Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
     echo $Strain
@@ -506,7 +506,7 @@ Assembly results were summarised using Quast:
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
     OutDir=$(dirname $Assembly)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
   done
 ```
@@ -527,7 +527,7 @@ Contigs were identified that had blast hits to non-phytophthora genomes
     # OutDir=$AssemblyDir/../deconseq_Paen
     # OutDir=$AssemblyDir/../deconseq_common
     OutDir=$AssemblyDir/../deconseq_common_seperated
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
     qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
   done
 ``` -->
@@ -541,7 +541,7 @@ Contigs were identified that had blast hits to non-phytophthora genomes
       Good_db="phytoph"
       AssemblyDir=$(dirname $Assembly)
       OutDir=$AssemblyDir/../deconseq_$Exclude_db
-      ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+      ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
       qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
     done
   done
@@ -686,7 +686,7 @@ for Exclude_db in "stenotrophomonas"; do
 Good_db="phytoph"
 AssemblyDir=$(dirname $Assembly)
 OutDir=$AssemblyDir/../deconseq_$Exclude_db
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
 qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
 done
 done
@@ -738,10 +738,10 @@ The number of reads aligning from P421 to potential contaminants were identified
 
 ```bash
 Fusarium=$(ls ../fusarium/assembly/external_group/F.oxysporum_fsp_lycopersici/4287_chromosomal/ensembl/Fusarium_oxysporum_chromosome_and_additional_contigs.fa)
-Stenotrophomonas=$(ls ../../../../../home/armita/prog/deconseq-standalone-0.4.3/database/stenotrophomonas/all_complete_GbStenotrophomonas.fasta)
+Stenotrophomonas=$(ls ../../../../../projects/oldhome/armita/prog/deconseq-standalone-0.4.3/database/stenotrophomonas/all_complete_GbStenotrophomonas.fasta)
 for Reference in $(ls $Fusarium $Stenotrophomonas); do
 for StrainPath in $(ls -d qc_dna/paired/*/* | grep '421'); do
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
 Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
 F_Read=$(ls $StrainPath/F/*_trim.fq.gz)
@@ -750,7 +750,7 @@ echo $F_Read
 echo $R_Read
 Prefix=$(basename $Reference | sed 's/.fasta//g' | sed 's/.fa//g' | sed 's/.fna//g')
 OutDir=analysis/genome_alignment/bowtie/$Organism/$Strain/vs_${Prefix}
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/genome_alignment
 qsub $ProgDir/bowtie/sub_bowtie_unaligned.sh $Reference $F_Read $R_Read $OutDir
 done
 done
@@ -760,7 +760,7 @@ P241 was reassembled:
 
 ```bash
 for StrainPath in $(ls -d analysis/genome_alignment/bowtie/P.*/* | grep 'P421'); do
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/spades
 Strain=$(echo $StrainPath | rev | cut -f1 -d '/' | rev)
 Organism=$(echo $StrainPath | rev | cut -f2 -d '/' | rev)
 F_Read=$(ls $StrainPath/vs_all_complete_GbStenotrophomonas/*.fq.1.gz)
@@ -779,7 +779,7 @@ Assembly results were summarised using Quast:
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
     OutDir=$(dirname $Assembly)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
   done
 ```
@@ -795,7 +795,7 @@ for Exclude_db in "FoL"; do
 Good_db="phytoph"
 AssemblyDir=$(dirname $Assembly)
 OutDir=$AssemblyDir/../deconseq_$Exclude_db
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/remove_contaminants
 qsub $ProgDir/sub_deconseq.sh $Assembly $Exclude_db $Good_db $OutDir
 done
 done
@@ -857,7 +857,7 @@ for Assembly in $(ls assembly/spades/P.*/*/deconseq_appended/contigs_min_500bp_r
 Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
 OutDir=$(dirname $Assembly)
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
 qsub $ProgDir/sub_quast.sh $Assembly $OutDir
 done
 ```
@@ -907,7 +907,7 @@ for Assembly in $(ls assembly/spades/P.*/*/deconseq_Paen/contigs_min_500bp_filte
 Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
 BuscoDB="Eukaryotic"
 # BuscoDB="stramenopiles"
 OutDir=gene_pred/busco/$Organism/$Strain/assembly
@@ -1027,9 +1027,9 @@ done
     Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev);
     Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev);
     OutDir=$(dirname $Assembly)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
     qsub $ProgDir/sub_quast.sh $Assembly $OutDir;
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
     BuscoDB="Eukaryotic"
     OutDir=gene_pred/busco/$Organism/$Strain/assembly
     qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
@@ -1069,7 +1069,7 @@ Repeat masking was performed and used the following programs:
 The best assemblies were used to perform repeatmasking
 
 ```bash
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/repeat_masking
 for BestAss in $(ls assembly/spades/P.*/*/ncbi_edits/contigs_min_500bp_renamed.fasta | grep -e 'P.idaei' -e 'P.cactorum' | grep 'P421'); do
 Strain=$(echo $BestAss | rev | cut -f3 -d '/' | rev)
 Organism=$(echo $BestAss | rev | cut -f4 -d '/' | rev)
@@ -1135,15 +1135,15 @@ for Assembly in $(ls repeat_masked/*/*/filtered_contigs_repmask/*_contigs_unmask
   ReadsR=$(ls $IlluminaDir/R/R_trim_appended.fq.gz)
   OutDir=$(dirname $Assembly)/kat
   Prefix="${Strain}_repeat_masked"
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/kat
+  ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/kat
   qsub $ProgDir/sub_kat.sh $Assembly $ReadsF $ReadsR $OutDir $Prefix 200
 done
 ```
 
 after KAT jobs have finished running, then remove appended trimmed reads
 ```bash
-  rm ../../../../home/groups/harrisonlab/project_files/alternaria/qc_dna/paired/*/*/*/F_trim_appended.fq.gz
-  rm ../../../../home/groups/harrisonlab/project_files/alternaria/qc_dna/paired/*/*/*/R_trim_appended.fq.gz
+  rm ../../../../projects/oldhome/groups/harrisonlab/project_files/alternaria/qc_dna/paired/*/*/*/F_trim_appended.fq.gz
+  rm ../../../../projects/oldhome/groups/harrisonlab/project_files/alternaria/qc_dna/paired/*/*/*/R_trim_appended.fq.gz
 ```
 # Gene Prediction
 
@@ -1170,13 +1170,13 @@ Strain=$(echo $Assembly| rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Assembly | rev | cut -d '/' -f4 | rev)
 echo "$Organism - $Strain"
 OutDir=$(dirname $Assembly)
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/assemblers/assembly_qc/quast
 qsub $ProgDir/sub_quast.sh $Assembly $OutDir
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
 BuscoDB="Eukaryotic"
 OutDir=gene_pred/busco/$Organism/$Strain/assembly
 # qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
-BuscoDB="/home/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
+BuscoDB="/projects/oldhome/groups/harrisonlab/dbBusco/alveolata_stramenophiles_ensembl"
 OutDir=gene_pred/busco/$Organism/$Strain/assembly
 qsub $ProgDir/sub_busco3.sh $Assembly $BuscoDB $OutDir
 BuscoDB="stramenopiles"
@@ -1301,14 +1301,14 @@ used for alignment vs the P.cactorum genome.
 make symbolic links to timecourse data
 
 ```bash
-  for File in $(ls /home/sobczm/popgen/rnaseq/vesca_*/*.mate1.fq.gz); do
+  for File in $(ls /projects/oldhome/sobczm/popgen/rnaseq/vesca_*/*.mate1.fq.gz); do
     Sample=$(echo $File | rev | cut -d '/' -f2 | rev | sed 's/vesca_//g')
     echo "$Sample"
     OutDir=qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07_no_vesca/$Sample/F
     mkdir -p "$OutDir"
     cp -s $File $OutDir/.
   done
-  for File in $(ls /home/sobczm/popgen/rnaseq/vesca_*/*.mate2.fq.gz); do
+  for File in $(ls /projects/oldhome/sobczm/popgen/rnaseq/vesca_*/*.mate2.fq.gz); do
     Sample=$(echo $File | rev | cut -d '/' -f2 | rev | sed 's/vesca_//g')
     echo "$Sample"
     OutDir=qc_rna/paired/Transcriptome_Emily_Fenella_Pcactorum-2017-04-07_no_vesca/$Sample/R
@@ -1350,7 +1350,7 @@ Prefix=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
 Timepoint=$(echo $RNADir | rev | cut -f2 -d '/' | rev)
 echo "$Timepoint"
 OutDir=../../../../../data/scratch/armita/idris/alignment/star/$Organism/$Strain/$Timepoint/$Prefix
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
 done
 done
@@ -1382,7 +1382,7 @@ Jobs=$(qstat | grep 'sub_sta' | grep 'qw'| wc -l)
 Timepoint=$(echo $RNADir | rev | cut -f1 -d '/' | rev)
 echo "$Timepoint"
 OutDir=../../../../../data/scratch/armita/idris/alignment/star/$Organism/$Strain/$Timepoint/$Prefix
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
 qsub $ProgDir/sub_star.sh $Assembly $FileF $FileR $OutDir
 done
 done
@@ -1410,7 +1410,7 @@ Alignments were concatenated prior to gene prediction
 
 ```bash
 qlogin -pe smp 8
-cd /home/groups/harrisonlab/project_files/idris
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
 for StrainDir in $(ls -d qc_dna/paired/P.*/* | grep -v -w -e '411' -e '10300_old' | grep -e 'cactorum' -e 'idaei' | grep -e '11-40' -e '17-21' -e 'P421'); do
 echo $StrainDir
 BamFiles=$(ls $StrainDir/*/*/star_aligmentAligned.sortedByCoord.out.bam | grep -v -e 'PRO1467_S1_' -e 'PRO1467_S2_' -e 'PRO1467_S3_' -e 'PRO1467_S10_' -e 'PRO1467_S11_' -e 'PRO1467_S12_' | tr -d '\n' | sed 's/.bam/.bam /g')
@@ -1430,7 +1430,7 @@ directory:
 
 ```bash
 	ls ~/.gm_key
-	cp /home/armita/prog/genemark/gm_key_64 ~/.gm_key
+	cp /projects/oldhome/armita/prog/genemark/gm_key_64 ~/.gm_key
 ```
 
 ```bash
@@ -1442,8 +1442,8 @@ directory:
     	OutDir=gene_pred/braker/$Organism/"$Strain"_braker
     	AcceptedHits=$(ls ../../../../../data/scratch/armita/idris/alignment/$Organism/$Strain/concatenated/concatenated.bam)
     	GeneModelName="$Organism"_"$Strain"_braker
-    	rm -r /home/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker
-    	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/braker1
+    	rm -r /projects/oldhome/armita/prog/augustus-3.1/config/species/"$Organism"_"$Strain"_braker
+    	ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/braker1
     	qsub $ProgDir/sub_braker.sh $Assembly $OutDir $AcceptedHits $GeneModelName
   	done
 ```
@@ -1474,7 +1474,7 @@ therefore features can not be restricted by strand when they are intersected.
     OutDir=gene_pred/cufflinks/$Organism/$Strain/concatenated
     mkdir -p $OutDir
     AcceptedHits=$(ls ../../../../../data/scratch/armita/idris/alignment/star/$Organism/$Strain/concatenated/concatenated.bam)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/RNAseq
     qsub $ProgDir/sub_cufflinks.sh $AcceptedHits $OutDir
   done
 ```
@@ -1495,7 +1495,7 @@ done
 printf "\n"
 OutDir=gene_pred/codingquary/$Organism/$Strain
 CufflinksGTF=$(ls gene_pred/cufflinks/$Organism/$Strain/concatenated/transcripts.gtf)
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 qsub $ProgDir/sub_CodingQuary.sh $Assembly $CufflinksGTF $OutDir
 done
 ```
@@ -1522,10 +1522,10 @@ models:
 
     bedtools intersect -v -a $CodingQuaryGff -b $BrakerGff | grep 'gene'| cut -f2 -d'=' | cut -f1 -d';' > $AddGenesList
     bedtools intersect -v -a $PGNGff -b $BrakerGff | grep 'gene'| cut -f2 -d'=' | cut -f1 -d';' >> $AddGenesList
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
     $ProgDir/gene_list_to_gff.pl $AddGenesList $CodingQuaryGff CodingQuarry_v2.0 ID CodingQuary > $AddGenesGff
     $ProgDir/gene_list_to_gff.pl $AddGenesList $PGNGff PGNCodingQuarry_v2.0 ID CodingQuary >> $AddGenesGff
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
     # -
     # This section is edited
     $ProgDir/add_CodingQuary_features.pl $AddGenesGff $Assembly > $AddDir/add_genes_CodingQuary_unspliced.gff3
@@ -1667,7 +1667,7 @@ path_pipe.sh pipeline. This pipeline also identifies open reading frames contain
 Signal peptide sequences and RxLRs. This pipeline was run with the following commands:
 
 ```bash
-	ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+	ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 	for Genome in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     echo "$Genome"
   	qsub $ProgDir/run_ORF_finder.sh $Genome
@@ -1719,8 +1719,8 @@ of approaches:
 
  ```bash
   for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v 'PC13_15'); do
-    SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    SplitfileDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     SplitDir=gene_pred/final_split/$Organism/$Strain
@@ -1749,8 +1749,8 @@ will be renamed again when results are concatenated.
 
  ```bash
   for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep 'PC13'); do
-    SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    SplitfileDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev | sed 's/_15//g')
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     SplitDir=gene_pred/final_split/$Organism/$Strain
@@ -1838,7 +1838,7 @@ done
     OutDir=analysis/phobius/$Organism/$Strain
     mkdir -p $OutDir
     phobius.pl $Proteome > $OutDir/"$Strain"_phobius.txt
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
     $ProgDir/phobius_parser.py --inp_fasta $Proteome --phobius_txt $OutDir/"$Strain"_phobius.txt --out_fasta $OutDir/"$Strain"_phobius.fa
     cat $OutDir/"$Strain"_phobius.fa | grep '>' | cut -f1 | tr -d '>' > $OutDir/"$Strain"_phobius_headers.txt
   done
@@ -1859,7 +1859,7 @@ Secreted proteins from different sources were combined into a single file:
     cat $OutDir/"$Strain"_all_secreted.fa | grep '>' | wc -l
     echo "This represented the following number of unique genes:"
     cat gene_pred/final_sig*/$Organism/$Strain/*_aug_sp.aa analysis/phobius/$Organism/$Strain/"$Strain"_phobius.fa | grep '>' | cut -f1 | tr -d ' >' | sort -g | uniq > $OutDir/"$Strain"_secreted.txt
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
     $ProgDir/extract_from_fasta.py --fasta $Proteome --headers $OutDir/"$Strain"_secreted.txt > $OutDir/"$Strain"_secreted.fa
     cat $OutDir/"$Strain"_secreted.fa | grep '>' | wc -l
   done
@@ -1974,7 +1974,7 @@ Proteins containing a transmembrane domain were identified:
   for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/transmembrane_helices
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/transmembrane_helices
     qsub $ProgDir/submit_TMHMM.sh $Proteome
   done
 ```
@@ -1991,7 +1991,7 @@ NonTmHeaders=$(echo "$File" | sed 's/neg.txt/neg_headers.txt/g')
 cat $File | cut -f1 > $NonTmHeaders
 SigP=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
 OutDir=$(dirname $SigP)
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_from_fasta.py --fasta $SigP --headers $NonTmHeaders > $OutDir/"$Strain"_final_sp_no_trans_mem.aa
 echo "Number of SigP proteins:"
 cat $SigP | grep '>' | wc -l
@@ -2041,7 +2041,7 @@ were identified:
     cat $Headers | wc -l
     Secretome=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
     {Strain}=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.aa/g')
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
     $ProgDir/extract_from_fasta.py --fasta $Secretome --headers $Headers > ${Strain}
     {Strain}Headers=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted_headers.txt/g')
     cat ${Strain} | grep '>' | tr -d '>' > ${Strain}Headers
@@ -2049,7 +2049,7 @@ were identified:
     cat ${Strain}Headers | wc -l
     Gff=$(ls gene_pred/codingquary/$Organism/$Strain/*/final_genes_appended.gff3)
     EffectorP_Gff=$(echo "$File" | sed 's/_EffectorP.txt/_EffectorP_secreted.gff/g')
-    ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
     $ProgDir/extract_gff_for_sigP_hits.pl ${Strain}Headers $Gff effectorP ID > $EffectorP_Gff
   done
 ```
@@ -2091,7 +2091,7 @@ at http://csbl.bmb.uga.edu/dbCAN/download/readme.txt :
     mkdir -p $OutDir
     Prefix="$Strain"_CAZY
     CazyHmm=../../dbCAN/dbCAN-fam-HMMs.txt
-    ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
     qsub $ProgDir/sub_hmmscan.sh $CazyHmm $Proteome $Prefix $OutDir
   done
 ```
@@ -2107,7 +2107,7 @@ Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
 OutDir=$(dirname $File)
 echo "$Organism - $Strain"
-ProgDir=/home/groups/harrisonlab/dbCAN
+ProgDir=/projects/oldhome/groups/harrisonlab/dbCAN
 $ProgDir/hmmscan-parser.sh $OutDir/"$Strain"_CAZY.out.dm > $OutDir/"$Strain"_CAZY.out.dm.ps
 CazyHeaders=$(echo $File | sed 's/.out.dm/_headers.txt/g')
 cat $OutDir/"$Strain"_CAZY.out.dm.ps | cut -f3 | sort | uniq > $CazyHeaders
@@ -2115,7 +2115,7 @@ printf "number of CAZY genes identified:\t"
 cat $CazyHeaders | wc -l
 Gff=$(ls gene_pred/codingquary/$Organism/$Strain/final/final_genes_appended.gff3)
 CazyGff=$OutDir/"$Strain"_CAZY.gff
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $CazyHeaders $Gff CAZyme ID > $CazyGff
 
 SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/*_all_secreted.fa)
@@ -2198,7 +2198,7 @@ $ProgDir/RxLR_EER_regex_finder.py $Secretome > $OutDir/"$Strain"_all_secreted_Rx
 cat $OutDir/"$Strain"_all_secreted_RxLR_regex.fa | grep '>' | cut -f1 | tr -d '>' | tr -d ' ' | sort -g | uniq > $OutDir/"$Strain"_RxLR_regex.txt
 cat $OutDir/"$Strain"_RxLR_regex.txt | wc -l
 
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_from_fasta.py --fasta $Proteome --headers $OutDir/"$Strain"_RxLR_regex.txt > $OutDir/"$Strain"_RxLR_EER_regex.fa
 
 
@@ -2209,7 +2209,7 @@ $ProgDir/extract_from_fasta.py --fasta $Proteome --headers $OutDir/"$Strain"_RxL
 
 printf "\n"
 
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 sed -i -r 's/\.t.*//' $OutDir/"$Strain"_RxLR_regex.txt
 sed -i -r 's/\.t.*//' $OutDir/"$Strain"_RxLR_EER_regex.txt
 
@@ -2357,8 +2357,8 @@ the number of SigP-RxLR-EER genes are:	112
 
 ```bash
   for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-    HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    HmmModel=/projects/oldhome/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
     Strain=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
     Organism=$(echo $Proteome | rev | cut -f4 -d '/' | rev)
     OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
@@ -2631,8 +2631,8 @@ Number of genes in the extracted gff file:
 
 ```bash
 for Secretome in $(ls gene_pred/combined_sigP/*/*/*_all_secreted.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmModel=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
 Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
 OutDir=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain
@@ -2649,7 +2649,7 @@ Headers="$Strain"_Aug_WY_hmmer_headers.txt
 cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | cut -f1 | sort | uniq > $OutDir/$Headers
 # Gff=$(ls gene_pred/*/$Organism/$Strain/final/final_genes_appended_renamed.gff3)
 # cat $Gff | grep -w -f $OutDir/$Headers > $OutDir/"$Strain"_Aug_WY_hmmer.gff
-# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+# ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $Gff $HmmModel Name Augustus > $OutDir/"$Strain"_Aug_WY_hmmer.gff
 done
 ```
@@ -2666,7 +2666,7 @@ in Augustus gene models. This was done with the following commands:
 
 
 ```bash
-  HmmDir=/home/groups/harrisonlab/project_files/idris/analysis/CRN_effectors/hmmer_models
+  HmmDir=/projects/oldhome/groups/harrisonlab/project_files/idris/analysis/CRN_effectors/hmmer_models
   LFLAK_hmm=$(ls $HmmDir/Pinf_Pram_Psoj_Pcap_LFLAK.hmm)
   DWL_hmm=$(ls $HmmDir/Pinf_Pram_Psoj_Pcap_DWL.hmm)
   for Proteome in $(ls gene_pred/codingquary/*/*/*/final_genes_combined.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
@@ -2680,14 +2680,14 @@ in Augustus gene models. This was done with the following commands:
     hmmsearch -T0 $LFLAK_hmm $Proteome > $CrinklerProts_LFLAK
     cat $CrinklerProts_LFLAK | grep 'Initial search space'
     cat $CrinklerProts_LFLAK | grep 'number of targets reported over threshold'
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
     $ProgDir/hmmer2fasta.pl $CrinklerProts_LFLAK $Proteome > $OutDir/"$Strain"_pub_CRN_LFLAK_hmm.fa
     # Run hmm searches DWL domains
     CrinklerProts_DWL=$OutDir/"$Strain"_pub_CRN_DWL_hmm.txt
     hmmsearch -T0 $DWL_hmm $Proteome > $CrinklerProts_DWL
     cat $CrinklerProts_DWL | grep 'Initial search space'
     cat $CrinklerProts_DWL | grep 'number of targets reported over threshold'
-    ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+    ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
     $ProgDir/hmmer2fasta.pl $CrinklerProts_DWL $Proteome > $OutDir/"$Strain"_pub_CRN_DWL_hmm.fa
     # Identify the genes detected in both models
     cat $OutDir/"$Strain"_pub_CRN_LFLAK_hmm.fa $OutDir/"$Strain"_pub_CRN_DWL_hmm.fa | grep '>' | cut -f1 | tr -d '>' | sort | uniq -d > $OutDir/"$Strain"_pub_CRN_LFLAK_DWL.txt
@@ -2848,8 +2848,8 @@ the following commands:
 
 ```bash
 for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -e '415' -e '416'); do
-SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+SplitfileDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
 Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 SplitDir=gene_pred/ORF_split/$Organism/$Strain
@@ -2904,11 +2904,11 @@ done
   WorkDir=/tmp/$USER/sigp/ORF
   mkdir -p $WorkDir
 
-  ProjDir=/home/groups/harrisonlab/project_files/idris
+  ProjDir=/projects/oldhome/groups/harrisonlab/project_files/idris
   cd $ProjDir
   for Proteome in $(ls gene_pred/ORF_finder/P.*/*/*.aa_cat.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | head -n1); do
-  SplitfileDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
-  ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+  SplitfileDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+  ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
   Strain=$(echo $Proteome | rev | cut -f2 -d '/' | rev)
   Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 
@@ -2917,7 +2917,7 @@ done
 
   echo "Running using SignalP version: $SigP_Version"
   echo "Installing SignalP"
-  Tarball=$(ls /home/armita/prog/signalP/signalp-3.0/signalp-3.0.Linux.tar.Z)
+  Tarball=$(ls /projects/oldhome/armita/prog/signalP/signalp-3.0/signalp-3.0.Linux.tar.Z)
   cp $Tarball .
   tar -zxf *.tar.Z
   sed -i "s&SIGNALP=.*&SIGNALP=$PWD/signalp-3.0&g" signalp-3.0/signalp
@@ -2933,7 +2933,7 @@ done
   rm -rf signalp-3.0
   # $SigP_Version -t euk -f short -trunc 70 "proteins.fa" > "${Strain}"_sp.txt
   echo '----------------------------------------------------------------------' >> "${Strain}"_sp.txt
-  PathToAnnotateSigP=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
+  PathToAnnotateSigP=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/signal_peptides
   $PathToAnnotateSigP/sigP_3.0_parser.py --inp_sigP "${Strain}"_sp.txt --out_tab "${Strain}"_sp.tab --out_fasta "${Strain}"_sp.aa --out_neg "${Strain}"_sp_neg.aa --inp_fasta "proteins.fa"
   OutDir=$ProjDir/gene_pred/ORF_signalp-3.0/$Organism/$Strain/.
 
@@ -2977,7 +2977,7 @@ Secreted proteins from different sources were combined into a single file:
    cat $OutDir/"$Strain"_all_secreted_headers.txt | wc -l
    echo "This represented the following number of unique genes:"
    cat gene_pred/ORF_sig*/$Organism/$Strain/*_ORF_sp.aa | grep '>' | cut -f1 | tr -d ' >' | sort -g | uniq > $OutDir/"$Strain"_secreted.txt
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+   ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
    $ProgDir/extract_from_fasta.py --fasta $Proteome --headers $OutDir/"$Strain"_secreted.txt > $OutDir/"$Strain"_secreted.fa
    cat $OutDir/"$Strain"_secreted.fa | grep '>' | wc -l
  done
@@ -3119,11 +3119,11 @@ overlaps and identify the ORF with the best signalP score.
    SigP_Merged_txt=$OutDir/"$Strain"_all_secreted_merged.txt
    SigP_Merged_AA=$OutDir/"$Strain"_all_secreted_merged.aa
 
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+   ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
    $ProgDir/extract_gff_for_sigP_hits.pl $SigP_headers $ORF_Gff SigP Name > $SigP_Gff
    ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
    $ProgDir/make_gff_database.py --inp $SigP_Gff --db sigP_ORF.db
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+   ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
    $ProgDir/merge_sigP_ORFs.py --inp sigP_ORF.db --id sigP_ORF --out sigP_ORF_merged.db --gff > $SigP_Merged_Gff
    cat $SigP_Merged_Gff | grep 'transcript' | rev | cut -f1 -d'=' | rev > $SigP_Merged_txt
    # $ProgDir/extract_from_fasta.py --fasta $SigP_fasta --headers $SigP_Merged_txt > $SigP_Merged_AA
@@ -3152,14 +3152,14 @@ cat $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt | tr -d ' ' | sort | uniq | wc
 printf "the number of SigP-RxLR-EER genes are:\t";
 cat $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.fa | grep '>' | grep 'EER_motif_start' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' '> $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt
 cat $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt | tr -d ' ' | sort | uniq | wc -l
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt  $SigP_Merged_Gff 	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff
 SigP_Gff=gene_pred/combined_sigP_ORF/$Organism/$Strain/"$Strain"_all_secreted_unmerged.gff
 ORF_fasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.txt $SigP_Gff	RxLR_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff
 $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt  $SigP_Gff	RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.gff
-# ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+# ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.txt $SigP_Merged_Gff RxLR_EER_regex_finder.py Name Augustus > $OutDir/"$Strain"_ORF_RxLR_EER_regex.gff
 RxLR_Merged_Gff=$OutDir/"$Strain"_ORF_RxLR_regex_merged.gff
 RxLR_Merged_txt=$OutDir/"$Strain"_ORF_RxLR_regex_merged.txt
@@ -3170,7 +3170,7 @@ RxLR_EER_Merged_AA=$OutDir/"$Strain"_ORF_RxLR_EER_regex_merged.aa
 ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
 $ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_ORF_RxLR_regex_unmerged.gff --db sigP_ORF_RxLR.db
 $ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_ORF_RxLR_EER_regex_unmerged.gff --db sigP_ORF_RxLR_EER.db
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_RxLR.db --id sigP_ORF_RxLR --out sigP_ORF_RxLR_merged.db --gff > $RxLR_Merged_Gff
 $ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_RxLR_EER.db --id sigP_ORF_RxLR_EER --out sigP_ORF_RxLR_EER_merged.db --gff > $RxLR_EER_Merged_Gff
 cat $RxLR_Merged_Gff | grep 'transcript' | rev | cut -f1 -d '=' | rev > $RxLR_Merged_txt
@@ -3344,8 +3344,8 @@ Hmm models for the WY domain contained in many RxLRs were used to search ORFs pr
 
 ```bash
 for Secretome in $(ls gene_pred/combined_sigP_ORF/*/*/*_all_secreted.fa | grep -v -e 'atg' | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-HmmModel=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmModel=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer/WY_motif.hmm
 Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
 OutDir=analysis/RxLR_effectors/hmmer_WY/$Organism/$Strain
@@ -3360,7 +3360,7 @@ $ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Secretome > $OutDir/$HmmFasta
 Headers="$Strain"_ORF_WY_hmmer_headers.txt
 cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
 SigP_Merged_Gff=$(ls gene_pred/combined_sigP_ORF/$Organism/$Strain/${Strain}_all_secreted_merged.gff)
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Merged_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_WY_hmmer.gff
 done
 ```
@@ -3430,8 +3430,8 @@ Domain search space  (domZ):             102  [number of targets reported over t
 
 ```bash
 for Secretome in $(ls gene_pred/combined_sigP_ORF/*/*/*_all_secreted.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-HmmModel=/home/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmModel=/projects/oldhome/armita/git_repos/emr_repos/SI_Whisson_et_al_2007/cropped.hmm
 Strain=$(echo $Secretome | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $Secretome | rev | cut -f3 -d '/' | rev)
 OutDir=analysis/RxLR_effectors/hmmer_RxLR/$Organism/$Strain
@@ -3446,14 +3446,14 @@ $ProgDir/hmmer2fasta.pl $OutDir/$HmmResults $Secretome > $OutDir/$HmmFasta
 Headers="$Strain"_ORF_RxLR_hmmer_headers_unmerged.txt
 cat $OutDir/$HmmFasta | grep '>' | cut -f1 | tr -d '>' | sed -r 's/\.t.*//' | tr -d ' ' > $OutDir/$Headers
 SigP_Gff=gene_pred/combined_sigP_ORF/$Organism/$Strain/"$Strain"_all_secreted_unmerged.gff
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 $ProgDir/gene_list_to_gff.pl $OutDir/$Headers $SigP_Gff $HmmModel Name Augustus > $OutDir/"$Strain"_ORF_RxLR_hmmer_unmerged.gff3
 RxLR_Merged_Gff=$OutDir/"$Strain"_ORF_RxLR_hmm_merged.gff
 RxLR_Merged_txt=$OutDir/"$Strain"_ORF_RxLR_hmm_merged.txt
 RxLR_Merged_AA=$OutDir/"$Strain"_ORF_RxLR_hmm_merged.aa
 ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
 $ProgDir/make_gff_database.py --inp $OutDir/"$Strain"_ORF_RxLR_hmmer_unmerged.gff3 --db sigP_ORF_RxLR_hmm.db
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/merge_sigP_ORFs.py --inp sigP_ORF_RxLR_hmm.db --id sigP_ORF_RxLR_hmm --out sigP_ORF_RxLR_hmm_merged.db --gff > $RxLR_Merged_Gff
 cat $RxLR_Merged_Gff | grep 'transcript' | rev | cut -f1 -d '=' | rev > $RxLR_Merged_txt
 ORF_fasta=$(ls gene_pred/ORF_finder/$Organism/$Strain/"$Strain".aa_cat.fa)
@@ -3571,7 +3571,7 @@ OutDir=analysis/RxLR_effectors/combined_evidence/$Organism/$Strain
 mkdir -p $OutDir
 # cat $RegexRxLREER $RegexRxLRfpkm $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
 cat $RegexRxLREER $HmmRxLR | sort | uniq > $OutDir/"$Strain"_total_ORF_RxLR_headers.txt
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation
 $ProgDir/gene_list_to_gff.pl $OutDir/"$Strain"_total_ORF_RxLR_headers.txt $Gff ORF_RxLR Name Augustus > $OutDir/"$Strain"_total_ORF_RxLR.gff
 # echo "Number of genes in the extracted gff file:"
 Extracted=$(cat $OutDir/"$Strain"_total_ORF_RxLR.gff | grep -w 'gene' | wc -l)
@@ -3658,7 +3658,7 @@ cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalRxLRsTxt > $TotalRxLRsGff
 RxLRsFa=$MergeDir/"$Strain"_final_RxLR_EER.fa
 ProgDir=~/git_repos/emr_repos/tools/seq_tools/feature_annotation
 # $ProgDir/unwrap_fasta.py --inp_fasta $AugFa | grep -A1 -w -f $AugTxt | grep -v -E '^--$' > $RxLRsFa
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalRxLRsTxt > $RxLRsFa
 # echo "$Strain"
 $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalRxLRsTxt >> $RxLRsFa
@@ -3707,8 +3707,8 @@ Organism=$(echo $Proteome | rev | cut -f3 -d '/' | rev)
 OutDir=analysis/CRN_effectors/hmmer_CRN/$Organism/$Strain
 mkdir -p $OutDir
 # Hmmer variables
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
-HmmDir=/home/groups/harrisonlab/project_files/idris/analysis/CRN_effectors/hmmer_models
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/pathogen/hmmer
+HmmDir=/projects/oldhome/groups/harrisonlab/project_files/idris/analysis/CRN_effectors/hmmer_models
 # Searches for LFLAK domain
 LFLAK_hmm=$HmmDir/Pinf_Pram_Psoj_Pcap_LFLAK.hmm
 HmmResultsLFLAK="$Strain"_ORF_CRN_LFLAK_unmerged_hmmer.txt
@@ -3741,7 +3741,7 @@ ORF_Gff=$(ls gene_pred/ORF_finder/$Organism/$Strain/*_ORF.gff3 | grep -v '_atg_'
 # Gff features were extracted for each header
 CRN_unmerged_Gff=$OutDir/"$Strain"_CRN_unmerged_hmmer.gff3
 # cat $Headers | cut -f1 > tmp.txt
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $Headers $ORF_Gff CRN_HMM Name > $CRN_unmerged_Gff
 # $ProgDir/extract_gff_for_sigP_hits.pl tmp.txt $ORF_Gff CRN_HMM Name > $CRN_unmerged_Gff
 # Gff features were merged based upon the DWL hmm score
@@ -3750,7 +3750,7 @@ mkdir -p $DbDir
 ProgDir=~/git_repos/emr_repos/scripts/phytophthora/pathogen/merge_gff
 $ProgDir/make_gff_database.py --inp $CRN_unmerged_Gff --db $DbDir/CRN_ORF.db
 CRN_Merged_Gff=$OutDir/"$Strain"_CRN_merged_hmmer.gff3
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/merge_sigP_ORFs.py --inp $DbDir/CRN_ORF.db --id LFLAK_DWL_CRN --out $DbDir/CRN_ORF_merged.db --gff > $CRN_Merged_Gff
 # Final results are reported:
 echo "Number of CRN ORFs after merging:"
@@ -3990,7 +3990,7 @@ cat $AugUniq | grep -w -e 'transcript' -e 'mRNA'  | cut -f9 | cut -f1 -d ';' | c
 cat $AugInORFs $AugUniq $ORFsUniq | grep -w -f $TotalCRNsTxt > $TotalCRNsGff
 
 CRNsFa=$MergeDir/"$Strain"_final_CRN.fa
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_from_fasta.py --fasta $AugFa --headers $TotalCRNsTxt > $CRNsFa
 $ProgDir/extract_from_fasta.py --fasta $ORFsFa --headers $TotalCRNsTxt >> $CRNsFa
 # echo "The number of sequences extracted is"
@@ -4039,11 +4039,11 @@ Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/*_contigs
 OutDir=gene_pred/final_incl_ORF/$Organism/$Strain
 mkdir -p $OutDir
 cat $GeneGff > $OutDir/${Strain}_genes_incl_ORFeffectors.gff3
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/add_ORF_features.pl $GffOrfRxLR $Assembly >> $OutDir/${Strain}_genes_incl_ORFeffectors.gff3
 $ProgDir/add_ORF_features.pl $GffOrfCRN $Assembly >> $OutDir/${Strain}_genes_incl_ORFeffectors.gff3
 # Make gene models from gff files.
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
 # Assembly=$(ls repeat_masked/$Organism/$Strain/*/*_contigs_unmasked_wrapped.fa)
 $ProgDir/gff2fasta.pl $Assembly $OutDir/${Strain}_genes_incl_ORFeffectors.gff3 $OutDir/${Strain}_genes_incl_ORFeffectors
 done
@@ -4132,11 +4132,11 @@ P.idaei	SCRP376	24986	62	62	62	24924
    echo "$Organism - $Strain"
    FinalDir=$(dirname $GffAppended)
    GffFiltered=$FinalDir/filtered_duplicates.gff
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+   ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
    $ProgDir/remove_dup_features.py --inp_gff $GffAppended --out_gff $GffFiltered
    GffRenamed=$FinalDir/final_genes_genes_incl_ORFeffectors_renamed.gff3
    LogFile=$FinalDir/final_genes_appended_renamed.log
-   ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
+   ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/codingquary
    $ProgDir/gff_rename_genes.py --inp_gff $GffFiltered --conversion_log $LogFile > $GffRenamed
    rm $GffFiltered
   Assembly=$(ls repeat_masked/$Organism/$Strain/filtered_contigs_repmask/*_contigs_softmasked_repeatmasker_TPSI_appended.fa)
@@ -4165,9 +4165,9 @@ for Transcriptome in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_OR
 Strain=$(echo $Transcriptome| rev | cut -d '/' -f2 | rev)
 Organism=$(echo $Transcriptome | rev | cut -d '/' -f3 | rev)
 echo "$Organism - $Strain"
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/busco
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/busco
 # BuscoDB="Fungal"
-BuscoDB=$(ls -d /home/groups/harrisonlab/dbBusco/eukaryota_odb9)
+BuscoDB=$(ls -d /projects/oldhome/groups/harrisonlab/dbBusco/eukaryota_odb9)
 OutDir=gene_pred/busco/$Organism/$Strain/genes
 qsub $ProgDir/sub_busco3.sh $Transcriptome $BuscoDB $OutDir
 done
@@ -4212,8 +4212,8 @@ was redirected to a temporary output file named interproscan_submission.log .
 
 ```bash
 	screen -a
-	# cd /home/groups/harrisonlab/project_files/idris
-	ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+	# cd /projects/oldhome/groups/harrisonlab/project_files/idris
+	ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
 	for Genes in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
   FileName=$(basename $Genes)
   SymLinkDir=$(dirname $Genes)/symlink_directory
@@ -4228,7 +4228,7 @@ Following interproscan annotation split files were combined using the following
 commands:
 
 ```bash
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/interproscan
 for Proteome in $(ls gene_pred/final_incl_ORF/*/*/symlink_directory/final_genes_genes_incl_ORFeffectors_renamed.pep.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v '11-40'); do
 Strain=$(echo $Proteome | rev | cut -d '/' -f3 | rev)
 Organism=$(echo $Proteome | rev | cut -d '/' -f4 | rev)
@@ -4254,7 +4254,7 @@ done
    OutDir=gene_pred/swissprot/$Organism/$Strain
    SwissDbDir=../../uniprot/swissprot
    SwissDbName=uniprot_sprot
-   ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/swissprot
+   ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/swissprot
    qsub $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName
  done
 ```
@@ -4275,7 +4275,7 @@ Strain=$(echo $Interpro | rev | cut -f2 -d '/' | rev)
 # echo "$Organism - $Strain"
 OutDir=analysis/transcription_factors/$Organism/$Strain
 mkdir -p $OutDir
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/transcription_factors
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/transcription_factors
 $ProgDir/interpro2TFs.py --InterPro $Interpro > $OutDir/"$Strain"_TF_domains.tsv
 # echo "total number of transcription factors"
 cat $OutDir/"$Strain"_TF_domains.tsv | cut -f1 | sort | uniq > $OutDir/"$Strain"_TF_gene_headers.txt
@@ -4375,7 +4375,7 @@ OutDir=gene_pred/CAZY/$Organism/$Strain
 mkdir -p $OutDir
 Prefix="$Strain"_CAZY
 CazyHmm=../../dbCAN/dbCAN-fam-HMMs.txt
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/feature_annotation/HMMER
 qsub $ProgDir/sub_hmmscan.sh $CazyHmm $Proteome $Prefix $OutDir
 done
 ```
@@ -4391,7 +4391,7 @@ Strain=$(echo $File | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $File | rev | cut -f3 -d '/' | rev)
 OutDir=$(dirname $File)
 # echo "$Organism - $Strain"
-ProgDir=/home/groups/harrisonlab/dbCAN
+ProgDir=/projects/oldhome/groups/harrisonlab/dbCAN
 $ProgDir/hmmscan-parser.sh $OutDir/"$Strain"_CAZY.out.dm > $OutDir/"$Strain"_CAZY.out.dm.ps
 CazyHeaders=$(echo $File | sed 's/.out.dm/_headers.txt/g')
 cat $OutDir/"$Strain"_CAZY.out.dm.ps | cut -f3 | sort | uniq > $CazyHeaders
@@ -4400,7 +4400,7 @@ CazymeNum=$(cat $CazyHeaders | wc -l)
 printf "$Organism\t$Strain\t$CazymeNum\n"
 Gff=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.gff3)
 CazyGff=$OutDir/"$Strain"_CAZY.gff
-ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
 $ProgDir/extract_gff_for_sigP_hits.pl $CazyHeaders $Gff CAZyme ID > $CazyGff
 
 # SecretedProts=$(ls gene_pred/combined_sigP/$Organism/$Strain/"$Strain"_secreted.fa)
@@ -4495,14 +4495,14 @@ Identifying PHIbase homologs
 
 ```bash
 qlogin -pe smp 6
-cd /home/groups/harrisonlab/project_files/idris
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
 for QueryFasta in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
 Strain=$(echo $QueryFasta | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $QueryFasta | rev | cut -f3 -d '/' | rev)
 echo "$Organism - $Strain"
 OutDir=analysis/blast_homology/$Organism/$Strain
 mkdir -p $OutDir
-dbFasta=$(ls /home/groups/harrisonlab/phibase/v4.4/phi_accessions.fa)
+dbFasta=$(ls /projects/oldhome/groups/harrisonlab/phibase/v4.4/phi_accessions.fa)
 dbType="prot"
 Prefix="${Strain}_phi_accessions"
 Eval="1e-30"
@@ -4516,7 +4516,7 @@ done > log.txt
 
 ```bash
 qlogin
-cd /home/groups/harrisonlab/project_files/idris
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
 for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
   Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
   Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
@@ -4559,7 +4559,7 @@ done
 Extract genes for reciprocal hits:
 
 ```bash
-cd /home/groups/harrisonlab/project_files/idris
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
 for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unmasked.fa | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300'); do
   Strain=$(echo $Assembly | rev | cut -f3 -d '/' | rev)
   Organism=$(echo $Assembly | rev | cut -f4 -d '/' | rev)
@@ -4569,7 +4569,7 @@ for Assembly in $(ls repeat_masked/P.*/*/filtered_contigs_repmask/*_contigs_unma
   CdsFasta=$(ls gene_pred/final_incl_ORF/$Organism/$Strain/final_genes_genes_incl_ORFeffectors_renamed.cds.fasta)
   reciprocalHeaders=$(ls $OutDir/reciprocal_best_hits.txt)
   cat $reciprocalHeaders | cut -f1 > $OutDir/reciprocal_best_hits_headers.txt
-  ProgDir=/home/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
+  ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/gene_prediction/ORF_finder
   $ProgDir/extract_from_fasta.py --fasta $CdsFasta --headers $OutDir/reciprocal_best_hits_headers.txt > $OutDir/${Strain}_reciprocal_best_hits.fa
   rm $OutDir/reciprocal_best_hits.fa
 done
@@ -4645,7 +4645,7 @@ Pi_RI3 SCRP376
 
 
 ```bash
-for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v -e '415' -e '416' | grep '62471'); do
+for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v -e '415' -e '416' | grep 'R36_14'); do
 Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
 OutDir=gene_pred/annotation/$Organism/$Strain
@@ -4705,14 +4705,14 @@ CAZY_list=$(ls gene_pred/CAZY/$Organism/$Strain/"$Strain"_CAZY.out.dm.ps)
 PhiHits=$(ls analysis/blast_homology/$Organism/$Strain/"$Strain"_phi_accessions_hits_headers.txt)
 InterPro=$(ls gene_pred/interproscan/$Organism/$Strain/*_interproscan.tsv)
 SwissProt=$(ls gene_pred/swissprot/$Organism/$Strain/swissprot_vMar2018_tophit_parsed.tbl)
-Orthology=$(ls /home/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
+Orthology=$(ls /projects/oldhome/groups/harrisonlab/project_files/idris/analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_orthogroups.txt)
 OrthoIDs=$(ls analysis/orthology/orthomcl/Pcac_Pinf_publication/Pcac_Pinf_publication_isolateIDs.txt)
 OrthoStrainID=$(cat $OrthoIDs | grep -w "$Strain" | cut -f1 -d ' ')
 echo "$Strain - $OrthoStrainID"
 OrthoStrainAll='Pc_CR1 Pc_CR2 Pc_CR3 Pc_CR4 Pc_CR5 Pc_CR6 Pc_CR7 Pc_CR8 Pc_CR9 Pc_CR10 Pc_CR11 Pc_CR12 Pc_CR13 Pc_LR1 Pc_LR2 Pc_MD1 Pc_MD2 Pc_MD3 Pi_RI1 Pi_RI2 Pi_RI3'
 
-ProgDir=/home/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
-$ProgDir/illumina_annotation_table.py \
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/phytophthora/gene_annotation
+python $ProgDir/illumina_annotation_table.py \
 --protein_fasta $Fasta \
 --conversion_log $GeneConversion \
 --ORF_gff $OrfGff \
@@ -4735,7 +4735,8 @@ $ProgDir/illumina_annotation_table.py \
 --orthogroups $Orthology \
 --strain_id $OrthoStrainID  \
 --OrthoMCL_all $OrthoStrainAll \
-> $OutDir/"$Strain"_annotation_ncbi2.tsv
+> $OutDir/"$Strain"_annotation_stramenopiles.tsv
+# > $OutDir/"$Strain"_annotation_ncbi2.tsv
 done
 ```
 

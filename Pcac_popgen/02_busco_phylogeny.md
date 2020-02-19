@@ -15,14 +15,14 @@ cp -r /data/scratch/armita/idris/gene_pred/busco/P.cactorum/414/assembly/run_414
 Create a list of all BUSCO IDs
 
 ```bash
-cd /home/groups/harrisonlab/project_files/idris
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
 
-# pushd /home/sobczm/bin/BUSCO_v1.22/fungi/hmms
+# pushd /projects/oldhome/sobczm/bin/BUSCO_v1.22/fungi/hmms
 OutDir=analysis/popgen/busco_phylogeny_stramenopiles
 mkdir -p $OutDir
 # BuscoDb="eukaryota_odb9"
 BuscoDb="alveolata_stramenophiles_ensembl"
-ls -1 /home/groups/harrisonlab/dbBusco/$BuscoDb/hmms/*hmm | rev | cut -f1 -d '/' | rev | sed -e 's/.hmm//' > $OutDir/all_buscos_"$BuscoDb".txt
+ls -1 /projects/oldhome/groups/harrisonlab/dbBusco/$BuscoDb/hmms/*hmm | rev | cut -f1 -d '/' | rev | sed -e 's/.hmm//' > $OutDir/all_buscos_"$BuscoDb".txt
 ```
 
 For each busco gene create a folder and move all single copy busco hits from
@@ -81,7 +81,7 @@ Submit alignment for single copy busco genes with a hit in each organism
   AlignDir=analysis/popgen/busco_phylogeny_stramenopiles/alignments
   CurDir=$PWD
   cd $AlignDir
-  ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
+  ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
   qsub $ProgDir/sub_mafft_alignment.sh
   cd $CurDir
 ```
@@ -110,7 +110,7 @@ printf "\n"
 echo $Prefix
 Prefix=$(basename $Alignment | cut -f1 -d '_')
 OutDir=analysis/popgen/busco_phylogeny_stramenopiles/RAxML/$Prefix
-ProgDir=/home/armita/git_repos/emr_repos/tools/seq_tools/phylogenetics
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/tools/seq_tools/phylogenetics
 qsub $ProgDir/sub_RAxML.sh $Alignment $Prefix $OutDir
 done
 ```
@@ -128,16 +128,16 @@ https://github.com/smirarab/ASTRAL/blob/master/astral-tutorial.md#running-with-u
 OutDir=analysis/popgen/busco_phylogeny_stramenopiles/ASTRAL
 mkdir -p $OutDir
 cat analysis/popgen/busco_phylogeny_stramenopiles/RAxML/*/RAxML_bestTree.* > $OutDir/Pcac_phylogeny.appended.tre
-# InTree=$(ls /home/armita/prog/Astral/Astral/test_data/song_primates.424.gene.tre)
+# InTree=$(ls /projects/oldhome/armita/prog/Astral/Astral/test_data/song_primates.424.gene.tre)
 # -
 # Trimm back branches that have less than 10% bootstrap support for each tree
 # in the given file
 # -
-/home/armita/prog/newick_utilities/newick_utils/src/nw_ed $OutDir/Pcac_phylogeny.appended.tre 'i & b<=10' o > $OutDir/Pcac_phylogeny.appended.trimmed.tre
+/projects/oldhome/armita/prog/newick_utilities/newick_utils/src/nw_ed $OutDir/Pcac_phylogeny.appended.tre 'i & b<=10' o > $OutDir/Pcac_phylogeny.appended.trimmed.tre
 # -
 # Calculate combined tree
 # -
-ProgDir=/home/armita/prog/Astral/Astral
+ProgDir=/projects/oldhome/armita/prog/Astral/Astral
 java -Xmx1000M -jar $ProgDir/astral.5.6.1.jar -i $OutDir/Pcac_phylogeny.appended.tre -o $OutDir/Pcac_phylogeny.consensus.tre | tee 2> $OutDir/Pcac_phylogeny.consensus.log
 java -Xmx1000M -jar $ProgDir/astral.5.6.1.jar -q $OutDir/Pcac_phylogeny.consensus.tre -i $OutDir/Pcac_phylogeny.appended.tre -o $OutDir/Pcac_phylogeny.consensus.scored.tre 2> $OutDir/Pcac_phylogeny.consensus.scored.log
 ```
@@ -236,7 +236,7 @@ cd $AlignDir
 
 # pip install dendropy --user
 for Alignment in $(ls *aligned.fasta); do
-ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
 python $ProgDir/calculate_nucleotide_diversity.py $Alignment
 Busco=$(echo $Alignment | cut -f1 -d '_')
 mv sequence_stats.txt "$Busco"_seqeunce_stats.txt
@@ -263,7 +263,7 @@ Copy the relevant trimmed alignment FASTA files into
 ```bash
 cd analysis/popgen/busco_phylogeny_stramenopiles/phylogeny
 
-config_template=/home/sobczm/bin/PartitionFinder1.1.1/partition_finder.cfg
+config_template=/projects/oldhome/sobczm/bin/PartitionFinder1.1.1/partition_finder.cfg
 ct=$(basename "$config_template")
 
 mkdir NEXUS
@@ -286,7 +286,7 @@ sed -i 's,^\(Gene1_pos2 = \).*,\1'"2-$c\\\3;"',' $dir/$ct
 sed -i 's,^\(Gene1_pos3 = \).*,\1'"3-$c\\\3;"',' $dir/$ct
 
 # Convert FASTA to phylip for the Partition Finder run
-ProgDir=/home/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
+ProgDir=/projects/oldhome/armita/git_repos/emr_repos/scripts/popgen/phylogenetics
 $ProgDir/fasta2phylip.pl $f>$p
 mv $p $dir
 
@@ -312,7 +312,7 @@ your local computer
 
 ```bash
 cd Users/armita/Downloads
-scp -r cluster:/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny_stramenopiles/phylogeny .
+scp -r cluster:/projects/oldhome/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny_stramenopiles/phylogeny .
 ```
 
 Alignments were loaded into Geneious where they were visualised and manually sorted into
@@ -349,7 +349,7 @@ analysis
 Upload partition models back to the cluster:
 
 ```bash
-ClusterDir=/home/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny_stramenopiles/phylogeny
+ClusterDir=/projects/oldhome/groups/harrisonlab/project_files/idris/analysis/popgen/busco_phylogeny_stramenopiles/phylogeny
 scp -r bad_alignments cluster:$ClusterDir/.
 ```
 
@@ -371,13 +371,13 @@ StarBeast settings used here:
 * Species Tree Population Size: Linear with constant root
 * Yule prior on species tree
 * Chain length: 300 million (this may vary, change run convergence with Tracer during the run to establish the number of iterations required
-* Tracer: /home/sobczm/bin/beast/Tracer_v1.6/bin/tracer
+* Tracer: /projects/oldhome/sobczm/bin/beast/Tracer_v1.6/bin/tracer
 some runs may never converge)
 * Store every: 10000
 
 ```bash
 
-cd /home/groups/harrisonlab/project_files/idris
+cd /projects/oldhome/groups/harrisonlab/project_files/idris
 
 
 for File in $(ls analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/good_alignments/*_appended_aligned/analysis/best_scheme.txt); do
@@ -402,7 +402,7 @@ done
 # Run Beauti
 NexusFiles=$(ls analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/good_alignments/*_appended_aligned/*.NEXUS | sed -e 's/^/ -nex /g' | tr -d '\n')
 OutFile=$(echo $Nexus | sed 's/.NEXUS/.xml/g')
-ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
+ProgDir=/projects/oldhome/sobczm/bin/beast/BEASTv2.4.2/bin
 $ProgDir/beauti -template StarBeast.xml $NexusFiles
 
 
@@ -412,7 +412,7 @@ qlogin -pe smp 8
 InXML=analysis/popgen/busco_phylogeny_stramenopiles/phylogeny/Pcac_beauti_starBEAST2.xml
 OutDir=$(dirname $InXML)"/BEAST4"
 mkdir -p $OutDir
-ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
+ProgDir=/projects/oldhome/sobczm/bin/beast/BEASTv2.4.2/bin
 $ProgDir/beast -threads 8 -prefix $OutDir $InXML > $OutDir/log.txt
 # java -Djava.library.path="C:\Program Files (x86)\Common Files\libhmsbeagle-1.0" -jar "/BEAST175/lib/beast.jar"
 
@@ -420,12 +420,12 @@ $ProgDir/beast -threads 8 -prefix $OutDir $InXML > $OutDir/log.txt
 for Tree in $(ls $OutDir/*.trees); do
 BurnIn=10 # percentage of states to be considered as burnin
 SumTree=$(echo $Tree | sed 's/.trees/_summary.tree/g')
-ProgDir=/home/sobczm/bin/beast/BEASTv2.4.2/bin
+ProgDir=/projects/oldhome/sobczm/bin/beast/BEASTv2.4.2/bin
 $ProgDir/treeannotator -heights median -burnin $BurnIn $Tree $SumTree
 done
 
 #Visualise and beautify the final tree (suffix "summary") with FigTree
-FigTree=/home/sobczm/bin/FigTree_v1.4.2/bin/figtree
+FigTree=/projects/oldhome/sobczm/bin/FigTree_v1.4.2/bin/figtree
 $FigTree
 
 ```

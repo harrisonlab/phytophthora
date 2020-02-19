@@ -17,7 +17,7 @@ import os
 import argparse
 import re
 import numpy as np
-from sets import Set
+# from sets import Set
 from collections import defaultdict
 from operator import itemgetter
 
@@ -143,6 +143,88 @@ def get_orthogroup_expansion_status(orthogroup_content_dict):
     # print expansion_status
     # exit()
     return(expansion_status)
+
+
+def get_orthogroup_expansion_status3(orthogroup_content_dict):
+    """"""
+    clade_A_isolates = ['Pi_RI1', 'Pi_RI2', 'Pi_RI3']
+    # clade_B_isolates = []
+    clade_C_isolates = ['Pc_CR1', 'Pc_CR2', 'Pc_CR3', 'Pc_CR4', 'Pc_CR5', 'Pc_CR6', 'Pc_CR7', 'Pc_CR8', 'Pc_CR9', 'Pc_CR10', 'Pc_CR11', 'Pc_CR12', 'Pc_CR13','Pc_LR2', 'Pc_MD1', 'Pc_MD2', 'Pc_MD3']
+    clade_D_isolates = ['Pc_LR2', 'Pc_MD1', 'Pc_MD2', 'Pc_MD3']
+    clade_E_isolates = ['Pc_MD1', 'Pc_MD2', 'Pc_MD3']
+    clade_F_isolates = ['Pc_CR1', 'Pc_CR2', 'Pc_CR3', 'Pc_CR4', 'Pc_CR5', 'Pc_CR6', 'Pc_CR7', 'Pc_CR8', 'Pc_CR9', 'Pc_CR10', 'Pc_CR11', 'Pc_CR12', 'Pc_CR13']
+    clade_I_isolates = ['Pc_LR2']
+
+    c_A = []
+    # c_B = []
+    c_C = []
+    c_D = []
+    c_E = []
+    c_F = []
+    c_I = []
+    for x in clade_A_isolates:
+        counts = int(orthogroup_content_dict[x])
+        c_A.append(counts)
+    # for x in clade_B_isolates:
+    #     counts = int(orthogroup_content_dict[x])
+    #     c_B.append(counts)
+    for x in clade_C_isolates:
+        counts = int(orthogroup_content_dict[x])
+        c_C.append(counts)
+    for x in clade_D_isolates:
+        counts = int(orthogroup_content_dict[x])
+        c_D.append(counts)
+    for x in clade_E_isolates:
+        counts = int(orthogroup_content_dict[x])
+        c_E.append(counts)
+    for x in clade_F_isolates:
+        counts = int(orthogroup_content_dict[x])
+        c_F.append(counts)
+    for x in clade_I_isolates:
+        counts = int(orthogroup_content_dict[x])
+        c_I.append(counts)
+
+    if len(c_A) == 0:
+        C_A = [0]
+    # if len(c_B) == 0:
+    #     c_B = [0]
+    if len(c_C) == 0:
+        c_C = [0]
+    if len(c_D) == 0:
+        c_D = [0]
+    if len(c_E) == 0:
+        c_E = [0]
+    if len(c_F) == 0:
+        c_F = [0]
+    if len(c_I) == 0:
+        c_I = [0]
+
+    expansion_status = []
+    # if min(c_A) > max(c_C):
+    #     expansion_status.append('A_gain')
+    # if min(c_C) > max(c_A):
+    #     expansion_status.append('A_loss')
+    if min(c_E) > max(c_A + c_F + c_I):
+        expansion_status.append('B1_gain')
+    if max(c_E) < min(c_A + c_F + c_I):
+        expansion_status.append('B1_loss')
+    if min(c_I) > max(c_A + c_F + c_E):
+        expansion_status.append('B2_gain')
+    if max(c_I) < min(c_A + c_F + c_E):
+        expansion_status.append('B2_loss')
+    if min(c_F) > max(c_A + c_D):
+        expansion_status.append('A_gain')
+    if max(c_F) < min(c_A + c_D):
+        expansion_status.append('A_loss')
+    if min(c_D) > max(c_A + c_F):
+        expansion_status.append('B0_gain')
+    if max(c_D) < min(c_A + c_F):
+        expansion_status.append('B0_loss')
+    if min(c_C) > max(c_A):
+        expansion_status.append('Pc_gain or Pi_loss')
+    if max(c_C) < min(c_A):
+        expansion_status.append('Pc_loss or Pi_gain')
+    return(";".join(expansion_status))
 
 class ConvObj(object):
     """A dictionary of old and current gene names, with methods to aid conversion
@@ -790,7 +872,7 @@ for line in swissprot_lines:
     transcript_id = split_line[0]
     gene_dict[transcript_id].add_swissprot(line)
 
-interpro_set =  Set([])
+interpro_set =  set([])
 interpro_dict = defaultdict(list)
 
 for line in InterPro_lines:
@@ -869,9 +951,10 @@ for line in orthogroup_lines:
             gene_dict[transcript_id].add_orthogroup(orthogroup_id, content_counts, content_str)
     # print orthogroup_id
     expansion_status = get_orthogroup_expansion_status(orthogroup_content_dict)
+    expansion_status3 = get_orthogroup_expansion_status3(orthogroup_content_dict)
     content_str = ",".join(split_line[1:])
     summary = summarise_orthogroup(content_str)
-    orthogroup_dict[orthogroup_id] = "\t".join([summary, expansion_status])
+    orthogroup_dict[orthogroup_id] = "\t".join([summary, expansion_status, expansion_status3])
 
 gene_list = sorted(gene_dict.keys(), key=lambda x:int(x[1:].split('.')[0]))
 
@@ -881,7 +964,7 @@ for transcript_id in gene_list:
     # if expression_dict[gene_id]:
     #     gene_dict[transcript_id].add_expr(expression_dict[gene_id][0])
 
-print "\t".join([
+print("\t".join([
     'transcript_id',
     'contig',
     'start',
@@ -910,11 +993,11 @@ print "\t".join([
     'swissprot',
     'interpro',
     'protein sequence'
-    ])
+    ]))
 
 for transcript_id in gene_list:
     gene_obj = gene_dict[transcript_id]
-    print "\t".join([
+    print("\t".join([
         gene_obj.transcript_id,
         gene_obj.contig,
         gene_obj.start,
@@ -943,4 +1026,4 @@ for transcript_id in gene_list:
         gene_obj.swissprot,
         "|".join(gene_obj.interpro),
         gene_obj.protein_seq
-        ])
+        ]))
