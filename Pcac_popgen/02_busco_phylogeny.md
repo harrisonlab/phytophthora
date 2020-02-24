@@ -152,12 +152,14 @@ The consensus tree was downloaded to my local machine
 * Terminal branch lengths are meanlingless from ASTRAL and should all be set to an arbitrary value. This will be done by geneious (set to 1), but it also introduces a branch length of 2 for one isolate that needs to be corrected with sed
 
 ```bash
-cat Pcac_phylogeny_stramenopiles.consensus.scored.geneious.tre | sed 's/:2/:1/g' > Pcac_phylogeny_stramenopiles.consensus.scored.geneious2.tre
+# cat Pcac_phylogeny_stramenopiles.consensus.scored.geneious.tre | sed 's/:2/:1/g' > Pcac_phylogeny_stramenopiles.consensus.scored.geneious2.tre
+cat /Users/armita/OneDrive\ -\ University\ of\ Greenwich/Armitage/Projects/Phytophthora\ EMR/Pcac_phylogeny.consensus.scored.tre.newick | sed 's/:2/:1/g' > /Users/armita/OneDrive\ -\ University\ of\ Greenwich/Armitage/Projects/Phytophthora\ EMR/Pcac_phylogeny.consensus.scored.tre.geneious_mod.newick
 ```
 
 
 ```r
-setwd("/Users/armita/Downloads/Pc/alignments/ASTRAL")
+# setwd("/Users/armita/Downloads/Pc/alignments/ASTRAL")
+setwd("/Users/armita/OneDrive\ -\ University\ of\ Greenwich/Armitage/Projects/Phytophthora\ EMR")
 #===============================================================================
 #       Load libraries
 #===============================================================================
@@ -168,9 +170,10 @@ library(ggplot2)
 library(ggtree)
 library(phangorn)
 
-tree <- read.tree("Pcac_phylogeny.consensus.scored_geneious2.tre")
+# tree <- read.tree("Pcac_phylogeny.consensus.scored_geneious2.tre")
+tree <- read.tree("Pcac_phylogeny.consensus.scored.tre.geneious_mod.newick")
 
-
+tree$edge.length[tree$edge.length == 1] <- 0
 
 mydata <- read.csv("/Users/armita/Downloads/Pc/alignments/ASTRAL/traits.csv", stringsAsFactors=FALSE)
 rownames(mydata) <- mydata$label
@@ -184,10 +187,10 @@ t <- t + geom_treescale(offset=-0.5, fontsize = 3) # Add scalebar
 t <- t %<+% mydata
 tips <- data.frame(t$data)
 tips$label <- tips$Isolate
-t <- t + geom_tiplab(data=tips, size=3, hjust=0, offset = +0.5)
+t <- t + geom_tiplab(data=tips, size=3, hjust=0, offset = +0.9, align=T, linetype = NULL)
 tips2 <- data.frame(t$data)
 tips2$label <- tips2$Host
-t <- t + geom_tiplab(data=tips2, size=3, hjust=0, offset = +0, fontface = "italic")
+t <- t + geom_tiplab(data=tips2, size=3, hjust=0, offset = +0.5, fontface = "italic", align=T)
 
 # Format nodes by values
 nodes <- data.frame(t$data)
@@ -209,8 +212,8 @@ t <- t + geom_nodelab(data=nodes, size=2, hjust=-0.05) # colours as defined by c
 # t <- t + geom_tiplab(data=tree_mod, aes(label=label), size=2, offset = +1)
 
 # Annotate a clade with a bar line
-t <- t + geom_cladelabel(node=24, label='P. i', align=T, colour='black', offset=+1, fontface = "italic")
-t <- t + geom_cladelabel(node=26, label='P. c', align=T, colour='black', offset=+1, fontface = "italic", fontface = "italic")
+t <- t + geom_cladelabel(node=42, label='P. i', align=T, colour='black', offset=+1.75, fontface = "italic")
+t <- t + geom_cladelabel(node=24, label='P. c', align=T, colour='black', offset=+1.75, fontface = "italic", fontface = "italic")
 
 # Save as PDF and force a 'huge' size plot
 ggsave("Pcac_phylogeny.pdf", width =20, height = 20, units = "cm", limitsize = FALSE)
