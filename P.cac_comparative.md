@@ -4645,7 +4645,7 @@ Pi_RI3 SCRP376
 
 
 ```bash
-for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v -e '415' -e '416' | grep 'R36_14'); do
+for GeneGff in $(ls gene_pred/final_incl_ORF/*/*/final_genes_genes_incl_ORFeffectors_renamed.gff3 | grep -e 'P.cactorum' -e 'P.idaei' | grep -v -e '414' -e '10300' | grep -v -e '415' -e '416'); do
 Strain=$(echo $GeneGff | rev | cut -f2 -d '/' | rev)
 Organism=$(echo $GeneGff | rev | cut -f3 -d '/' | rev)
 OutDir=gene_pred/annotation/$Organism/$Strain
