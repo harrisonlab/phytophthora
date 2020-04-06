@@ -219,7 +219,87 @@ t <- t + geom_cladelabel(node=24, label='P. c', align=T, colour='black', offset=
 ggsave("Pcac_phylogeny.pdf", width =20, height = 20, units = "cm", limitsize = FALSE)
 ````
 
+The tree was also plotted using a matrix to display additional isoalte information.
 
+```r
+
+setwd("/Users/armita/OneDrive\ -\ University\ of\ Greenwich/Armitage/Projects/Phytophthora\ EMR")
+​
+#===============================================================================
+#       Load libraries
+#===============================================================================
+
+library(ape)
+library(ggplot2)
+
+library(ggtree)
+library(phangorn)
+
+#===============================================================================
+#       Import datasets
+#===============================================================================
+
+tree <- read.tree("/Users/armita/Google\ Drive/Pc\ comparative\ genomics/Figures/raw\ trees/Pcac_phylogeny.consensus.scored.tre.newick")
+mydata <- read.csv("/Users/armita/Google\ Drive/Pc\ comparative\ genomics/Figures/raw\ trees/Phytophthora_traits2.csv", stringsAsFactors=FALSE)
+rownames(mydata) <- mydata$label
+​
+## Remove terminal branch lengths
+tree$edge.length[tree$edge.length == 1] <- 0
+tree$edge.length[tree$edge.length == 2] <- 0
+
+
+#===============================================================================
+#       Prepare dataframe to rename isolates
+#===============================================================================
+
+mydata <- mydata[match(tree$tip.label,rownames(mydata)),]
+​
+​
+
+#===============================================================================
+#       Build the tree
+#===============================================================================
+
+# assign tree to variable, core tree
+q <- ggtree(tree)
+​
+# add scalebar
+q <- q + geom_treescale(offset=-0.5, fontsize = 3)
+​
+# Add bootstraps less than 100
+d <- q$data
+d <- d[!d$isTip,]
+d$label <- as.numeric(d$label)
+d <- d[d$label < 100,]
+​
+​
+heatmap<-mydata[c(4,5,7,8,9)]
+​
+​
+# Plot the tree and save to pdf
+q2<- q +  geom_text2(data=d, aes(label=label), size=2.5, adj = -0.2, color="blue")
+​
+# create labels to rename isolates by values in another dataframe
+q <- q %<+% mydata
+tips <- data.frame(q$data)
+tips$label <- tips$Isolate
+​
+q3 <- q2 %<+% mydata + geom_tiplab(data=tips, align=TRUE, linesize=0.5, offset=0.5, aes(fill=factor(Clade)),
+              color="black",
+              geom = "label",
+              label.size = 0)
+
+q4<-gheatmap(q3, heatmap, width=0.15, offset=1, font.size=3.5, colnames_angle=90, colnames_position='top',colnames_offset_y=1)  +
+scale_fill_manual("",values=c('1'='#e9e2d0','2'='#dedede','Fragaria (crown)'='#440154FF','Fragaria (fruit)'='#443983','Malus'='#238A8DFF','Rubus'='#FDE725FF','Fagus'='#55C667FF','USA'='#0D0887','UK'='#7E03A7','Netherlands'='#CC4678','Norway'='#F1701F','Sweden'='#FEB131','Present'='#2b2a2a','Absent'='#fbf9fa','Premature stop codon'='#5c636e','More than a premature stop codon'='grey'),
+  breaks=c('Fragaria (crown)','Fragaria (fruit)','Malus','Fagus','Rubus','UK','USA','Netherlands','Norway','Sweden','Present','Absent','Premature stop codon','More than a premature stop codon'),
+  labels=c(bquote(italic('Fragaria')~'x'~italic('ananassa')~'(crown)'),bquote(italic('Fragaria')~'x'~italic('ananassa')~'(fruit)'),bquote(italic('Malus')~'x'~italic('domestica')),bquote(italic('Fagus sylvatica')),bquote(italic('Rubus idaeus')),bquote('U.K.'),bquote('U.S.A.'),bquote('Netherlands'),bquote('Norway'),bquote('Sweden'),bquote('Present'),bquote('Absent'),bquote('Single SNP, premature stop codon'),bquote('Multiple variations, premature stop codon')))+ #bquote, left hand justified
+  theme(legend.position="bottom", legend.title=element_blank()) + guides(colour=FALSE)
+pdf(file = "/Users/armita/Google\ Drive/Pc\ comparative\ genomics/Figures/raw\ trees/Phytophthora_tree.pdf",width=9,height=10)
+q4
+dev.off()
+​
+
+```
 
 
 
